@@ -1,0 +1,18 @@
+\BOOKMARK [0][-]{chapter.1}{Project Module documentation}{}% 1
+\BOOKMARK [1][-]{section.1.1}{Project class}{chapter.1}% 2
+\BOOKMARK [0][-]{chapter.2}{Replicas Module documentation}{}% 3
+\BOOKMARK [1][-]{section.2.1}{Aid to developers}{chapter.2}% 4
+\BOOKMARK [1][-]{section.2.2}{Replica class}{chapter.2}% 5
+\BOOKMARK [1][-]{section.2.3}{Examples}{chapter.2}% 6
+\BOOKMARK [0][-]{chapter.3}{Solvents Module documentation}{}% 7
+\BOOKMARK [1][-]{section.3.1}{Instantiating and working with Solvent objects}{chapter.3}% 8
+\BOOKMARK [1][-]{section.3.2}{Adding new solvents to databases}{chapter.3}% 9
+\BOOKMARK [1][-]{section.3.3}{Solvent class}{chapter.3}% 10
+\BOOKMARK [1][-]{section.3.4}{SolventManager class}{chapter.3}% 11
+\BOOKMARK [0][-]{chapter.4}{Containers Module documentation}{}% 12
+\BOOKMARK [0][-]{chapter.5}{Object File Management Module documentation}{}% 13
+\BOOKMARK [0][-]{chapter.6}{Setting General Options and Attributes through Configuration files}{}% 14
+\BOOKMARK [1][-]{section.6.1}{General configuration}{chapter.6}% 15
+\BOOKMARK [1][-]{section.6.2}{Replica configuration}{chapter.6}% 16
+\BOOKMARK [0][-]{chapter.7}{Indices and tables}{}% 17
+\BOOKMARK [0][-]{section*.100}{Python Module Index}{}% 18

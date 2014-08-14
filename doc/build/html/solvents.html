@@ -1,0 +1,479 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Solvents Module documentation &mdash; pyMDMix 0.1.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyMDMix 0.1.1 documentation" href="index.html" />
+    <link rel="next" title="Containers Module documentation" href="containers.html" />
+    <link rel="prev" title="Replicas Module documentation" href="replicas.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="containers.html" title="Containers Module documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="replicas.html" title="Replicas Module documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pyMDMix.Solvents">
+<span id="solvents-module-documentation"></span><h1>Solvents Module documentation<a class="headerlink" href="#module-pyMDMix.Solvents" title="Permalink to this headline">¶</a></h1>
+<p>This module provides main <a class="reference internal" href="#pyMDMix.Solvents.Solvent" title="pyMDMix.Solvents.Solvent"><tt class="xref py py-class docutils literal"><span class="pre">Solvent</span></tt></a> object class and
+a <a class="reference internal" href="#pyMDMix.Solvents.SolventManager" title="pyMDMix.Solvents.SolventManager"><tt class="xref py py-class docutils literal"><span class="pre">SolventManager</span></tt></a> class to create/remove solvents
+from the solvent database.</p>
+<p>The easiest way to create a new solvent is through a configuration file
+where all parameters can be assigned.</p>
+<p>Second way is to instantiate the solvent directly giving all required
+parameters to the constructor method.</p>
+<div class="section" id="instantiating-and-working-with-solvent-objects">
+<h2>Instantiating and working with Solvent objects<a class="headerlink" href="#instantiating-and-working-with-solvent-objects" title="Permalink to this headline">¶</a></h2>
+<p>Solvent objects might be instantiated giving all required parameters to the constructor.
+Here I exemplify it&#8217;s usage and basic attributes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyMDMix.tools</span> <span class="kn">as</span> <span class="nn">T</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyMDMix.Solvents</span> <span class="kn">as</span> <span class="nn">S</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">off_file</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">testRoot</span><span class="p">(</span><span class="s">&#39;ETAWAT20.off&#39;</span><span class="p">)</span>   <span class="c"># Amber object file with box unit</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;ETA&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probesmap</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;OH&#39;</span><span class="p">:</span><span class="s">&#39;ETA@O1&#39;</span><span class="p">,</span> <span class="s">&#39;CT&#39;</span><span class="p">:</span><span class="s">&#39;ETA@C2&#39;</span><span class="p">}</span>   <span class="c"># Will link probe name OH with residue name ETA atom name O1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">typesmap</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;OH&#39;</span><span class="p">:</span><span class="s">&#39;Don,Acc&#39;</span><span class="p">,</span> <span class="s">&#39;CT&#39;</span><span class="p">:</span><span class="s">&#39;Hyd&#39;</span><span class="p">}</span>     <span class="c"># Link probe OH with types Donor and Acceptor. Link CT with hydrophobic. Names are arbitrary.</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">boxunit</span> <span class="o">=</span> <span class="s">&#39;ETAWAT20&#39;</span> <span class="c"># As named inside the off file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">info</span> <span class="o">=</span> <span class="s">&#39;Test direct instantiation of a Solvent object&#39;</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Create instance</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">solv</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Solvent</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">off</span><span class="o">=</span><span class="n">off_file</span><span class="p">,</span> <span class="n">probesmap</span><span class="o">=</span><span class="n">probesmap</span><span class="p">,</span> <span class="n">typesmap</span><span class="o">=</span><span class="n">typesmap</span><span class="p">,</span> <span class="n">boxunit</span><span class="o">=</span><span class="n">boxunit</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">solv</span>
+<span class="go">SOLVENT: ETA</span>
+<span class="go">INFO: Test direct instantiation of a Solvent object</span>
+<span class="go">BOXUNIT: ETAWAT20</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">solv</span><span class="o">.</span><span class="n">probes</span> <span class="c"># print configured probes</span>
+<span class="go">[CT, OH]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">solv</span><span class="o">.</span><span class="n">types</span>  <span class="c"># set object</span>
+<span class="go">set([&#39;Acc&#39;, &#39;Don&#39;, &#39;Hyd&#39;])</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Calculate the probability of finding atom O1 of residue ETA in a grid voxel of 0.5x0.5x0.5 Angstroms</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">solv</span><span class="o">.</span><span class="n">getProbability</span><span class="p">(</span><span class="s">&#39;ETA&#39;</span><span class="p">,</span><span class="s">&#39;O1&#39;</span><span class="p">,</span><span class="n">voxel</span><span class="o">=</span><span class="mf">0.5</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">0.0005320194076762995</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="adding-new-solvents-to-databases">
+<h2>Adding new solvents to databases<a class="headerlink" href="#adding-new-solvents-to-databases" title="Permalink to this headline">¶</a></h2>
+<p>The Solvent object must be configured using <a class="reference internal" href="#pyMDMix.Solvents.SolventManager.createSolvent" title="pyMDMix.Solvents.SolventManager.createSolvent"><tt class="xref py py-meth docutils literal"><span class="pre">SolventManager.createSolvent()</span></tt></a>
+method giving a configuration file as argument.
+Here is an exaple of valid configuraiton file with all available options commented:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>GENERAL<span class="o">]</span>
+<span class="c"># name to identify the mixture (ex: ION)</span>
+<span class="nv">name</span> <span class="o">=</span> ETA 
+<span class="c"># Any string to describe the box</span>
+<span class="nv">info</span> <span class="o">=</span> Ethanol 20%% mixture
+<span class="c"># path to off file containing the leap units</span>
+<span class="c"># It should contain all parameters </span>
+<span class="nv">objectfile</span> <span class="o">=</span> ETAWAT20.off 
+<span class="c"># If the box contains waters, the name of the model (TIP3P, TIP4P, SCP..)</span>
+<span class="nv">watermodel</span> <span class="o">=</span> TIP3P
+<span class="c"># Name of the Leap box unit in object file(ex: IONWAT20)</span>
+<span class="nv">boxunit</span> <span class="o">=</span> ETAWAT20
+
+<span class="o">[</span>PROBES<span class="o">]</span>
+<span class="c"># OPTIONAL SECTION</span>
+<span class="c"># map probe names with residue@atoms (ie. NEG=COO@O1,O2)</span>
+<span class="c"># probe names must be unique</span>
+<span class="nv">WAT</span><span class="o">=</span>WAT@O
+<span class="nv">CT</span><span class="o">=</span>ETA@C1
+<span class="nv">OH</span><span class="o">=</span>ETA@O1
+
+<span class="o">[</span>TYPES<span class="o">]</span>
+<span class="c"># OPTIONAL </span>
+<span class="c"># Assign chemical types to the probes in previous section</span>
+<span class="c"># Example: OH=Donor,Acceptor</span>
+<span class="nv">OH</span><span class="o">=</span>Don,Acc
+<span class="nv">CT</span><span class="o">=</span>Hyd
+<span class="nv">WAT</span><span class="o">=</span>Wat
+</pre></div>
+</div>
+</div></blockquote>
+<p>Configuring and adding a new solvent into the default database:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tools</span> <span class="kn">as</span> <span class="nn">T</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">Solvents</span> <span class="kn">import</span> <span class="n">SolventManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SM</span> <span class="o">=</span> <span class="n">SolventManager</span><span class="p">()</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Read configuration and create object.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Object file path in the configuration file must be correct or</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># errors will arise</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">configfile</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">testRoot</span><span class="p">(</span><span class="s">&#39;solvent_template.cfg&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">configfile</span>
+<span class="go">/Users/dalvarez/Dropbox/WORK/pyMDMix/pyMDMix/data/test/solvent_template.cfg</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">newsolvent</span> <span class="o">=</span> <span class="n">SM</span><span class="o">.</span><span class="n">createSolvent</span><span class="p">(</span><span class="n">configfile</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">newsolvent</span>
+<span class="go">SOLVENT: ETA</span>
+<span class="go">INFO: Ethanol 20% mixture</span>
+<span class="go">BOXUNIT: ETAWAT20</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Add to the database</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SM</span><span class="o">.</span><span class="n">saveSolvent</span><span class="p">(</span><span class="n">newsolvent</span><span class="p">)</span>
+<span class="go">ETA saved to database /Users/dalvarez/Dropbox/WORK/pyMDMix/pyMDMix/data/solventlib/SOLVENTS.db</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SM</span><span class="o">.</span><span class="n">listSolvents</span><span class="p">()</span>
+<span class="go">[&#39;PYZ&#39;, &#39;ISX&#39;, &#39;TFE&#39;, &#39;CLE&#39;, &#39;MSU&#39;, &#39;IMZ&#39;, &#39;ANT&#39;, &#39;ION&#39;, &#39;ETA&#39;, &#39;MOH&#39;, &#39;ISO5&#39;, &#39;ETAA&#39;, &#39;ISO&#39;, &#39;WAT&#39;, &#39;COM&#39;, &#39;PYR&#39;, &#39;MAM&#39;]</span>
+</pre></div>
+</div>
+<p>Configure and save object in a specific, empty database:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># This action will copy all solvents in the default db to the new db and add the new solvent</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">customdb</span> <span class="o">=</span> <span class="s">&#39;mycustomdb.db&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SM</span><span class="o">.</span><span class="n">saveSolvent</span><span class="p">(</span><span class="n">newsolvent</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="n">customdb</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SM</span><span class="o">.</span><span class="n">listSolvents</span><span class="p">(</span><span class="n">customdb</span><span class="p">)</span>
+<span class="go">[&#39;PYZ&#39;, &#39;ISX&#39;, &#39;TFE&#39;, &#39;CLE&#39;, &#39;MSU&#39;, &#39;IMZ&#39;, &#39;ANT&#39;, &#39;ION&#39;, &#39;ETA&#39;, &#39;MOH&#39;, &#39;ISO5&#39;, &#39;ETAA&#39;, &#39;ISO&#39;, &#39;WAT&#39;, &#39;COM&#39;, &#39;PYR&#39;, &#39;MAM&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Optionally, an empty database can be created and only add the new solvent</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SM</span><span class="o">.</span><span class="n">saveSolvent</span><span class="p">(</span><span class="n">newsolvent</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s">&#39;otherdb.db&#39;</span><span class="p">,</span> <span class="n">createEmpty</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SM</span><span class="o">.</span><span class="n">printSolvents</span><span class="p">(</span><span class="s">&#39;otherdb.db&#39;</span><span class="p">)</span>
+<span class="go">[&#39;ETA&#39;]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="solvent-class">
+<h2>Solvent class<a class="headerlink" href="#solvent-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyMDMix.Solvents.Solvent">
+<em class="property">class </em><tt class="descclassname">pyMDMix.Solvents.</tt><tt class="descname">Solvent</tt><big>(</big><em>name</em>, <em>info</em>, <em>offpath</em>, <em>boxunit</em>, <em>probesmap</em>, <em>typesmap</em>, <em>frcmodpaths=</em>, <span class="optional">[</span><span class="optional">]</span><em>watermodel='TIP3P'</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.Solvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solvent class for storing information on solvent mixtures for simulations</p>
+<dl class="method">
+<dt id="pyMDMix.Solvents.Solvent.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>name</em>, <em>info</em>, <em>offpath</em>, <em>boxunit</em>, <em>probesmap</em>, <em>typesmap</em>, <em>frcmodpaths=</em>, <span class="optional">[</span><span class="optional">]</span><em>watermodel='TIP3P'</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.Solvent.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor of a Solvent object.
+It expects some mandatory fields and some optional extra fields that can be assigned through kwargs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<em>str</em>) &#8211; Name identifying the current solvent mixture.</li>
+<li><strong>info</strong> (<em>str</em>) &#8211; Some string describing the solvent mixture. Will be used for printing the solvent.</li>
+<li><strong>off</strong> (<em>str</em>) &#8211; Filename that must exist. Will be used to fetch all information about the mixture and
+also to later solvate the systems for simulation. Make sure this file is correct and the units
+correctly working when setting up systems with it.</li>
+<li><strong>boxunit</strong> (<em>str</em>) &#8211; String specifying the name of the Leap unit containing the mixture inside the objectfile. Mandatory, specially important when more than 1 units are saved inside same object file.</li>
+<li><strong>probesmap</strong> (<em>dict</em>) &#8211; Map probe names to residues and atom names in the solvent box. Check documentation at the website or the documents for more information.</li>
+<li><strong>typesmap</strong> (<em>dict</em>) &#8211; Dictionary mapping chemical types to the probes in <em>probesmap</em>.</li>
+<li><strong>watermodel</strong> (<em>str</em>) &#8211; If the solvent box contains waters, specify the water model used. Example; TIP3P, TIP4P... By default, it will be assigned to <tt class="xref py py-attr docutils literal"><span class="pre">S.DEF_WATER_BOX</span></tt></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Keywords:</th><td class="field-body"><p class="first last">key=value pairs that will be set as Solvent attributes. Useful for adding extra information in the solvent instance for easy access from custom functions.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>probemap</em> and <em>typesmap</em> Examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">probemap</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;OH&#39;</span><span class="p">:</span><span class="s">&#39;ETA@O1&#39;</span><span class="p">}</span> <span class="c"># Identify atom O1 of residue ETA as probe OH.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">typesmap</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;OH&#39;</span><span class="p">:</span><span class="s">&#39;Don,Acc&#39;</span><span class="p">}</span> <span class="c"># Assign probe OH the chemical types Don and Acc (for Donor and Acceptor).</span>
+</pre></div>
+</div>
+<p><em>kwargs</em> assignment example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">solvent</span> <span class="o">=</span> <span class="n">Solvent</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;mysolvent&#39;</span><span class="p">,</span><span class="n">info</span><span class="o">=</span><span class="s">&#39;custom solvent&#39;</span><span class="p">,</span><span class="n">off</span><span class="o">=</span><span class="s">&#39;path/to/objectfile.off&#39;</span><span class="p">,</span><span class="o">...</span><span class="p">,</span> <span class="n">myspecialattr</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">solvent</span><span class="o">.</span><span class="n">myspecialattr</span>
+<span class="go">300</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.Solvent.getProbability">
+<tt class="descname">getProbability</tt><big>(</big><em>res</em>, <em>atoms</em>, <em>voxel=None</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.Solvent.getProbability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain expected probability for all the atoms to fall into the voxel volume.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>res</strong> (<em>str</em>) &#8211; Residue name.</li>
+<li><strong>atoms</strong> (<em>list</em>) &#8211; Atom name list</li>
+<li><strong>voxel</strong> (<em>float</em>) &#8211; Volume of the voxel.
+If not given, it is automatically calculated from defaults.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Probability of finding any of the atoms in a voxel.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.Solvent.getProbeByName">
+<tt class="descname">getProbeByName</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.Solvent.getProbeByName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <a class="reference internal" href="containers.html#pyMDMix.containers.Probe" title="pyMDMix.containers.Probe"><tt class="xref py py-class docutils literal"><span class="pre">Probe</span></tt></a> instance with name <em>name</em>. <strong>False</strong> otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.Solvent.getProbeProbability">
+<tt class="descname">getProbeProbability</tt><big>(</big><em>probename</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.Solvent.getProbeProbability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return probe probability</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.Solvent.getProbesByType">
+<tt class="descname">getProbesByType</tt><big>(</big><em>type</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.Solvent.getProbesByType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of <a class="reference internal" href="containers.html#pyMDMix.containers.Probe" title="pyMDMix.containers.Probe"><tt class="xref py py-class docutils literal"><span class="pre">Probe</span></tt></a> instances that match type <em>type</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.Solvent.getResidue">
+<tt class="descname">getResidue</tt><big>(</big><em>resname</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.Solvent.getResidue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <a class="reference internal" href="containers.html#pyMDMix.containers.Residue" title="pyMDMix.containers.Residue"><tt class="xref py py-class docutils literal"><span class="pre">Residue</span></tt></a> object with name <em>resname</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.Solvent.isIonic">
+<tt class="descname">isIonic</tt><big>(</big><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.Solvent.isIonic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check wether the solvent box contains charged residues</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.Solvent.writeOff">
+<tt class="descname">writeOff</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.Solvent.writeOff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write object file of current solvent to filname <em>name</em></p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="solventmanager-class">
+<h2>SolventManager class<a class="headerlink" href="#solventmanager-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyMDMix.Solvents.SolventManager">
+<em class="property">class </em><tt class="descclassname">pyMDMix.Solvents.</tt><tt class="descname">SolventManager</tt><a class="headerlink" href="#pyMDMix.Solvents.SolventManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to manage solvent creation/removal and database manipulation</p>
+<dl class="method">
+<dt id="pyMDMix.Solvents.SolventManager.createSolvent">
+<tt class="descname">createSolvent</tt><big>(</big><em>configfile</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.SolventManager.createSolvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Solvent isntance from the information in <em>configfile</em> configuration file.
+Examples of this file are available at template folder <tt class="xref py py-func docutils literal"><span class="pre">T.templatesRoot()</span></tt></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>configfile</strong> (<em>str</em>) &#8211; Filename with solvent configuration file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return solvent:</th><td class="field-body">Return a Solvent object configured.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#pyMDMix.Solvents.Solvent" title="pyMDMix.Solvents.Solvent"><tt class="xref py py-class docutils literal"><span class="pre">Solvent</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.SolventManager.getDatabase">
+<tt class="descname">getDatabase</tt><big>(</big><em>db=None</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.SolventManager.getDatabase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open the database / unpickle it.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.SolventManager.getSolvent">
+<tt class="descname">getSolvent</tt><big>(</big><em>name</em>, <em>db=None</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.SolventManager.getSolvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch solvent from the database by name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<em>str</em>) &#8211; Solvent name.</li>
+<li><strong>db</strong> (<em>str</em>) &#8211; Database path. If None, automatically detect.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first">Solvent object from the database</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#pyMDMix.Solvents.Solvent" title="pyMDMix.Solvents.Solvent"><tt class="xref py py-class docutils literal"><span class="pre">Solvent</span></tt></a> instance or False if not found.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.SolventManager.listSolvents">
+<tt class="descname">listSolvents</tt><big>(</big><em>db=None</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.SolventManager.listSolvents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch solvent names from the database.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>db</strong> (<em>str</em>) &#8211; Database path. If None, automatically detect.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body">Name list</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.SolventManager.printSolvents">
+<tt class="descname">printSolvents</tt><big>(</big><em>db=None</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.SolventManager.printSolvents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like list solvents but will print to screen information about the solvents.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.SolventManager.removeSolvent">
+<tt class="descname">removeSolvent</tt><big>(</big><em>solvName</em>, <em>db=None</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.SolventManager.removeSolvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove solvent from database
+Same as saveSolvent, <tt class="xref py py-attr docutils literal"><span class="pre">db</span></tt> will be chosen automatically if None.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>solvName</strong> (<em>str</em>) &#8211; Solvent name.</li>
+<li><strong>db</strong> (<em>str</em>) &#8211; Database path. If None, automatically detect.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises SolventManagerError:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first last">if <em>db</em> does not contain <em>solvName</em>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.SolventManager.saveSolvent">
+<tt class="descname">saveSolvent</tt><big>(</big><em>solvent</em>, <em>db=None</em>, <em>createEmpty=False</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.SolventManager.saveSolvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a Solvent isntance in the database <tt class="xref py py-attr docutils literal"><span class="pre">db</span></tt> or default DB locations.
+Selection of database is done in <tt class="xref py py-meth docutils literal"><span class="pre">self.__getDatabase()</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>solvent</strong> (<a class="reference internal" href="#pyMDMix.Solvents.Solvent" title="pyMDMix.Solvents.Solvent"><tt class="xref py py-class docutils literal"><span class="pre">Solvent</span></tt></a>) &#8211; Solvent object to save.</li>
+<li><strong>db</strong> (<em>str</em>) &#8211; Database where to save the solvent.
+If None, default ones will be used (package DB if
+the user can write there, or user DB otherwise).</li>
+<li><strong>createEmpty</strong> (<em>bool</em>) &#8211; If new database, create empty.
+If False, copy data from package DB to the new DB.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Solvents Module documentation</a><ul>
+<li><a class="reference internal" href="#instantiating-and-working-with-solvent-objects">Instantiating and working with Solvent objects</a></li>
+<li><a class="reference internal" href="#adding-new-solvents-to-databases">Adding new solvents to databases</a></li>
+<li><a class="reference internal" href="#solvent-class">Solvent class</a></li>
+<li><a class="reference internal" href="#solventmanager-class">SolventManager class</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="replicas.html"
+                        title="previous chapter">Replicas Module documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="containers.html"
+                        title="next chapter">Containers Module documentation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/solvents.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="containers.html" title="Containers Module documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="replicas.html" title="Replicas Module documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Daniel Alvarez-Garcia.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

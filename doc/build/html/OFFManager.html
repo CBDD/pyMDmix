@@ -1,0 +1,375 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Object File Management Module documentation &mdash; pyMDMix 0.1.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyMDMix 0.1.1 documentation" href="index.html" />
+    <link rel="next" title="Setting General Options and Attributes through Configuration files" href="settings.html" />
+    <link rel="prev" title="Containers Module documentation" href="containers.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="settings.html" title="Setting General Options and Attributes through Configuration files"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="containers.html" title="Containers Module documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pyMDMix.OFFManager">
+<span id="object-file-management-module-documentation"></span><h1>Object File Management Module documentation<a class="headerlink" href="#module-pyMDMix.OFFManager" title="Permalink to this headline">¶</a></h1>
+<p>This module provides a reader for Amber OFF file format.</p>
+<dl class="docutils">
+<dt>Example::</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os.path</span> <span class="kn">as</span> <span class="nn">osp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyMDMix.tools</span> <span class="kn">as</span> <span class="nn">T</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyMDMix.OFFManager</span> <span class="kn">as</span> <span class="nn">O</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f_in</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">testRoot</span><span class="p">(),</span> <span class="s">&#39;ETAWAT20.off&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">O</span><span class="o">.</span><span class="n">OFFManager</span><span class="p">(</span><span class="n">offFile</span><span class="o">=</span><span class="n">f_in</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">m</span><span class="o">.</span><span class="n">getUnits</span><span class="p">()</span> <span class="c"># Get unit names present in the OFF file</span>
+<span class="go">[&#39;ETA&#39;,&#39;ETAWAT20&#39;,&#39;WAT&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">m</span><span class="o">.</span><span class="n">getResidueList</span><span class="p">(</span><span class="s">&#39;ETAWAT20&#39;</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c"># Get residues inside unit &#39;ETAWAT20&#39;</span>
+<span class="go">[&#39;WAT&#39;,&#39;ETA&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">m</span><span class="o">.</span><span class="n">getVolume</span><span class="p">(</span><span class="s">&#39;ETAWAT20&#39;</span><span class="p">)</span> <span class="c"># Volume of the box</span>
+<span class="go">7988.43038</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">m</span><span class="o">.</span><span class="n">getNumRes</span><span class="p">(</span><span class="s">&#39;ETAWAT20&#39;</span><span class="p">,</span> <span class="s">&#39;ETA&#39;</span><span class="p">)</span> <span class="c"># Number of &#39;ETA&#39; residues inside &#39;ETAWAT20&#39; unit.</span>
+<span class="go">17</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="class">
+<dt id="pyMDMix.OFFManager.OFFManager">
+<em class="property">class </em><tt class="descclassname">pyMDMix.OFFManager.</tt><tt class="descname">OFFManager</tt><big>(</big><em>offFile=None</em>, <em>offString=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manage Amber OFF file types. Only for reading.</p>
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.cleanTmp">
+<tt class="descname">cleanTmp</tt><big>(</big><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.cleanTmp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove temporary file if created with <a class="reference internal" href="#pyMDMix.OFFManager.OFFManager.writeTmp" title="pyMDMix.OFFManager.OFFManager.writeTmp"><tt class="xref py py-meth docutils literal"><span class="pre">writeTmp()</span></tt></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.getAtoms">
+<tt class="descname">getAtoms</tt><big>(</big><em>unit</em>, <em>skipH=False</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.getAtoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch atomic information for the unit selected.
+Will return a dictionary with atom names and types.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>unit</strong> (<em>str</em>) &#8211; Unit to search.</li>
+<li><strong>skipH</strong> (<em>bool</em>) &#8211; If atom is Hydrogen, skip it.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List of <a class="reference internal" href="containers.html#pyMDMix.containers.Atom" title="pyMDMix.containers.Atom"><tt class="xref py py-class docutils literal"><span class="pre">Atom</span></tt></a> instances containing id, name, atomtype, element and charge information.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.getBoxDimensions">
+<tt class="descname">getBoxDimensions</tt><big>(</big><em>unit</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.getBoxDimensions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get box dimension information from the object file for <tt class="xref py py-attr docutils literal"><span class="pre">self.boxunit</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.getConnectivity">
+<tt class="descname">getConnectivity</tt><big>(</big><em>unit</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.getConnectivity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch connectivity table for unit selected.
+This is section !entry.UNIT.unit.connectivity in off file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>unit</strong> (<em>str</em>) &#8211; Unit name</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List with bonded pair indexes verbosely. Example: ((1,2),(1,3),(3,1),(2,1)...)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.getCoords">
+<tt class="descname">getCoords</tt><big>(</big><em>unit</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.getCoords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch positions information for unit selected.
+This is section !entry.UNIT.unit.positions in off file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>unit</strong> (<em>str</em>) &#8211; Unit name</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Coordinates of unit atoms.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></tt> of floats with size <em>Nx3</em></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.getNumRes">
+<tt class="descname">getNumRes</tt><big>(</big><em>unit</em>, <em>residue</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.getNumRes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count the number of residues with name <em>residue</em> inside unit <em>unit</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.getResidue">
+<tt class="descname">getResidue</tt><big>(</big><em>res</em>, <em>skipH=False</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.getResidue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch residue in off and return a <a class="reference internal" href="containers.html#pyMDMix.containers.Residue" title="pyMDMix.containers.Residue"><tt class="xref py py-class docutils literal"><span class="pre">Residue</span></tt></a> instance
+aontaining also atomic information.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>unit</strong> (<em>str</em>) &#8211; Residue name which should correspond to a valid unit in off file.</li>
+<li><strong>skipH</strong> (<em>bool</em>) &#8211; Skip hydrogen atom information. Default:False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Residue instance info.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="containers.html#pyMDMix.containers.Residue" title="pyMDMix.containers.Residue"><tt class="xref py py-class docutils literal"><span class="pre">Residue</span></tt></a> or <strong>False</strong> if unit not found.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.getResidueList">
+<tt class="descname">getResidueList</tt><big>(</big><em>unit</em>, <em>unique=True</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.getResidueList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of residue names for the <em>unit</em> chosen.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>unit</strong> (<em>str</em>) &#8211; Unitname to search.</li>
+<li><strong>unique</strong> (<em>bool</em>) &#8211; If True, return a list with unique names. If False, the complete list of names will
+be returned.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List with residuenames inside unit <em>unit</em>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.getUnits">
+<tt class="descname">getUnits</tt><big>(</big><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.getUnits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of units int he object file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.getVolume">
+<tt class="descname">getVolume</tt><big>(</big><em>unit</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.getVolume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get volume information from the object file for <tt class="xref py py-attr docutils literal"><span class="pre">self.boxunit</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.hasUnit">
+<tt class="descname">hasUnit</tt><big>(</big><em>unitname</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.hasUnit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if the OFF file has the unit with name &#8216;unitname&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.isParameter">
+<tt class="descname">isParameter</tt><big>(</big><em>unit</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.isParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if unit <em>unit</em> is a parameter unit inside OFF.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>unit</strong> (<em>str</em>) &#8211; Name of the unit</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if its a parameter unit. False otherwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.readOffSection">
+<tt class="descname">readOffSection</tt><big>(</big><em>unit</em>, <em>section</em>, <em>with_header=False</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.readOffSection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the object file and read a whole section for the unit selected.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>unit</strong> (<em>str</em>) &#8211; Unit name to search.</li>
+<li><strong>section</strong> (<em>str</em>) &#8211; OFF file section name. Example: <em>residues</em> section will correspond to &#8221;!entry.UNITNAME.unit.residues ..&#8221;  part of the file.</li>
+<li><strong>with_header</strong> (<em>bool</em>) &#8211; If True, return output with heading line of the section.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Content of the section unitl next &#8216;!entry&#8217; is found. Returned with our without the heading line depending
+on the value of <em>with_header</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list of strings</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.write">
+<tt class="descname">write</tt><big>(</big><em>outname</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write OFF content to disk file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>outname</strong> (<em>str</em>) &#8211; File name to store the Object File.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Absolute path to the file.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.OFFManager.OFFManager.writeTmp">
+<tt class="descname">writeTmp</tt><big>(</big><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.OFFManager.writeTmp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write OFF content to temprorary disk file.
+Filepath is also stored in <tt class="xref py py-attr docutils literal"><span class="pre">tempfile</span></tt></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Absolute path to the file.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyMDMix.OFFManager.Test">
+<em class="property">class </em><tt class="descclassname">pyMDMix.OFFManager.</tt><tt class="descname">Test</tt><big>(</big><em>methodName='runTest'</em><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.Test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test</p>
+<dl class="method">
+<dt id="pyMDMix.OFFManager.Test.test_OFFManager">
+<tt class="descname">test_OFFManager</tt><big>(</big><big>)</big><a class="headerlink" href="#pyMDMix.OFFManager.Test.test_OFFManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>OFFManager test</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="containers.html"
+                        title="previous chapter">Containers Module documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="settings.html"
+                        title="next chapter">Setting General Options and Attributes through Configuration files</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/OFFManager.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="settings.html" title="Setting General Options and Attributes through Configuration files"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="containers.html" title="Containers Module documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Daniel Alvarez-Garcia.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

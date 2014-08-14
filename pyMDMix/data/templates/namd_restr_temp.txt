@@ -1,0 +1,6 @@
+# RESTRAINTS
+constraints     on
+consexp         2 
+consref         ../restrains.pdb
+conskfile       ../restrains.pdb
+conskcol        B

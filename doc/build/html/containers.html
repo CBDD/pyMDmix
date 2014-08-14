@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Containers Module documentation &mdash; pyMDMix 0.1.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyMDMix 0.1.1 documentation" href="index.html" />
+    <link rel="next" title="Object File Management Module documentation" href="OFFManager.html" />
+    <link rel="prev" title="Solvents Module documentation" href="solvents.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="OFFManager.html" title="Object File Management Module documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="solvents.html" title="Solvents Module documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pyMDMix.containers">
+<span id="containers-module-documentation"></span><h1>Containers Module documentation<a class="headerlink" href="#module-pyMDMix.containers" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pyMDMix.containers.Atom">
+<em class="property">class </em><tt class="descclassname">pyMDMix.containers.</tt><tt class="descname">Atom</tt><big>(</big><em>id</em>, <em>name</em>, <em>type</em>, <em>element</em>, <em>charge</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyMDMix.containers.Atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple container for atomic information gathered in the OFF file: name, type, element, charge</p>
+<dl class="attribute">
+<dt id="pyMDMix.containers.Atom.charge">
+<tt class="descname">charge</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Atom.charge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Partial charge</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Atom.element">
+<tt class="descname">element</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Atom.element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Element. Integer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Atom.id">
+<tt class="descname">id</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Atom.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integer. Atom ID.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Atom.name">
+<tt class="descname">name</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Atom.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Atom name</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Atom.type">
+<tt class="descname">type</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Atom.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Atom AMBER TYPE</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyMDMix.containers.Probe">
+<em class="property">class </em><tt class="descclassname">pyMDMix.containers.</tt><tt class="descname">Probe</tt><big>(</big><em>name</em>, <em>residue</em>, <em>atoms</em>, <em>type</em>, <em>probability</em><big>)</big><a class="headerlink" href="#pyMDMix.containers.Probe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Container for probe information. This object will store information about a particular probe linking
+atom names, residues and chemical types with probabilities. Will also contain a mask for the residue.</p>
+<dl class="attribute">
+<dt id="pyMDMix.containers.Probe.atoms">
+<tt class="descname">atoms</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Probe.atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Atom name list</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Probe.name">
+<tt class="descname">name</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Probe.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the probe as given in <tt class="xref py py-attr docutils literal"><span class="pre">Solvent.probesmap</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Probe.p">
+<tt class="descname">p</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Probe.p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Probability of probe to be found in grid voxel volume</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Probe.residue">
+<tt class="descname">residue</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Probe.residue" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#pyMDMix.containers.Residue" title="pyMDMix.containers.Residue"><tt class="xref py py-class docutils literal"><span class="pre">Residue</span></tt></a> instance with corresponding residue information</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Probe.type">
+<tt class="descname">type</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Probe.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Chemical type</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyMDMix.containers.Residue">
+<em class="property">class </em><tt class="descclassname">pyMDMix.containers.</tt><tt class="descname">Residue</tt><big>(</big><em>name</em>, <em>atoms</em>, <em>connectivity</em>, <em>xyz</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyMDMix.containers.Residue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple container for whole residue unit information gathered in the OFF file.
+Basically to sotre atomic information and possibly masks for later quick identify atom
+positions.</p>
+<dl class="attribute">
+<dt id="pyMDMix.containers.Residue.atids">
+<tt class="descname">atids</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Residue.atids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary mapping atom ids to <a class="reference internal" href="#pyMDMix.containers.Atom" title="pyMDMix.containers.Atom"><tt class="xref py py-class docutils literal"><span class="pre">Atom</span></tt></a> instances</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Residue.atnames">
+<tt class="descname">atnames</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Residue.atnames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary mapping atom names to <a class="reference internal" href="#pyMDMix.containers.Atom" title="pyMDMix.containers.Atom"><tt class="xref py py-class docutils literal"><span class="pre">Atom</span></tt></a> instances</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Residue.atoms">
+<tt class="descname">atoms</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Residue.atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of <a class="reference internal" href="#pyMDMix.containers.Atom" title="pyMDMix.containers.Atom"><tt class="xref py py-class docutils literal"><span class="pre">Atom</span></tt></a> instances that belong to residue</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Residue.charge">
+<tt class="descname">charge</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Residue.charge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total charge of the residue</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Residue.connectivity">
+<tt class="descname">connectivity</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Residue.connectivity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tuple with connectivity information</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Residue.name">
+<tt class="descname">name</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Residue.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the residue</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.containers.Residue.xyz">
+<tt class="descname">xyz</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.containers.Residue.xyz" title="Permalink to this definition">¶</a></dt>
+<dd><p>XYZ coordinates in a numpy array Nx3</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="solvents.html"
+                        title="previous chapter">Solvents Module documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="OFFManager.html"
+                        title="next chapter">Object File Management Module documentation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/containers.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="OFFManager.html" title="Object File Management Module documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="solvents.html" title="Solvents Module documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Daniel Alvarez-Garcia.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,58 @@
+set temperature $temp
+rigidBonds     all
+
+pairlistdist   13.5
+
+rigidTolerance 0.00001      # Default is  0.00001
+numsteps       $final_step  # Num of total steps (nstlim in sander)
+stepspercycle  10           # Num of timesteps between atom reassignment in non-bonded force evaluation
+margin         2.5          # extra length in patch dimension (avoid crash if cell shrinks)
+timestep       $timestep    # in unit of fs (This is default. Corresponds to dt in sander)
+outputEnergies $freq         # Energy output frequency (corresponds to ntpr in sander)
+restartfreq    $freq         # Restart file frequency (correspond to ntwr in sander)
+DCDfreq        $freq         # Trajectory file frequency (corresponds to ntwx in sander)
+
+# Non-bonded interaction parameter
+cutoff         9
+switching      off  # Not used when the Amber FF is used
+
+# PME 
+wrapAll on
+wrapNearest on
+PME on
+PMEGridSpacing 1.0
+
+# Pressure controlling
+useGroupPressure yes
+langevinPiston        on
+langevinPistonTarget  1.01325      # pressure in bar -> 1 atm
+langevinPistonPeriod  100.         # oscillation period around 100 fs
+langevinPistonDecay   50.          # oscillation decay time of 50 fs
+langevinPistonTemp    $$temperature # coupled to heat bath
+
+# Constant Temperature Control
+langevin            on            # langevin dynamics
+langevinDamping     5.            # damping coefficient of 5/ps
+langevinTemp        $$temperature  # random noise at this level
+langevinHydrogen    no            # don't couple bath to hydrogens
+
+$restraints
+
+# FF
+amber               on  # Specify this is AMBER force field
+parmfile       ../$top   # Input PARM file
+ambercoor      ../$crd   # Input coordinate file
+
+# Follows the last step (minimization in this case)
+
+set inputname $eqinput   ;# only need to edit this in one place!
+
+binCoordinates      $$inputname.coor  # coordinates from last run (binary)
+binVelocities       $$inputname.vel   # velocities  from last run (binary)
+extendedSystem      $$inputname.xsc   # cell dimensions from last run
+firsttimestep       $first_step       # last step of previous run
+
+outputname     $eqoutput # Prefix of output files
+exclude        scaled1-4
+1-4scaling     0.833333  # =1/1.2, default is 1.0
+

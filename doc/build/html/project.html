@@ -1,0 +1,399 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Project Module documentation &mdash; pyMDMix 0.1.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyMDMix 0.1.1 documentation" href="index.html" />
+    <link rel="next" title="Solvents Module documentation" href="solvents.html" />
+    <link rel="prev" title="Replicas Module documentation" href="replicas.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="solvents.html" title="Solvents Module documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="replicas.html" title="Replicas Module documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pyMDMix.Project">
+<span id="project-module-documentation"></span><h1>Project Module documentation<a class="headerlink" href="#module-pyMDMix.Project" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="project-class">
+<h2>Project class<a class="headerlink" href="#project-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyMDMix.Project.Project">
+<em class="property">class </em><tt class="descclassname">pyMDMix.Project.</tt><tt class="descname">Project</tt><big>(</big><em>name='mdmix_project'</em>, <em>amberPDB=None</em>, <em>amberOFF=None</em>, <em>projectFilePath=None</em>, <em>unitName=None</em>, <em>extraResList=</em>, <span class="optional">[</span><span class="optional">]</span><em>restrainMask='auto'</em>, <em>alignMask='auto'</em>, <em>extraFF=</em>, <span class="optional">[</span><span class="optional">]</span><em>**kwargs</em><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to hold all project related options</p>
+<dl class="method">
+<dt id="pyMDMix.Project.Project.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>name='mdmix_project'</em>, <em>amberPDB=None</em>, <em>amberOFF=None</em>, <em>projectFilePath=None</em>, <em>unitName=None</em>, <em>extraResList=</em>, <span class="optional">[</span><span class="optional">]</span><em>restrainMask='auto'</em>, <em>alignMask='auto'</em>, <em>extraFF=</em>, <span class="optional">[</span><span class="optional">]</span><em>**kwargs</em><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>A project can be initialized in <strong>four</strong> ways::</dt>
+<dd><ul class="first last simple">
+<li>Empty: The user may call later <a class="reference internal" href="#pyMDMix.Project.Project.setOFF" title="pyMDMix.Project.Project.setOFF"><tt class="xref py py-meth docutils literal"><span class="pre">setOFF()</span></tt></a> or <a class="reference internal" href="#pyMDMix.Project.Project.createOFFFromPDB" title="pyMDMix.Project.Project.createOFFFromPDB"><tt class="xref py py-meth docutils literal"><span class="pre">createOFFFromPDB()</span></tt></a> to set expected Amber object file and system unit name needed by the project to proceed.</li>
+<li>From existing project file: <em>projectFilePath</em> can point to a folder containing a project file (*.mproj) to be loaded. All information will be loaded from existing sources.</li>
+<li>With a PDB file: <em>amberPDB</em> can point to a PDB file path with a system ready to be converted to Object File (main input to Project). If the PDB contains non-standard residues, the user can provide forcefield modification files or parameters in <em>extraFF</em> list.</li>
+<li>From an Amber Object File (OFF): Pass in <em>amberOFF</em> a path to an amber object file containing the system to simulate. Extra forcefield parameters and modifications can be passed in <em>extraFF</em> list.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.addNewReplica">
+<tt class="descname">addNewReplica</tt><big>(</big><em>replica</em>, <em>updateReplica=True</em><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.addNewReplica" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new replica to current project. If replica.name exists in current project,
+a warning will be raised and nothing done.</p>
+<p>If the new replica does not have a name, an automatic one will be assigned with format
+SOLVENT_NUM depending on the number of replicas per solvent already present in current project
+(e.g. ETA_0 if its the first replica with ETA as solvent; MAM_3 if it&#8217;s the fourth replica with this
+same solvent).</p>
+<p>If <em>updateReplica</em> is <strong>True</strong>, replica restrain mask, align mask, forcefield information
+extra residues and reference PDB will be replaced with current project information.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>replica</strong> (<tt class="xref py py-class docutils literal"><span class="pre">Replicas.Replica</span></tt>) &#8211; Replica to add to current project. It can be created later.</li>
+<li><strong>updateReplica</strong> (<em>bool</em>) &#8211; Update replica information with project details.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.Project.Project.amberOFF">
+<tt class="descname">amberOFF</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.Project.Project.amberOFF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Amber object file path with the system to be studied</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.Project.Project.amberPDB">
+<tt class="descname">amberPDB</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.Project.Project.amberPDB" title="Permalink to this definition">¶</a></dt>
+<dd><p>PDB file to be used in the preparation of an Amber Object File</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.createGroup">
+<tt class="descname">createGroup</tt><big>(</big><em>groupname</em>, <em>replicanames</em><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.createGroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a group of replicas for joint analysis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>groupname</strong> (<em>str</em>) &#8211; Name to identify the group</li>
+<li><strong>replicanames</strong> (<em>list</em>) &#8211; Replica names to add to group</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.createNewReplicas">
+<tt class="descname">createNewReplicas</tt><big>(</big><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.createNewReplicas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create folder structure and MD input for replicas not already created.
+If the project folder is not created, it will also be created.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.createOFFFromPDB">
+<tt class="descname">createOFFFromPDB</tt><big>(</big><em>amberPDB</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.createOFFFromPDB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an amber object file from the pdb given.
+This PDB file should be prepared to be read by tLeap (correct residue and atom namings)
+Will automatically try to cap the pdb at all terminus and build SS bonds.</p>
+<p>This method will save and return the object file and the unit name containing the system.
+Call <a class="reference internal" href="#pyMDMix.Project.Project.setOFF" title="pyMDMix.Project.Project.setOFF"><tt class="xref py py-meth docutils literal"><span class="pre">setOFF()</span></tt></a> to assign them to the project.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>amberPDB</strong> (<em>str</em>) &#8211; File path to PDB to be saved as object file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Kwargs:</th><td class="field-body">Check <tt class="xref py py-meth docutils literal"><span class="pre">cleanPDB()</span></tt> method for extra parameters that are accepted to control automatic cleaning of the PDB.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Object file path recently created and the unit name containing the system.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">(str, str)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.createProject">
+<tt class="descname">createProject</tt><big>(</big><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.createProject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write directory tree and project files. This method will call createProjectFolder and createProjectFiles.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.createProjectFiles">
+<tt class="descname">createProjectFiles</tt><big>(</big><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.createProjectFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save reference PDB, PRMTOP and PRMCRD from Project Object File.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.createProjectFolder">
+<tt class="descname">createProjectFolder</tt><big>(</big><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.createProjectFolder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create folder structure for current project name and update paths</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.Project.Project.extraFF">
+<tt class="descname">extraFF</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.Project.Project.extraFF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forfecield parameters or frcmods to define the system</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.getGroup">
+<tt class="descname">getGroup</tt><big>(</big><em>groupname</em><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.getGroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list with replicas belonging to the group <em>groupname</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>groupname</strong> (<em>str</em>) &#8211; Name of the group to retrieve</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List with <tt class="xref py py-class docutils literal"><span class="pre">Replica</span></tt> instances or False if group does not exists</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.getSolventList">
+<tt class="descname">getSolventList</tt><big>(</big><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.getSolventList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of solvents used in current project</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.importReplica">
+<tt class="descname">importReplica</tt><big>(</big><em>name</em>, <em>solvent</em>, <em>**replicaargs</em><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.importReplica" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import existing replica data, will create the directory instide current project.
+Make sure all needed information is given in <em>replicaargs</em>. Check <tt class="xref py py-meth docutils literal"><span class="pre">importData()</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<em>str</em>) &#8211; Name of the replica to import</li>
+<li><strong>solvent</strong> (<em>str</em>) &#8211; Solvent used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Replicaargs:</th><td class="field-body"><ul class="first last simple">
+<li>top, crd, pdb: existing file paths to be imported</li>
+<li>mdfolder, eqfolder, minfolder: existing paths</li>
+<li>other configuration options desrcibing imported replica (restrMode, mdProgram, etc. see <tt class="xref py py-class docutils literal"><span class="pre">Replica</span></tt>)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.load">
+<tt class="descname">load</tt><big>(</big><em>projfile=None</em><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load existing project from pickled file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.Project.Project.projFileName">
+<tt class="descname">projFileName</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.Project.Project.projFileName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the file that will be generated to save all project information</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.Project.Project.projName">
+<tt class="descname">projName</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.Project.Project.projName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the project</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.removeGroup">
+<tt class="descname">removeGroup</tt><big>(</big><em>groupname</em><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.removeGroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove group.
+:arg str groupname: group name to be removed from project</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.removeReplica">
+<tt class="descname">removeReplica</tt><big>(</big><em>replicaname</em><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.removeReplica" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove replica from current project</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>replica</strong> (<em>str</em>) &#8211; replica name to be removed from project</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><em>True</em> if replica was removed. <em>False</em> if the name was not found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.setOFF">
+<tt class="descname">setOFF</tt><big>(</big><em>offpath</em>, <em>unitname=False</em><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.setOFF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set current project amber object file containing the system under study.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>offpath</strong> (<em>str</em>) &#8211; Valid file path to an amber object file.</li>
+<li><strong>unitname</strong> (<em>str</em>) &#8211; Unit name inside the file that contains the system. If not given, will automatically use the first unit found in the file.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyMDMix.Project.Project.unitName">
+<tt class="descname">unitName</tt><em class="property"> = None</em><a class="headerlink" href="#pyMDMix.Project.Project.unitName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the unit inside the AmberOFF containing the system in study</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.updatePath">
+<tt class="descname">updatePath</tt><big>(</big><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.updatePath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update main project folder path with current working directory.
+All project replica&#8217;s paths will be also updated.</p>
+<p>This method to work requires that the expected project file (<a class="reference internal" href="#pyMDMix.Project.Project.projFileName" title="pyMDMix.Project.Project.projFileName"><tt class="xref py py-attr docutils literal"><span class="pre">Project.projFileName</span></tt></a>) is placed inside the current working directory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.updateReplica">
+<tt class="descname">updateReplica</tt><big>(</big><em>replica</em><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.updateReplica" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update replica. When a replica is modified, it is recomended to run this method to update project file information.
+:arg replica: replica instance to be updated in current project
+:type replica: <tt class="xref py py-class docutils literal"><span class="pre">Replica</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.updateReplicaPaths">
+<tt class="descname">updateReplicaPaths</tt><big>(</big><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.updateReplicaPaths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update replica paths with current project main path information</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Project.Project.write">
+<tt class="descname">write</tt><big>(</big><big>)</big><a class="headerlink" href="#pyMDMix.Project.Project.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save object __dict__ to pickled file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Project Module documentation</a><ul>
+<li><a class="reference internal" href="#project-class">Project class</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="replicas.html"
+                        title="previous chapter">Replicas Module documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="solvents.html"
+                        title="next chapter">Solvents Module documentation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/project.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="solvents.html" title="Solvents Module documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="replicas.html" title="Replicas Module documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Daniel Alvarez-Garcia.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

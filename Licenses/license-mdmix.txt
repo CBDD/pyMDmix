@@ -1,0 +1,33 @@
+<#if licenseFirst??>
+${licenseFirst}
+</#if>
+${licensePrefix} ------------------------ pyMDMix ----------------------------------- 
+${licensePrefix}                 http://mdmix.sourceforge.net
+${licensePrefix} -------------------------------------------------------------------- 
+${licensePrefix}
+${licensePrefix} Software for preparation, analysis and quality control
+${licensePrefix} of solvent mixtures molecular dynamics.
+${licensePrefix}
+${licensePrefix} Copyright (C) ${date?date?string("yyyy")} ${user}
+${licensePrefix}
+${licensePrefix} This program is free software: you can redistribute it and/or modify
+${licensePrefix} it under the terms of the GNU General Public License as published by
+${licensePrefix} the Free Software Foundation, either version 3 of the License, or
+${licensePrefix} (at your option) any later version.
+${licensePrefix}
+${licensePrefix} This program is distributed in the hope that it will be useful,
+${licensePrefix} but WITHOUT ANY WARRANTY; without even the implied warranty of
+${licensePrefix} MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+${licensePrefix} GNU General Public License for more details.
+${licensePrefix}
+${licensePrefix} You should have received a copy of the GNU General Public License
+${licensePrefix} along with this program.  If not, see <http://www.gnu.org/licenses/>.
+${licensePrefix}
+${licensePrefix} Please cite your use of pyMDMix in published work:
+${licensePrefix}
+${licensePrefix}             TOBEPUBLISHED
+${licensePrefix}
+${licensePrefix} -------------------------------------------------------------------- 
+<#if licenseLast??>
+${licenseLast}
+</#if>

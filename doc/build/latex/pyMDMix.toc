@@ -1,0 +1,21 @@
+\select@language {english}
+\contentsline {chapter}{\numberline {1}Project Module documentation}{3}{chapter.1}
+\contentsline {section}{\numberline {1.1}Project class}{3}{section.1.1}
+\contentsline {chapter}{\numberline {2}Replicas Module documentation}{7}{chapter.2}
+\contentsline {section}{\numberline {2.1}Aid to developers}{7}{section.2.1}
+\contentsline {subsection}{\numberline {2.1.1}Replica flexible configuration}{7}{subsection.2.1.1}
+\contentsline {section}{\numberline {2.2}Replica class}{7}{section.2.2}
+\contentsline {section}{\numberline {2.3}Examples}{10}{section.2.3}
+\contentsline {subsection}{\numberline {2.3.1}Importing existing data}{10}{subsection.2.3.1}
+\contentsline {chapter}{\numberline {3}Solvents Module documentation}{11}{chapter.3}
+\contentsline {section}{\numberline {3.1}Instantiating and working with Solvent objects}{11}{section.3.1}
+\contentsline {section}{\numberline {3.2}Adding new solvents to databases}{12}{section.3.2}
+\contentsline {section}{\numberline {3.3}Solvent class}{13}{section.3.3}
+\contentsline {section}{\numberline {3.4}SolventManager class}{14}{section.3.4}
+\contentsline {chapter}{\numberline {4}Containers Module documentation}{17}{chapter.4}
+\contentsline {chapter}{\numberline {5}Object File Management Module documentation}{19}{chapter.5}
+\contentsline {chapter}{\numberline {6}Setting General Options and Attributes through Configuration files}{23}{chapter.6}
+\contentsline {section}{\numberline {6.1}General configuration}{23}{section.6.1}
+\contentsline {section}{\numberline {6.2}Replica configuration}{24}{section.6.2}
+\contentsline {chapter}{\numberline {7}Indices and tables}{25}{chapter.7}
+\contentsline {chapter}{Python Module Index}{27}{section*.100}

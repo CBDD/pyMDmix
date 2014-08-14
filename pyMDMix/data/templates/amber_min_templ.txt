@@ -1,0 +1,7 @@
+#  Minimization with Cartesian restraints on the heavy atoms of the protein
+#  Set "restraintmask" & "restraint_wt" to the correct values for your system
+&cntrl
+imin=1, maxcyc=$minsteps,
+ntpr=100,
+$maskfield
+/

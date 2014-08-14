@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>MDSettings Module documentation &mdash; pyMDMix 0.1.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyMDMix 0.1.1 documentation" href="index.html" />
+    <link rel="next" title="Replicas Module documentation" href="replicas.html" />
+    <link rel="prev" title="System Module documentation" href="system.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="replicas.html" title="Replicas Module documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="system.html" title="System Module documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-MDSettings">
+<span id="mdsettings-module-documentation"></span><h1>MDSettings Module documentation<a class="headerlink" href="#module-MDSettings" title="Permalink to this headline">¶</a></h1>
+<p>This module provides one important class: <a class="reference internal" href="#module-MDSettings" title="MDSettings"><tt class="xref py py-class docutils literal"><span class="pre">MDSettings</span></tt></a>. When instantiated, this object
+will contain all parameters needed to create input files for running the Molecular Dynamics simualtions. These parameters include
+the length (in nanoseconds), restraining schemes (either flexible, heavy atoms restrained or backbone restrained), trajectory wirting frequency,
+simulation steps, etc...</p>
+<p>A default parameter configuration has been proposed in the MD Settings File (MSF) <a class="reference internal" href="settings.html#mdsettings"><em>MD default settings</em></a>.
+All parameters there found are automatically assigned to each MDSettings object attribute. If MDSettings is instantiated with
+any of the options given as parameter, the attibutes from the settings file are overriden:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyMDMix</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Use all default values given in the md-settings file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">defaultsettings</span> <span class="o">=</span> <span class="n">pyMDMix</span><span class="o">.</span><span class="n">MDSettings</span><span class="p">(</span><span class="s">&#39;WAT&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">defaultreplica</span><span class="o">.</span><span class="n">nanos</span>
+<span class="go">20</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">defaultreplica</span><span class="o">.</span><span class="n">md_timestep</span>
+<span class="go">2</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">customreplica</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">Replica</span><span class="p">(</span><span class="n">nanos</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">md_timestep</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c"># 40ns at 1fs timestep</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">customreplica</span><span class="o">.</span><span class="n">md_timestep</span>
+<span class="go">1</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Applying restraints over heavy atoms (HA) over all protein residues (automatic mask) with a force of 0.1 kcal/mol.A^2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">restrainedReplica</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">Replica</span><span class="p">(</span><span class="s">&#39;MAM&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;restrainTest&#39;</span><span class="p">,</span> <span class="n">restrMode</span><span class="o">=</span><span class="s">&#39;HA&#39;</span><span class="p">,</span> <span class="n">restrForce</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">restrainedReplica</span>
+<span class="go">REPLICA INFORMATION:</span>
+<span class="go">-------------</span>
+<span class="go">Replica name: restrainTest</span>
+<span class="go">Solvent: MAM</span>
+<span class="go">------- Amber files:</span>
+<span class="go">        -----------</span>
+<span class="go">        Amber PRMTOP: None</span>
+<span class="go">        Amber PRMCRD: None</span>
+<span class="go">        PDB file: None</span>
+<span class="go">(...)</span>
+<span class="go">------- SIMULATION:</span>
+<span class="go">        ------------</span>
+<span class="go">        MD program: AMBER</span>
+<span class="go">        Temperature: 300.0</span>
+<span class="go">        Nanoseconds: 20</span>
+<span class="go">        Use restraints?: True</span>
+<span class="go">------- RESTRAINTS:</span>
+<span class="go">        -----------</span>
+<span class="go">        Schema: HA</span>
+<span class="go">        Force: 0.1</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>To see all settings that a replica has finally adopted, use <tt class="xref py py-meth docutils literal"><span class="pre">printSettings()</span></tt> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">restrainedReplica</span><span class="o">.</span><span class="n">printSettings</span><span class="p">()</span>
+<span class="go">Replica restrainTest settings:</span>
+<span class="go">------------------------</span>
+<span class="go">md_timestep: 2.0</span>
+<span class="go">parm_heating_tempi: 100.0</span>
+<span class="go">restrMode: HA</span>
+<span class="go">minsteps: 5000</span>
+<span class="go">nanos: 20</span>
+<span class="go">amber_solvate_buffer: 14.0</span>
+<span class="go">(...)</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>As mentioned here <a class="reference internal" href="settings.html#settingsmodule"><em>Settings Module</em></a>, the user should find an editable copy of the <tt class="docutils literal"><span class="pre">md-settings.cfg</span></tt> file in his home directory (<tt class="docutils literal"><span class="pre">~/.mdmix/md-settings.cfg</span></tt>).
+Edit this file to include changes that will affect all future program runs. Otherwise, if you are interested in modifying the parameters for concrete replicas,
+do it in replica creation time.</p>
+<dl class="class">
+<dt id="MDSettings.MDSettings">
+<em class="property">class </em><tt class="descclassname">MDSettings.</tt><tt class="descname">MDSettings</tt><big>(</big><em>solvent</em>, <em>name=None</em>, <em>restrMask=''</em>, <em>alignMask=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#MDSettings.MDSettings" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="MDSettings.MDSettings.alignMask">
+<tt class="descname">alignMask</tt><em class="property"> = None</em><a class="headerlink" href="#MDSettings.MDSettings.alignMask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask of residue ids to align to when imaging, centering and aligning trajectory in analysis process</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="MDSettings.MDSettings.analyzenetcdf">
+<tt class="descname">analyzenetcdf</tt><em class="property"> = None</em><a class="headerlink" href="#MDSettings.MDSettings.analyzenetcdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is NetCDF installed? If so, use it for trajectory storage</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="MDSettings.MDSettings.getSettingsStr">
+<tt class="descname">getSettingsStr</tt><big>(</big><big>)</big><a class="headerlink" href="#MDSettings.MDSettings.getSettingsStr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print all settings</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="MDSettings.MDSettings.restrMask">
+<tt class="descname">restrMask</tt><em class="property"> = None</em><a class="headerlink" href="#MDSettings.MDSettings.restrMask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask of residues ids to apply restrains to (it doesn&#8217;t need atomic information, just residue numbers)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="MDSettings.MDSettings.solvent">
+<tt class="descname">solvent</tt><em class="property"> = None</em><a class="headerlink" href="#MDSettings.MDSettings.solvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solvent mixture name (e.g. ETA)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="MDSettings.MDSettings.updateFromSettings">
+<tt class="descname">updateFromSettings</tt><big>(</big><big>)</big><a class="headerlink" href="#MDSettings.MDSettings.updateFromSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Auxiliary function to update object with attributes from configuration files.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="system.html"
+                        title="previous chapter">System Module documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="replicas.html"
+                        title="next chapter">Replicas Module documentation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mdsettings.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="replicas.html" title="Replicas Module documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="system.html" title="System Module documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Daniel Alvarez-Garcia.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

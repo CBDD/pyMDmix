@@ -1,0 +1,25 @@
+.. pyMDMix documentation master file, created by
+   sphinx-quickstart on Thu Feb  6 09:14:42 2014.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Welcome to pyMDMix's documentation!
+===================================
+The package provides facilities for setting up and analyzing molecular dynamics simulations using aqueous-organic solvent mixtures as solvation medium to discover hihgh affinity interaction spots (Hot Spots) over the surface and identify possible binding sites.
+
+
+Contents:
+
+.. toctree::
+   :maxdepth: 2
+	
+   system
+   mdsettings
+   replicas
+   project
+   solvents
+   containers
+   OFFManager
+   settings
+   configurationfiles
+

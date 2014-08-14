@@ -1,0 +1,13 @@
+#  Start MD from coordinates. Assign velocities for tempi=100K and warm up to 150K 
+#   Set "restraintmask" & "restraint_wt" to the correct values for your system
+# 
+&cntrl
+timlim=999999., imin=0,
+ntx=1, iwrap=1,
+ntxo=1, ntpr=$freq, ntwx=$freq, ntwv=0, ntwe=0, ioutfm=$ioutfm,
+ntp=0, ntc=2,
+ntb=1, ntf=2, cut=9.0,
+ntt=3, temp0=$tempf, tempi=$tempi, ig=-1, gamma_ln=4.0,
+nstlim= $nsteps, dt=$timestep,
+$maskfield
+&end

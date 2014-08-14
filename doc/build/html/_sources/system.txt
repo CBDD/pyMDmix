@@ -1,0 +1,87 @@
+.. pyMDMix documentation master file, created by
+   sphinx-quickstart on Thu Feb  6 09:14:42 2014.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+System Module documentation
+===========================
+
+.. automodule:: pyMDMix.System
+
+System class
+^^^^^^^^^^^^
+Class to manage Unsolvated Systems. That is, biomolecules without the solvent box needed for the simulation.
+The solvation will be added according to the solvent chosen. Once the system is solvated, a :class:`SolvatedSystem` will be returned.
+
+There are three ways of initializing this object:
+1. From an Amber Object File (main way).
+2. From an Amber formatted PDB (should be ready to be loaded into tLeap without errors)
+3. From a previously saved System (using :meth:`write`, a System can be pickled to disk)
+
+Initializaation using Amber Object Files
+########################################
+An Amber Object File -OFF- (usually found with ``off`` or ``lib`` extensions) are used by Amber to store parameterized molecules.
+The user should prepare the system to simulate following standard procedures and store the system inside this sort of files
+that will allow the program to solvate the macromolecule in a diversity of solvents. This file is treated with tLeap to
+add periodic boundary conditions, neutralize the charges and generate PRMTOP and PRMCRD files (amber topology and coordinate files).
+
+>>> import pyMDMix
+>>> import pyMDMix.tools as T
+>>> off = T.testRoot('pep','pep.off')
+>>> sys = pyMDMix.System(amberOFF=off, name='pep') #Load test OFF
+>>> watsys = sys.solvate('WAT')    # Will add water solvent and return a SolvatedSystem
+INFO	Using Forcefield or FRCMOD file: /usr/local/amber11/dat/leap/cmd/leaprc.ff99SB
+INFO	Using Forcefield or FRCMOD file: /usr/local/amber11/dat/leap/cmd/leaprc.gaff
+>>> type(watsys)
+<class 'pyMDMix.System.SolvatedSystem'>
+
+
+Initializaation using Amber PDB Files
+#####################################
+A clean PDB file can also be used to create a System. A clean PDB means that all atom names
+conform to AMBER standards, does not have missing residues, there are no clashes or double occupancies.
+The PDB is used to automatically generate a OFF file which is the ultimate file stored inside the System object.
+
+In the process of conversion of the PDB into OFF format, the program will automatically try to rename
+residues and atoms, add N and C terminus cappings and create disulfide bridges.
+
+>>> import pyMDMix
+>>> import pyMDMix.tools as T
+>>> pdb = T.testRoot('pep', 'pep.pdb') # Load test PDB
+>>> sys = pyMDMix.System(amberPDB=pdb, name='pep')
+Cleaning PDB file for Amber:
+Found 0 disulfide bonds: []
+
+Selection of forcefield to use
+##############################
+To chose what forcefield should be used when preparing the solvated system, or to tell the program the FF
+used when creating the Object File, give a list of files in :attr:`FF` argument. The program will try to locate
+those files in current folder or under AMBERHOME directory. The default forcefields loaded are leaprc.ff99SB and leaprc.gaff
+
+What are the default forcefields can be tailored using settings files :ref:`settings`
+
+>>> import pyMDMix
+>>> import pyMDMix.tools as T
+>>> pdb = T.testRoot('pep', 'pep.pdb') # Load test PDB
+>>> sys = pyMDMix.System(amberPDB=pdb, name='pep', FF=['leaprc.ff12SB'])
+
+Systems with non-standard residues
+##################################
+Many times, macromolecules present modified residues (e.g. phosphorilated serine, ions, etc.), cofactors or small molecules.
+In these situations, special parameters are often needed. This information shoudl be incorporated into the System by
+using :parm:`extraResList` and :parm:`FF` parameters:
+- extraResList: Non-standard residue names. If this is not given, the residues will be later identified as part of the solvent.
+- FF: list of forcefield parameters or modification files (``frcmod`` files).
+
+SolvatedSystem class
+^^^^^^^^^^^^^^^^^^^^    
+This object is a subclass of :class:`System`. This class is designed to contain a solvated system
+PRMTOP and PRMCRD files. Thus its the end point before preparing all MD inputs.
+As in the case of System, extraResidueList should be used to tell the program about non-standard residues.
+
+>>> import pyMDMix
+>>> import pyMDMix.tools as T
+>>> top = T.testRoot('pep','pep.prmtop') # Test prmtop, actually does not contain solvent but will make thids work
+>>> crd = T.testRoot('pep','pep.prmcrd')
+>>> solv_sys = pyMDMix.SolvatedSystem(name='pep_solv', top=top, crd=crd, solvent='WAT')
+

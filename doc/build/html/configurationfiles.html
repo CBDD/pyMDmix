@@ -1,0 +1,290 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Project Configuration File (PCF) &mdash; pyMDMix 0.1.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyMDMix 0.1.1 documentation" href="index.html" />
+    <link rel="prev" title="Setting General Options and Attributes through Configuration files" href="settings.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="settings.html" title="Setting General Options and Attributes through Configuration files"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="project-configuration-file-pcf">
+<span id="pcf"></span><h1>Project Configuration File (PCF)<a class="headerlink" href="#project-configuration-file-pcf" title="Permalink to this headline">¶</a></h1>
+<p>File used to create Project instances. Here, we will give information about the system
+we are going to simulate. It has this shape:</p>
+<div class="highlight-ini"><div class="highlight"><pre><span class="c1"># pyMDMix Project Configuration file</span>
+<span class="c1"># WARNING: All empty options, should be removed from the file or commented</span>
+
+<span class="k">[PROJECT]</span>
+<span class="c1"># Project name to be created (default: mdmix_project)</span>
+<span class="na">PROJNAME</span> <span class="o">=</span> 
+
+<span class="c1"># One of these two options should be given:</span>
+<span class="c1"># Path to amber object file containing the system unit (without solvation). MANDATORY (unless PDB is given)</span>
+<span class="c1"># Path to PDB file that should be prepared as an object file (experimental). MANDATORY (unless OFF is given)</span>
+<span class="na">OFF</span> <span class="o">=</span>
+<span class="na">PDB</span> <span class="o">=</span>
+
+<span class="c1"># Unit name containing the system inside the object file (default: first unit found)</span>
+<span class="c1">#UNAME = </span>
+
+<span class="c1"># Residue mask of residues where restraints should be applied (default: auto detect). E.g.: 1-100</span>
+<span class="c1">#RESTRMASK = auto</span>
+
+<span class="c1"># Residue mask of residues to which backbone atoms we should align the trajectories in analysis process (default: same as restramask: all protein). E.g.: 1-100</span>
+<span class="c1">#ALIGNMASK = auto</span>
+
+<span class="c1"># Comma separated list of non-standard residues that should be considered part of the system and not the solvent</span>
+<span class="c1"># Used in automask detection and solute-solvent idetnfication (default: empty)</span>
+<span class="c1">#EXTRARES =</span>
+
+<span class="c1"># Forcefields or Forcefield modification files (frcmod) we should consider when parameterizing the solvated system</span>
+<span class="c1"># If the object file was prepared using leaprc.ff12SB, give it here. If the system contains non-standard residues</span>
+<span class="c1"># that you have parameterized, give the frcmod files here (and include the units inside the object file).</span>
+<span class="c1">#EXTRAFF =</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="replica-configuration-file-rcf">
+<span id="rcf"></span><h1>Replica Configuration File (RCF)<a class="headerlink" href="#replica-configuration-file-rcf" title="Permalink to this headline">¶</a></h1>
+<p>With same idea, replicas can also be created using a configuration file.
+In this case, the majority of information we will give is regarding
+the simulation parameters and conditions.</p>
+<div class="highlight-ini"><div class="highlight"><pre><span class="c1"># pyMDMix Replica Configuration File (RCF)</span>
+<span class="c1"># All non used options should be commented/removed</span>
+
+<span class="k">[REPLICAS]</span>
+<span class="c1">###########</span>
+<span class="c1"># GENERAL #</span>
+<span class="c1">###########</span>
+<span class="c1"># Comma separated list of solvent box names to be used in the project (e.g. MAM,ETA,WAT). NO DEFAULT. MANDATORY</span>
+<span class="na">SOLVENTS</span> <span class="o">=</span> 
+
+<span class="c1"># Number of replicas for each solvent (read documentation for advanced options). E.g: 3, WAT:1. DEFAULT:3</span>
+<span class="c1">#NREPL = </span>
+
+<span class="c1"># Number of nanoseconds to run (advanced configuration in the documentation). E.g: 20, WAT//10. DEFAULT:20</span>
+<span class="c1">#NANOS = </span>
+
+<span class="c1"># Temperature of each replica (again advanced configuration assigning independent temperatures is possible). E.g.: 300. DEFAULT:300K</span>
+<span class="c1">#TEMP = </span>
+
+<span class="c1"># Restraining scheme (OPTIONS: HA, FREE, BB for heavyatoms, no-restraints, back-bone atoms). DEFAULT: FREE. Also accepts advanced configuration.</span>
+<span class="c1">#RESTR= </span>
+
+<span class="c1"># Restraining force when RESTR!=FREE. In kcal/mol.A^2. Default=0.0. Advanced configuration is possible.</span>
+<span class="c1">#FORCE= </span>
+
+<span class="c1"># When system is already solvated and we just want to create MD inputs, give here the PRMTOP and PRMCRD paths</span>
+<span class="c1">#TOP = </span>
+<span class="c1">#CRD = </span>
+
+<span class="c1"># When we are preparing the system from an object file without initiating a project,</span>
+<span class="c1"># give here the object file path and unitnames to use for solvating the system and creating MD input</span>
+<span class="c1"># UNAME is optional if only one unit is inside the OFF file</span>
+<span class="c1">#OFF =</span>
+<span class="c1">#UNAME =</span>
+
+<span class="c1">#####################</span>
+<span class="c1"># SETTINGS OVERRIDE #</span>
+<span class="c1">#####################</span>
+<span class="c1"># All parameters present in replica-settings.cfg can be here overriden.</span>
+
+<span class="c1"># For instance, if we want to modify the trajectory writing frequency:</span>
+<span class="c1"># TRAJFREQUENCY =  </span>
+
+<span class="c1"># Modify number of steps per run file (step).</span>
+<span class="c1"># We might be interested in increase the file size to include several nanosecods</span>
+<span class="c1"># instead of only 1 (the default; 500000 steps with md_timestep of 2fs)</span>
+<span class="c1"># NVT_PROD_STEPS = 1000000</span>
+<span class="c1"># NPT_PROD_STEPS = 1000000</span>
+
+<span class="c1"># ETC...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="complete-configuration">
+<span id="completecf"></span><h1>Complete configuration<a class="headerlink" href="#complete-configuration" title="Permalink to this headline">¶</a></h1>
+<p>In this case, the file contains both sections. All replicas will take system information from the system and therefore, do not require any system information.</p>
+<div class="highlight-ini"><div class="highlight"><pre><span class="c1"># pyMDMix Complete Configuration file</span>
+<span class="c1"># WARNING: All empty options, should be removed from the file or commented</span>
+<span class="c1">#</span>
+<span class="c1"># This file contains both Project and Replicas sections</span>
+<span class="c1"># All system information will be grabbed from the project to </span>
+<span class="c1"># set up and solvent each replica (in this case, the replica section</span>
+<span class="c1"># SHOULD NOT contain OFF, TOP or CRD entries).</span>
+<span class="c1">#</span>
+<span class="c1"># SYSTEM CONFIG: Should be done in PROJECT</span>
+<span class="c1"># MD CONFIG: Should be done in REPLICAS</span>
+<span class="c1">#</span>
+
+<span class="k">[PROJECT]</span>
+<span class="c1"># Project name to be created (default: mdmix_project)</span>
+<span class="na">PROJNAME</span> <span class="o">=</span> 
+
+<span class="c1"># One of these two options should be given:</span>
+<span class="c1"># Path to amber object file containing the system unit (without solvation). MANDATORY (unless PDB is given)</span>
+<span class="c1"># Path to PDB file that should be prepared as an object file (experimental). MANDATORY (unless OFF is given)</span>
+<span class="na">OFF</span> <span class="o">=</span>
+<span class="na">PDB</span> <span class="o">=</span>
+
+<span class="c1"># Unit name containing the system inside the object file (default: first unit found)</span>
+<span class="c1">#UNAME = </span>
+
+<span class="c1"># Residue mask of residues where restraints should be applied (default: auto detect). E.g.: 1-100</span>
+<span class="c1">#RESTRMASK = auto</span>
+
+<span class="c1"># Residue mask of residues to which backbone atoms we should align the trajectories in analysis process (default: same as restramask: all protein). E.g.: 1-100</span>
+<span class="c1">#ALIGNMASK = auto</span>
+
+<span class="c1"># Comma separated list of non-standard residues that should be considered part of the system and not the solvent</span>
+<span class="c1"># Used in automask detection and solute-solvent idetnfication (default: empty)</span>
+<span class="c1">#EXTRARES =</span>
+
+<span class="c1"># Forcefields or Forcefield modification files (frcmod) we should consider when parameterizing the solvated system</span>
+<span class="c1"># If the object file was prepared using leaprc.ff12SB, give it here. If the system contains non-standard residues</span>
+<span class="c1"># that you have parameterized, give the frcmod files here (and include the units inside the object file).</span>
+<span class="c1">#EXTRAFF =</span>
+<span class="c1"># pyMDMix Replica Configuration File (RCF)</span>
+<span class="c1"># All non used options should be commented/removed</span>
+
+<span class="k">[REPLICAS]</span>
+<span class="c1">###########</span>
+<span class="c1"># GENERAL #</span>
+<span class="c1">###########</span>
+<span class="c1"># Comma separated list of solvent box names to be used in the project (e.g. MAM,ETA,WAT). NO DEFAULT. MANDATORY</span>
+<span class="na">SOLVENTS</span> <span class="o">=</span> 
+
+<span class="c1"># Number of replicas for each solvent (read documentation for advanced options). E.g: 3, WAT:1. DEFAULT:3</span>
+<span class="c1">#NREPL = </span>
+
+<span class="c1"># Number of nanoseconds to run (advanced configuration in the documentation). E.g: 20, WAT//10. DEFAULT:20</span>
+<span class="c1">#NANOS = </span>
+
+<span class="c1"># Temperature of each replica (again advanced configuration assigning independent temperatures is possible). E.g.: 300. DEFAULT:300K</span>
+<span class="c1">#TEMP = </span>
+
+<span class="c1"># Restraining scheme (OPTIONS: HA, FREE, BB for heavyatoms, no-restraints, back-bone atoms). DEFAULT: FREE. Also accepts advanced configuration.</span>
+<span class="c1">#RESTR= </span>
+
+<span class="c1"># Restraining force when RESTR!=FREE. In kcal/mol.A^2. Default=0.0. Advanced configuration is possible.</span>
+<span class="c1">#FORCE= </span>
+
+<span class="c1">#####################</span>
+<span class="c1"># SETTINGS OVERRIDE #</span>
+<span class="c1">#####################</span>
+<span class="c1"># All parameters present in replica-settings.cfg can be here overriden.</span>
+
+<span class="c1"># For instance, if we want to modify the trajectory writing frequency:</span>
+<span class="c1"># TRAJFREQUENCY =  </span>
+
+<span class="c1"># Modify number of steps per run file (step).</span>
+<span class="c1"># We might be interested in increase the file size to include several nanosecods</span>
+<span class="c1"># instead of only 1 (the default; 500000 steps with md_timestep of 2fs)</span>
+<span class="c1"># NVT_PROD_STEPS = 1000000</span>
+<span class="c1"># NPT_PROD_STEPS = 1000000</span>
+
+<span class="c1"># ETC...</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Project Configuration File (PCF)</a></li>
+<li><a class="reference internal" href="#replica-configuration-file-rcf">Replica Configuration File (RCF)</a></li>
+<li><a class="reference internal" href="#complete-configuration">Complete configuration</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="settings.html"
+                        title="previous chapter">Setting General Options and Attributes through Configuration files</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/configurationfiles.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="settings.html" title="Setting General Options and Attributes through Configuration files"
+             >previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Daniel Alvarez-Garcia.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Replicas Module documentation &mdash; pyMDMix 0.1.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyMDMix 0.1.1 documentation" href="index.html" />
+    <link rel="next" title="Project Module documentation" href="project.html" />
+    <link rel="prev" title="MDSettings Module documentation" href="mdsettings.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="project.html" title="Project Module documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mdsettings.html" title="MDSettings Module documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-Replicas">
+<span id="replicas-module-documentation"></span><h1>Replicas Module documentation<a class="headerlink" href="#module-Replicas" title="Permalink to this headline">¶</a></h1>
+<p>This module contains the main class <tt class="xref py py-class docutils literal"><span class="pre">Replica</span></tt> for storage and manipulation
+of a single simulation run.</p>
+<p>This object contains all the MD parameters and system information needed to generate
+the input files to run molecular dynamics.</p>
+<div class="section" id="replica-initialization-and-md-input-creation">
+<h2>Replica initialization and MD input creation<a class="headerlink" href="#replica-initialization-and-md-input-creation" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>The <tt class="xref py py-class docutils literal"><span class="pre">Replica</span></tt> has to be configured using two sorts of information::</dt>
+<dd><ul class="first last simple">
+<li>System related information, through a <tt class="xref py py-class docutils literal"><span class="pre">System.SolvatedSystem</span></tt> object</li>
+<li>MD related parameters, through a <a class="reference internal" href="mdsettings.html#MDSettings.MDSettings" title="MDSettings.MDSettings"><tt class="xref py py-class docutils literal"><span class="pre">MDSettings.MDSettings</span></tt></a> object</li>
+</ul>
+</dd>
+</dl>
+<p>Once a replica has been created, a pickled version will be automatically saved inside the replica folder (with extension <tt class="docutils literal"><span class="pre">.mrepl</span></tt>) and continuously updated. At any time,
+you can re-load any replica using <tt class="docutils literal"><span class="pre">fromfile</span></tt> parameter:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">previousreplica</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">Replica</span><span class="p">(</span><span class="n">fromfile</span><span class="o">=</span><span class="s">&#39;savedpickle.mrepl&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="auxiliary-functions">
+<h2>Auxiliary functions<a class="headerlink" href="#auxiliary-functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="Replicas.loadReplica">
+<tt class="descclassname">Replicas.</tt><tt class="descname">loadReplica</tt><big>(</big><em>replicafile=None</em><big>)</big><a class="headerlink" href="#Replicas.loadReplica" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load existing replica. 
+If <em>replicafile</em> path is not given, will try to load any <tt class="docutils literal"><span class="pre">\*.mrepl</span></tt> file present in current folder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">Replica</span></tt> object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Replicas.createReplicas">
+<tt class="descclassname">Replicas.</tt><tt class="descname">createReplicas</tt><big>(</big><em>replicaConfigFile</em>, <em>makefolders=False</em><big>)</big><a class="headerlink" href="#Replicas.createReplicas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Auxiliary function to build replicas from a replica configuration file (RCF)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>replicaConfigFile</strong> (<em>str</em>) &#8211; Path to config file containing REPLICA section.</li>
+<li><strong>makefolders</strong> (<em>bool</em>) &#8211; Create folders for each replica in current path? Automatic names will be given to each replica.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of <tt class="xref py py-class docutils literal"><span class="pre">Replica</span></tt> objects constructed with all parameters in the RCF</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="replica-class">
+<h2>Replica class<a class="headerlink" href="#replica-class" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="replica-attributes">
+<h2>Replica attributes<a class="headerlink" href="#replica-attributes" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="replica-methods">
+<h2>Replica methods<a class="headerlink" href="#replica-methods" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="importing-existing-data">
+<h3>Importing existing data<a class="headerlink" href="#importing-existing-data" title="Permalink to this headline">¶</a></h3>
+<p>In this example we will create an empty replica folder and add existing
+sources from an imaginary previous simulation. It was run with ethanol mixture (named <em>ETA</em>) for 40ns.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">previousdata</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;pdb&#39;</span><span class="p">:</span><span class="s">&#39;/some/path/system.pdb&#39;</span><span class="p">,</span> <span class="s">&#39;crd&#39;</span><span class="p">:</span><span class="s">&#39;/some/path/system.crd&#39;</span><span class="p">,</span><span class="s">&#39;top&#39;</span><span class="p">:</span><span class="s">&#39;/some/path/system.top&#39;</span><span class="p">,</span><span class="s">&#39;mdfolder&#39;</span><span class="p">:</span><span class="s">&#39;/some/path/production&#39;</span><span class="p">,</span><span class="s">&#39;eqfolder&#39;</span><span class="p">:</span><span class="s">&#39;/some/path/equilibration&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">Replicas</span> <span class="kn">import</span> <span class="n">Replica</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">replica</span> <span class="o">=</span> <span class="n">Replica</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;mynewreplica&#39;</span><span class="p">,</span> <span class="n">nanos</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">solvent</span><span class="o">=</span><span class="s">&#39;ETA&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">replica</span><span class="o">.</span><span class="n">createFolder</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">replica</span><span class="o">.</span><span class="n">importData</span><span class="p">(</span><span class="o">**</span><span class="n">previousdata</span><span class="p">)</span> <span class="c"># This will link all existing files inside the created folders</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="guide-to-developers">
+<h2>Guide to developers<a class="headerlink" href="#guide-to-developers" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="replica-flexible-configuration-developers-guide">
+<h3>Replica flexible configuration (developers guide)<a class="headerlink" href="#replica-flexible-configuration-developers-guide" title="Permalink to this headline">¶</a></h3>
+<p><tt class="xref py py-class docutils literal"><span class="pre">Replica</span></tt> objects can be configured by mean of their constructor method.
+Arguments not present in at construction time, will take default values from default settings
+and user settings <strong>replica-settings.cfg</strong> files.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="go">&gt;&gt;&gt;from Replicas import Replica</span>
+<span class="go">&gt;&gt;&gt;replica = Replica(&#39;customreplica&#39;, nanos=40, temp=298)</span>
+<span class="go">&gt;&gt;&gt;print replica.nanos</span>
+<span class="go">40</span>
+<span class="go">&gt;&gt;&gt;print replica.temp</span>
+<span class="go">298</span>
+<span class="go">&gt;&gt;&gt;defreplica = Replica()</span>
+<span class="go">&gt;&gt;&gt;print defreplica.nanos</span>
+<span class="go">20</span>
+<span class="go">&gt;&gt;&gt;print defreplica.temp</span>
+<span class="go">300</span>
+</pre></div>
+</div>
+<p><em>temp</em> and <em>nanos</em> attributes where assigned from user configuration file which should be at user&#8217;s home
+directory $HOME/.mdmix/replica-settings.cfg. Values not explicitely assigned there, will be taken from
+default configurations in package installation directory.</p>
+<p>This system for building instances permits the developer to modify/add/remove attributes to the instance without
+modifying any code. For instance, if a new pair <em>int-myattr=200</em> is written in user&#8217;s replica configuration file,
+default replicas will also have that new attribute.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Replicas Module documentation</a><ul>
+<li><a class="reference internal" href="#replica-initialization-and-md-input-creation">Replica initialization and MD input creation</a></li>
+<li><a class="reference internal" href="#auxiliary-functions">Auxiliary functions</a></li>
+<li><a class="reference internal" href="#replica-class">Replica class</a></li>
+<li><a class="reference internal" href="#replica-attributes">Replica attributes</a></li>
+<li><a class="reference internal" href="#replica-methods">Replica methods</a></li>
+<li><a class="reference internal" href="#examples">Examples</a><ul>
+<li><a class="reference internal" href="#importing-existing-data">Importing existing data</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#guide-to-developers">Guide to developers</a><ul>
+<li><a class="reference internal" href="#replica-flexible-configuration-developers-guide">Replica flexible configuration (developers guide)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="mdsettings.html"
+                        title="previous chapter">MDSettings Module documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="project.html"
+                        title="next chapter">Project Module documentation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/replicas.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="project.html" title="Project Module documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mdsettings.html" title="MDSettings Module documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Daniel Alvarez-Garcia.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

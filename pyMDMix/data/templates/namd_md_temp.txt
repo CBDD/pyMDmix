@@ -1,0 +1,40 @@
+rigidBonds     	all
+pairlistdist   	13.5
+
+rigidTolerance 0.00001  # Default is  0.00001
+numsteps       $final_step  # Num of total steps
+outputEnergies $freq  # Energy output frequency
+restartfreq    $freq  # Restart file frequency
+DCDfreq        $freq  # Trajectory file frequency
+timestep       $timestep  # in unit of fs (This is default)
+stepspercycle 10
+cutoff         9
+switching      off  # Turn off the switching functions
+
+wrapAll on
+wrapNearest on
+PME on
+PMEGridSpacing 1.0
+
+# Constant Temperature Control
+langevin            on            	# langevin dynamics
+langevinDamping     5.            	# damping coefficient of 5/ps
+langevinTemp        $temp  			# random noise at this level
+langevinHydrogen    no            	# dont couple bath to hydrogens
+
+$restraints
+
+amber          on  # Specify this is AMBER force field
+parmfile       ../$top  # Input PARM file
+ambercoor      ../$crd  # Input coordinate file
+
+
+binCoordinates     ${prev_out}.coor # coordinates from last run (binary)
+binVelocities      ${prev_out}.vel   # velocities from last run (binary)
+extendedSystem     ${prev_out}.xsc   # cell dimensions from last run
+firsttimestep      $first_step                # last step of previous run
+
+outputname     $post_out  # Prefix of output files
+exclude        scaled1-4
+1-4scaling     0.833333  # =1/1.2, default is 1.0
+

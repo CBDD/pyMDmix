@@ -1,0 +1,48 @@
+set a $box
+set p 109.471220634
+set pi 3.14159265358979323
+set cosp [expr cos($$p * $$pi/180)]
+set sinp [expr sin($$p * $$pi/180)]
+
+set Or [expr $$a/2]
+set Bx [expr $$a*$$cosp]
+set By [expr $$a*$$sinp]
+set Cx $$Bx
+set Cy [expr $$a*$$cosp*(1-$$cosp)/$$sinp]
+set Cz [expr sqrt($$a*$$a - $$Cx*$$Cx - $$Cy*$$Cy)]
+
+cellBasisVector1 $$a 0 0
+cellBasisVector2 $$Bx $$By 0
+cellBasisVector3 $$Cx $$Cy $$Cz
+cellOrigin $$Or $$Or $$Or
+
+rigidBonds     all
+
+pairlistdist   13.5
+
+minimization on
+
+rigidTolerance 0.0005  # Default is  0.00001
+outputEnergies $freq  # Energy output frequency
+restartfreq    $freq  # Restart file frequency
+DCDfreq        $freq  # Trajectory file frequency
+timestep       1  # in unit of fs (This is default)
+cutoff         9
+switching      off  # Turn off the switching functions
+
+wrapAll on
+wrapNearest on
+PME on
+PMEGridSpacing 1.0
+
+$restraints
+
+amber          on  # Specify this is AMBER force field
+parmfile       ../$top   # Input PARM file
+ambercoor      ../$crd   # Input coordinate file
+outputname     min  # Prefix of output files
+exclude        scaled1-4
+1-4scaling     0.833333  # =1/1.2, default is 1.0
+
+minimize       $minsteps
+

@@ -1,0 +1,27 @@
+#!/bin/csh
+######################################
+# pyMDMix Queue input template       #
+# http://mdmix.sourceforge.net       #
+# Usage: qsub FILE_NAME.csh          #
+######################################
+
+###########################################################
+# To use with SGE: Sun Grid Engine Queue Manager          #
+# -q SGE queue name.                                      #
+# -cwd Working in the current working directory.          #
+# -N SGE job name.                                        #
+# -o Job standard output file.                            #
+# -e Job standard error file.                             #
+###########################################################
+#$ -q {queuename}
+#$ -cwd
+#$ -N {jobname}
+#$ -o {jobname}.out
+#$ -e {jobname}.err
+###############################################################
+
+{precommands}
+{commands}
+{postcommands}
+
+qsub {next}

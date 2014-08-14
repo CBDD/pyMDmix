@@ -1,0 +1,293 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Setting General Options and Attributes through Configuration files &mdash; pyMDMix 0.1.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyMDMix 0.1.1 documentation" href="index.html" />
+    <link rel="next" title="Project Configuration File (PCF)" href="configurationfiles.html" />
+    <link rel="prev" title="Object File Management Module documentation" href="OFFManager.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="configurationfiles.html" title="Project Configuration File (PCF)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="OFFManager.html" title="Object File Management Module documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="setting-general-options-and-attributes-through-configuration-files">
+<span id="settings"></span><h1>Setting General Options and Attributes through Configuration files<a class="headerlink" href="#setting-general-options-and-attributes-through-configuration-files" title="Permalink to this headline">¶</a></h1>
+<p>Several classes automatically take arguments from default configuration files distributed along the package.
+Once pyMDMix is started for the first time, it will also make a copy of these configuration files inside the user&#8217;s home directory
+for easy modification. If any parameter is modified by the user, it will have higher priority and the default one will be ignored.
+For restoring initial file, just remove it from the user directory.</p>
+<dl class="docutils">
+<dt>Two configuration files govern the program::</dt>
+<dd><ul class="first last simple">
+<li>General settings (<tt class="docutils literal"><span class="pre">settings.cfg</span></tt>)</li>
+<li>MD settings (<tt class="docutils literal"><span class="pre">md-settings.cfg</span></tt>)</li>
+</ul>
+</dd>
+</dl>
+<div class="section" id="general-settings">
+<h2>General settings<a class="headerlink" href="#general-settings" title="Permalink to this headline">¶</a></h2>
+<p>This is the default file for configuring general and project options in pyMDMix.
+It can be found at the package installation directory (<tt class="docutils literal"><span class="pre">$INSTALLDIR</span></tt>) under <tt class="docutils literal"><span class="pre">$INSTALLDIR/data/defaults/settings.cfg</span></tt>
+or at user&#8217;s home directory <tt class="docutils literal"><span class="pre">~./mdmix/settings.cfg</span></tt></p>
+<div class="highlight-ini"><div class="highlight"><pre><span class="k">[GENERAL]</span>
+<span class="c1">## The following options are only ckecked for their type</span>
+<span class="c1">## use type-name if you want to enforce type conversion on a parameter</span>
+<span class="c1">## example: </span>
+<span class="c1">## int-param1 = 10 creates a variable param1 of type int with value 10</span>
+<span class="c1">## By contrast, param1 = 10 gives a variable param1 of type str with value &#39;10&#39;</span>
+<span class="na">int-testparam</span> <span class="o">=</span> <span class="s">42	## used for test code</span>
+
+<span class="na">list-AVAIL_MDPROG</span> <span class="o">=</span> <span class="s">AMBER, NAMD # IMPLEMENTED SIMULATION PROGRAMS</span>
+<span class="na">float-AMBER_SOLVATE_BUFFER</span> <span class="o">=</span> <span class="s">13 # Buffer for solvateOct command in tLeap</span>
+<span class="na">list-GRIDTYPES</span> <span class="o">=</span> <span class="s">MDMIX_DENS,MDMIX_CORR,MDMIX_RAW,MDMIX_OTHER,MDMIX_UNK, MDMIX_PART_DENS, MDMIX_RAW_AVG</span>
+<span class="na">AVGOUTPATH</span> <span class="o">=</span> <span class="s">PROBE_AVG</span>
+<span class="na">AVGOUTPREFIX</span> <span class="o">=</span> <span class="s">avg_</span>
+<span class="na">float-GRID_SPACING</span> <span class="o">=</span> <span class="s">0.5</span>
+<span class="na">DEBUG</span><span class="o">=</span><span class="s">0                 # If zero, no extra debug information will be printed. Put 1 for extra info.</span>
+
+<span class="na">DEF_AMBER_WATBOX</span> <span class="o">=</span> <span class="s">TIP3P # default water model name</span>
+<span class="na">float-DEF_AMBER_BUFFER</span> <span class="o">=</span> <span class="s">14.0</span>
+<span class="na">int-DEF_NREPLICAS</span> <span class="o">=</span> <span class="s">3</span>
+
+<span class="c1"># Strings that identify if an output file is complete</span>
+<span class="na">AMBER_MIN_COMPLETE</span> <span class="o">=</span> <span class="s">Maximum number of minimization cycles reached.</span>
+<span class="na">AMBER_MD_COMPLETE</span> <span class="o">=</span> <span class="s">Total CPU time:</span>
+<span class="na">NAMD_FILE_COMPLETE</span> <span class="o">=</span> <span class="s">End of program</span>
+<span class="na">list-DEF_AMBER_FF</span> <span class="o">=</span> <span class="s">leaprc.ff99SB, leaprc.gaff</span>
+
+<span class="na">int-DISABLE_BISKIT_LOADING_WARNS</span> <span class="o">=</span> <span class="s">1 # Disable recurring warnings when loading Biskit</span>
+
+<span class="c1"># Executables</span>
+<span class="na">AMBER_MIN_EXE</span> <span class="o">=</span> <span class="s">sander</span>
+<span class="na">AMBER_PROD_EXE</span> <span class="o">=</span> <span class="s">pmemd.cuda</span>
+<span class="na">AMBER_AMBPDB</span> <span class="o">=</span> <span class="s">ambpdb</span>
+<span class="na">AMBER_PTRAJ</span> <span class="o">=</span> <span class="s">ptraj</span>
+<span class="na">AMBER_TLEAP</span> <span class="o">=</span> <span class="s">tleap</span>
+<span class="na">NAMD_EXE</span> <span class="o">=</span> <span class="s">namd2</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="md-default-settings">
+<span id="mdsettings"></span><h2>MD default settings<a class="headerlink" href="#md-default-settings" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>This settings file contains two kind of information::</dt>
+<dd><ul class="first last simple">
+<li>MD parameters: control default integration timestep, number of nanoseconds, temperature, trajectory writing frequency or default restraining schema</li>
+<li>Folder and replica control parameters: names for the folders or output filename templates.</li>
+</ul>
+</dd>
+<dt>The current built-in settings file contains::</dt>
+<dd><div class="first last highlight-ini"><div class="highlight"><pre><span class="k">[GENERAL]</span>
+<span class="c1">## The following options are only ckecked for their type</span>
+<span class="c1">## use type-name if you want to enforce type conversion on a parameter</span>
+<span class="c1">## example:</span>
+<span class="c1">## int-param1 = 10 creates a variable param1 of type int with value 10</span>
+<span class="c1">## By contrast, param1 = 10 gives a variable param1 of type str with value &#39;10&#39;</span>
+<span class="c1">## Possible types: int, float, bool, list.</span>
+<span class="c1">## list type will chop the string by commas. Eg. list-ff=a,b will become a list ff=[&#39;a&#39;,&#39;b&#39;]</span>
+
+<span class="c1"># Set simulation options</span>
+<span class="na">mdnetcdf</span> <span class="o">=</span> <span class="s">1                  # 1 (write trajectory in nc format) or 0 (write in ascii format)</span>
+<span class="na">restrMode</span> <span class="o">=</span> <span class="s">FREE            # Restraining scheme: FREE, HA (heavy atoms) or BB (backbone only)</span>
+<span class="na">float-restrForce</span> <span class="o">=</span> <span class="s">0.0      # Restraining force if applicable. Default 0 kcal/mol.A^2</span>
+<span class="na">int-nanos</span> <span class="o">=</span> <span class="s">20              # Production length in nanoseconds. Default: 20ns</span>
+<span class="na">float-temp</span> <span class="o">=</span> <span class="s">300            # Simulation temperature. Default = 300K</span>
+<span class="na">mdProgram</span> <span class="o">=</span> <span class="s">AMBER           # Default simulation program. Options: AMBER or NAMD currently</span>
+<span class="na">int-trajfrequency</span> <span class="o">=</span> <span class="s">500     # Trajectory writing frequency  = 1000 snapshots per nanosecond = int-production_nsteps / int-trajfrequency</span>
+<span class="na">int-minsteps</span> <span class="o">=</span> <span class="s">5000				# Number of minimization steps to run</span>
+<span class="na">int-heating_steps</span> <span class="o">=</span> <span class="s">100000                      # Heating steps for each file. 100.000 steps = 200ps</span>
+<span class="na">float-parm_heating_tempi</span> <span class="o">=</span> <span class="s">100 			# Start heating at 100 K</span>
+<span class="na">int-npt_eq_steps</span> <span class="o">=</span> <span class="s">500000                       # 1ns equilibration at NPT</span>
+<span class="na">int-nvt_prod_steps</span> <span class="o">=</span> <span class="s">500000                     # 1ns production files = nvt_prod_steps*(md_timestep/10e6)</span>
+<span class="na">float-md_timestep</span> <span class="o">=</span> <span class="s">2                           # 2 fs timestep</span>
+<span class="na">int-namd_heating_steps</span> <span class="o">=</span> <span class="s">500000                 # 1ns equilibration total time to increase temperature from float-heating_tempi to float-temp in NAMD</span>
+<span class="na">list-FF</span> <span class="o">=</span> <span class="s">leaprc.ff99SB, leaprc.gaff            # Default forcefield files to load when opening tLeap</span>
+
+<span class="c1"># DEFINE REFERENCE STRUCTURE FOR RESTRAINED SIMULATIONS</span>
+<span class="c1"># If 1: Use output of minimization as reference structure to set positional restraints.</span>
+<span class="c1"># If 0: (default) use initial input structure (CRD file) as reference state.</span>
+<span class="na">int-minimizationAsRef</span> <span class="o">=</span> <span class="s">0</span>
+
+<span class="c1"># Set filepaths</span>
+<span class="na">mdfolder</span> <span class="o">=</span> <span class="s">md               # Name for the production folder</span>
+<span class="na">eqfolder</span> <span class="o">=</span> <span class="s">eq               # Name for equilibration folder</span>
+<span class="na">minfolder</span> <span class="o">=</span> <span class="s">min             # Name for minimization folder</span>
+<span class="na">alignfolder</span> <span class="o">=</span> <span class="s">align         # Name for folder containing aligned trajectory</span>
+<span class="na">energyfolder</span> <span class="o">=</span> <span class="s">egrids       # Name for folder containing energy grids</span>
+<span class="na">densityfolder</span> <span class="o">=</span> <span class="s">dgrids      # Folder containing density/occupancy grids</span>
+
+<span class="c1"># Next option is a string to be converted to trajectory file names in production and equilibration files.</span>
+<span class="c1"># Always include {step} and {extension} keywords.</span>
+<span class="c1"># Example:    md{step}.{extension}    (DEFAULT)</span>
+<span class="c1"># Will be:    md1.nc  if netcdf used and is 1st file of production.</span>
+<span class="c1">#</span>
+<span class="na">mdoutfiletemplate</span> <span class="o">=</span> <span class="s">md{step}.{extension}</span>
+<span class="na">eqoutfiletemplate</span> <span class="o">=</span> <span class="s">eq{step}.{extension}</span>
+
+<span class="c1"># Expected trajetory file extensions</span>
+<span class="na">list-avail_trajext</span> <span class="o">=</span> <span class="s">nc, netcdf, x, x.gz, dcd</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="module-settings">
+<span id="settings-module"></span><span id="settingsmodule"></span><h1>Settings Module<a class="headerlink" href="#module-settings" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="settings-biskit-module-wrapped">
+<h2>Settings (Biskit module wrapped)<a class="headerlink" href="#settings-biskit-module-wrapped" title="Permalink to this headline">¶</a></h2>
+<p>All this work has been adapted from original Biskit.settings work by
+Raik. All merits to him!</p>
+<p>This module provides global settings as fields. Throughout MDMix a
+(environment-dependent) parameter such as, e.g., ssh_bin can be addressed as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyMDMix.settings</span> <span class="kn">as</span> <span class="nn">S</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">bin</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">ssh_bin</span>
+</pre></div>
+</div>
+<p>However, since a user should not be required to hack python modules,
+ssh_bin is not actually defined in settings.py. Instead, the value is
+taken from C{~/.mdmix/settings.cfg} &#8211; which should have an entry
+like C{ssh_bin=/bin/ssh # comment}. If this entry (or the config file)
+is not found, settings.py uses the default value from
+C{MDMix/data/defaults/settings.cfg}.</p>
+<p>If missing, the user configuration file C{~/.mdmix/settings.cfg} is
+created automatically during the startup of MDMix (i.e. for any
+import). The auto-generated file only contains parameters for which
+the default values don&#8217;t seem to work (invalid paths or binaries).</p>
+<p>See L{Biskit.SettingsManager}</p>
+<div class="section" id="summary-for-pymdmix-users">
+<h3>Summary for pyMDMix users<a class="headerlink" href="#summary-for-pymdmix-users" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>If you want to change a pyMDMix parameter, do so in C{~/.mdmix/settings.cfg}</div></blockquote>
+</div>
+<div class="section" id="summary-for-mdmix-developpers">
+<h3>Summary for MDMix developpers<a class="headerlink" href="#summary-for-mdmix-developpers" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Check original Biskit.settings for more info.</div></blockquote>
+</div>
+<div class="section" id="summary-for-all">
+<h3>Summary for all<a class="headerlink" href="#summary-for-all" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>!Dont&#8217;t touch C{settings.py}!</div></blockquote>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Setting General Options and Attributes through Configuration files</a><ul>
+<li><a class="reference internal" href="#general-settings">General settings</a></li>
+<li><a class="reference internal" href="#md-default-settings">MD default settings</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-settings">Settings Module</a><ul>
+<li><a class="reference internal" href="#settings-biskit-module-wrapped">Settings (Biskit module wrapped)</a><ul>
+<li><a class="reference internal" href="#summary-for-pymdmix-users">Summary for pyMDMix users</a></li>
+<li><a class="reference internal" href="#summary-for-mdmix-developpers">Summary for MDMix developpers</a></li>
+<li><a class="reference internal" href="#summary-for-all">Summary for all</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="OFFManager.html"
+                        title="previous chapter">Object File Management Module documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="configurationfiles.html"
+                        title="next chapter">Project Configuration File (PCF)</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/settings.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="configurationfiles.html" title="Project Configuration File (PCF)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="OFFManager.html" title="Object File Management Module documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Daniel Alvarez-Garcia.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>
