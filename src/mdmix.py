@@ -136,6 +136,7 @@ def createParser():
     createhs = hs_cmd.add_parser("create", help="Create hot spots sets from selected grids")
     createhs.add_argument("-i", action="store", dest="ingrids", required=True, nargs='+', help="List of grid files to use for hotspots creation. If multiple probes are given, a hot spot set with the minimum energy probes is obtained.")
     createhs.add_argument("-o", action="store", required=True, dest="outprefix", help="Output prefix. A PDB with the hotspots and a pickle file will be saved")
+    createhs.add_argument("-centroid",action="store_true", dest="centroid", default="false", help="Calculate centroid as the average of all coordinates. Default: Minimum energy coordinate.")
     createhs.add_argument("--allpoints",action="store_false", dest="onlycenter", default="true", help="Write all points belonging to the hotspots in the output PDB instead of only the minimums with mean energy")
     createhs.add_argument("-p", action="store", dest="percentile", default=0.02, help="Percentile of points to use for establishing the cutoff value. Default: 0.02")
     createhs.add_argument("--hardcutoff", "-H", default=False, type=float, action="store", dest="hardcutoff", help="Stablish a hard energy cutoff instead of the adaptive one.")
@@ -553,12 +554,17 @@ def main():
                 outprefix = parserargs.outprefix
                 percentile = parserargs.percentile
                 hardcutoff = parserargs.hardcutoff
+                centroid = parserargs.centroid
+                
                 for g in ingrids:
                     if not os.path.exists(g): raise MDMixError, "File %s not found."%g
                 
                 import pyMDMix.HotSpotsManager as HM
+                if centroid: centroid = 'avg'
+                else: centroid = 'min'
                 HM.createHotSpotsByCutoff(ingrids, outprefix=outprefix, percentile=percentile, 
-                                            cutoff=hardcutoff, onlycenter=parserargs.onlycenter)
+                                            cutoff=hardcutoff, centroid=centroid, 
+                                            onlycenter=parserargs.onlycenter)
                 
     # UTILS COMMANDS
     elif command == 'tools':

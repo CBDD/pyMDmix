@@ -41,7 +41,8 @@ import tools as T
 
 class HotSpot(object):
     "Contain a set of points defining a hotspot and its properties: volume, chemical type, etc..."
-    def __init__(self, coords, energies, energymethod='volume', probe=False, index=0, spacing=[0.5,0.5,0.5], info=''):
+    def __init__(self, coords, energies, energymethod='volume', centroid='min',
+                probe=False,index=0, spacing=[0.5,0.5,0.5], info='',**kwargs):
         """
         HotSpot (HS) object. It may contain multiple coordinates and energies for the same hotspot.From *coords*, the minimum energy coordinate will be selected as HS centroid.
         Moreover, the extension in x,y,z coordinates and the volume will be calcualted. From *energies*, 
@@ -55,7 +56,8 @@ class HotSpot(object):
                                             - min:   minimmum energy as HS total energy
                                             - avg:   boltzmann average as the HS energy
                                             - volume:volume average as the HS energy
-        
+        :arg str centroid: Method for centroid calculation. Options: *min* for centroid in minimum energy coordinate,
+                            *mean* for centroid in average coordinate (weighted by energy).
         :arg str probe: Probe name identifying hotspot nature
         :arg int index: identification number if needed (e.g. cluster id)
         :arg spacing: Spacing of the grid. Used to calculate the volume. 1x3 array.
@@ -69,6 +71,7 @@ class HotSpot(object):
         self.npoints = 0
         self.sphereindex = 0
         self.info = info
+        self.centroid = centroid
 
         if not isinstance(coords, npy.ndarray): coords = npy.array(coords)
         if not isinstance(energies, npy.ndarray): energies = npy.array(energies)
@@ -167,13 +170,13 @@ class HotSpot(object):
 
         if not onlycenter and self.coordList.ndim >1:
             for i,coord in enumerate(self.coordList):
-                out.append(pstr%(i+1,atom,resname,'A',id, coord[0], coord[1], coord[2], self.sphereindex, self.energyList[i]))
+                out.append(pstr%(i+1,atom,resname,'A',id, coord[0], coord[1], coord[2], self.meanradius, self.energyList[i]))
         else:
             # Only one point or centroid to be use
             coord = self.coord
             out.append(pstr%(1,atom,resname,'A',id, coord[0], coord[1], coord[2], self.sphereindex, self.energy))
 
-        head.append("CLUSTER ID:%i VOLUME:%.2f SPHEREINDEX:%.2f ENERGY:%.2f"%(id,self.volume,self.sphereindex,self.energy))
+        head.append("CLUSTER ID:%i RADIUS:%.2f VOLUME:%.2f SPHEREINDEX:%.2f ENERGY:%.2f"%(id,self.meanradius,self.volume,self.sphereindex,self.energy))
         return ('\n'.join(head), '\n'.join(out))
 
     def setup(self):
@@ -184,19 +187,31 @@ class HotSpot(object):
             self.energy = self.energyList
             self.volume = self.volelement
             self.extension = self.spacing
+            self.meanradius = npy.mean(self.extension)/2.
             self.npoints = 1
         else:
+            RT = 0.001986*300 # kcal/mol
             # More dimensions, meaning multiple coords and energies
-            # The centroid coord will be the coordinate with minimum energy
-            minenergyIndex = npy.where(self.energyList == self.energyList.min())[0]
-            self.coord = self.coordList[minenergyIndex,:][0]
+            if self.centroid.lower() == 'min':
+                # The centroid coord will be the coordinate with minimum energy
+#                minenergyIndex = npy.where(self.energyList == self.energyList.min())[0]
+#                self.coord = self.coordList[minenergyIndex,:][0]
+                self.coord = self.coordList[npy.argmin(self.energyList),:]
+            else:
+                # Centroid in average coordinates
+                probabilities = npy.exp(self.energyList/-RT)
+                probabilities = probabilities/probabilities.sum()
+                self.coord = npy.average(self.coordList, axis=0, weights=probabilities)
+                #print probabilities
+            
+            # Other properties
             self.npoints = len(self.coordList)
             self.volume = self.npoints*self.volelement
             # introduce spacing in extension calculation to include uncertainty and avoid bad behaviour with small number of points
             self.extension = self.coordList.max(axis=0) - self.coordList.min(axis=0) + self.spacing 
+            self.meanradius = npy.mean(self.extension)/2.
 
             # Calculate energy according to energymethod
-            RT = 0.001986*300 # kcal/mol
             if self.energymethod == 'min':
                 self.energy = self.energyList.min()
             elif self.energymethod == 'avg':
@@ -249,6 +264,8 @@ class HotSpotSet(object):
         self.clusterIndexes = False
         self.nclusters = 0
         self.info = info
+        self.kwargs=kwargs
+        
 
     def __repr__(self):
         return "HotSpotSet Name: %s, Probe: %s. %i Hotspots."%(self.name, self.probe,len(self.hotspots))
@@ -484,8 +501,6 @@ class HotSpotSet(object):
                 cluster = self.clusterIndexes == i
                 if npy.sum(cluster == i) > 1:
                     clustHP = npy.array(self.hotspots)[cluster]
-#                    print clustHP, clustHP.tolist()
-#                    print [h.coord for h in clustHP]
                     newhotspotslist.append(HPCluster(clustHP.tolist(), clusterID=i))
                 else:
                     newhotspotslist.append(npy.array(self.hotspots)[cluster][0])
@@ -508,9 +523,9 @@ class HPCluster(HotSpot):
         self.hotspots = hotspotlist
         if not isinstance(hotspotlist, list): self.hotspots = [self.hotspots]
         self.index = clusterID or 1
-        self.setup()
+        self.setuphp()
     
-    def setup(self):
+    def setuphp(self):
         "Calculate centroid and average energy and STD"
         self.coord = npy.array([h.coord for h in self.hotspots]).mean(axis=0)
         elist = [h.energy for h in self.hotspots]
@@ -527,7 +542,7 @@ class HPCluster(HotSpot):
     def addHotSpots(self, HotSpots):
         if not isinstance(HotSpots, list): self.hotspots = [HotSpots]
         self.hotspots += HotSpots
-        self.setup()
+        self.setuphp()
 
 class HotSpotMultipleSetError(Exception):
     pass
@@ -620,7 +635,7 @@ class HotSpotMultipleSet(HotSpotSet):
         clustdistance = clustdistance or self.clustdistance
         self.clusterHotSpots(cutDistance=clustdistance)
         RT = 0.001986*300 # kcal/mol
-        resultHSet = HotSpotSet()
+        resultHSet = HotSpotSet(**self.kwargs)
         
         # Work inside each cluster to select who will stay and give all information
         for i in range(1, self.nclusters+1):
@@ -643,7 +658,7 @@ class HotSpotMultipleSet(HotSpotSet):
             for i,c in enumerate(clusths):
                 c.probability = relp[i]
             keephp = clusths[0]
-            hp = HotSpot(keephp.coordList, keephp.energyList, probe=keephp.probe)
+            hp = HotSpot(keephp.coordList, keephp.energyList, probe=keephp.probe,**self.kwargs)
             hp.others = clusths[1:]
             hp.probability = keephp.probability
             resultHSet.addHotSpots(hp)
@@ -667,6 +682,7 @@ class CreateHotSpotSet(object):
 
         """
         self.log = logging.getLogger("CreateHotSpotSet")
+        self.kwargs= kwargs
         
         if isinstance(grid, str) and os.path.exists(grid):
             self.grid = Grid(grid)
@@ -699,13 +715,13 @@ class CreateBySpheres(CreateHotSpotSet):
     The algorithm iteratively searches the minimum energy point MIN in the grid. Then removes all surounding points at CANCELRADIUS angstroms around.
     It establishes a hotspot in MIN with radius VALSRADIUS angstroms. This hotspot is only finally considered if the total energy is below ENERGYCUT.
     """
-    def setup(self, energycut=-0.4, valsradius=2.0, cancelRadius=2.0, protValue=1, rejectvalues=0, **kwargs):
+    def setup(self, cutvalue=-0.4, valsradius=2.0, cancelRadius=2.0, protValue=1, rejectvalues=0, **kwargs):
         """
         protValue are the values for points occupied by protein (initial zeros in counts).
         If the grid is already corrected by StandardState DG, this 1 will be modified. That's why we should modify this argument in those cases.
         If not average, return the minimum value as hotspot value
         
-        :args float energycut: Energy value to tell appart hotspots
+        :args float cutvalue: Energy value to tell appart hotspots
         :args float valsradius: Distance in angstroms. Considrer surrounding values as hotspot.
         :args float cancelRadius: Radius in angstroms to tell apart different hotspots centers.
         :args float protValue: Any value used to mask the protein occupied points. All points corresponding to this value will be ignored.
@@ -713,7 +729,7 @@ class CreateBySpheres(CreateHotSpotSet):
     
         """
         self.protValue = protValue
-        self.energycut = energycut
+        self.cutvalue = cutvalue
 #        self.convolvPointEnergy = convolvPointEnergy
         self.cancelRadius = cancelRadius
         self.valsradius= valsradius
@@ -729,7 +745,7 @@ class CreateBySpheres(CreateHotSpotSet):
         searchgrid = self.grid.copy()
         results = []
         index=0
-        enestop = self.energycut +0.2 # Increase margin for loop stop. Do not miss hotspots with energy below energycut because the loop stops early
+        enestop = self.cutvalue +0.2 # Increase margin for loop stop. Do not miss hotspots with energy below energycut because the loop stops early
         henergy = -99999
         while henergy < enestop:
             
@@ -753,9 +769,9 @@ class CreateBySpheres(CreateHotSpotSet):
             coords=coords[maskneg,:]
 
             # finally create a hotspot for these values and check if we keep it or not
-            hp = HotSpot(coords, vals, probe=self.grid.probe, index=index, energymethod='volume')
+            hp = HotSpot(coords, vals, probe=self.grid.probe, index=index, energymethod='volume',**self.kwargs)
             henergy = hp.energy
-            if hp.energy <= self.energycut:
+            if hp.energy <= self.cutvalue:
                 index+=1
                 hp.index=index
                 results.append(hp)
@@ -796,6 +812,7 @@ class createByCutoff(CreateHotSpotSet):
         # Stablish cutoff value if needed
         if not self.cutvalue:
             self.cutvalue = npy.percentile(data, self.percentile)
+        self.log.info("Using energy cut value: %.2f"%self.cutvalue)
         
         # Identify indices for points < cutoffenergy
         maskpoints = data <= self.cutvalue
@@ -828,12 +845,12 @@ class createByCutoff(CreateHotSpotSet):
             clustMask = self.clusterIndexes == clustid
             clustCoords = coords[clustMask,:]
             clustEnergies = energies[clustMask]
-            results.append(HotSpot(clustCoords, clustEnergies, energymethod=self.energymethod, index=clustid, spacing=spacing))
+            results.append(HotSpot(clustCoords, clustEnergies, energymethod=self.energymethod, index=clustid, spacing=spacing, **self.kwargs))
 
         # Renumber hotspots. 1st HS should be the lowest energy one
         results.sort()
         [h.setIndex(i+1) for i,h in enumerate(results)]
-        self.hotspotset = HotSpotSet(self.grid.probe, name=self.name, info=self.info)
+        self.hotspotset = HotSpotSet(self.grid.probe, name=self.name, info=self.info,**self.kwargs)
         self.hotspotset.addHotSpots(results)
 
 #: Current hot spot set calculation methods
@@ -960,7 +977,7 @@ class HotSpotsManager(object):
         else:
             return ids
 
-def createHotSpotsByCutoff(gridlist, percentile=0.02, cutoff=None, outprefix=None, onlycenter=False):
+def createHotSpotsByCutoff(gridlist, percentile=0.02, cutoff=None, outprefix=None, onlycenter=False, **kwargs):
     """
     Create a combined hot spot set from all input grids using cutoff hot spot creation method.
 
@@ -974,10 +991,10 @@ def createHotSpotsByCutoff(gridlist, percentile=0.02, cutoff=None, outprefix=Non
     """
     if not isinstance(gridlist, list): gridlist = [gridlist]
     hm = HotSpotsManager()
-    multiset = HotSpotMultipleSet()
+    multiset = HotSpotMultipleSet(**kwargs)
     hsets = []
     for grid in gridlist:
-        gset = hm.createHotSpotSetFromGrid(grid, method='cutoff', percentile=percentile, clustdistance=1.5, cutoff=cutoff)
+        gset = hm.createHotSpotSetFromGrid(grid, method='cutoff', percentile=percentile, clustdistance=1.5, cutvalue=cutoff, **kwargs)
 #        gset.clusterHotSpots(1.5)
         gset.reduceClusters(update=True)
         hsets.append(gset)
