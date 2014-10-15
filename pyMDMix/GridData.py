@@ -129,7 +129,8 @@ class GridData(object):
     def __getitem__(self, point):
         """Iterate Data giving cartesian coordinates"""
         index = self.getIndex(point)
-        return self.data[index]
+        if index: return self.data[index]
+        else: return False
     
     def __setitem__(self, key, value):
         """When used as self[a,b,c]=x for a,b,c as cartesian coordinates

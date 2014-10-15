@@ -450,7 +450,7 @@ class DensityGridsAllHA(object):
         """
         self.log = logging.getLogger("DensityGridsAllHA")
         self.replica = replica
-        self.log.info("Setting up density grid calculation for replica %s"%replica.name)
+        self.log.info("Setting up density grid calculation for all heavy atoms in replica %s"%replica.name)
         if not replica.isAligned(stepselection):
             raise DensityError, "Cannot calculate density over non-aligned trajectory"
         
@@ -498,7 +498,7 @@ class DensityGridsAllHA(object):
         self.probes = []
         for res in self.solvent.residues:
             if res == 'WAT' or res == 'HOH': continue # Don't track water
-            self.hainfo[res.name] = {a:a.id for a in res.atoms if a.element != 1} # take non-hydrogen atoms only (id and name)
+            self.hainfo[res.name] = {a.name:a.id for a in res.atoms if a.element != 1} # take non-hydrogen atoms only (id and name)
             self.probes.extend(['%s_%s'%(res.name, a.name) for a in res.atoms if a.element != 1])
             self.probes.extend(['%s_%s'%(res.name, 'COM')])
 
@@ -564,7 +564,7 @@ class DensityGridsAllHA(object):
         # Instantiate workers with memmap arguments and probe info
         workerList = []
         for _ in range(nworkers):
-            workerList.append(CountGridsWorkerHA(dataQueue, self.probes, self.pdb,
+            workerList.append(CountGridsWorkerHA(dataQueue, self.probes, self.pdb, self.hainfo,
                                 self.countGrids, self.indexFunction, self.subregionfx))
         return workerList
 
@@ -602,13 +602,13 @@ class DensityGridsAllHA(object):
             else:
                 # get all coords for HA name
                 res, atname = probe.split('_')
-                ati = self.hainfo[res][atname]
+                ati = self.hainfo[res][atname] -1
                 coords = npy.array([rxyz[ati] for rxyz in self.pdb.iterResidues(res)])
             if self.subregionfx: coords = self.subregionfx(coords)
             idx = npy.apply_along_axis(self.indexFunction, 1, coords)
-            for idx in idx:
-                if npy.all(idx == [-1,-1,-1]): continue
-                self.countGrids[probe][tuple(idx)] += 1
+            for ix in idx:
+                if npy.all(ix == [-1,-1,-1]): continue
+                self.countGrids[probe][tuple(ix)] += 1
 
 class CountGridsWorkerHA(multiprocessing.Process):
     def __init__(self, snapQueue, probelist, solvatedPdb, hainfo, outCountGrids, indexFunction, subregionfx):
@@ -636,16 +636,16 @@ class CountGridsWorkerHA(multiprocessing.Process):
                 else:
                     # get all coords for HA name
                     res, atname = probe.split('_')
-                    ati = self.hainfo[res][atname]
+                    ati = self.hainfo[res][atname] -1
                     coords = npy.array([rxyz[ati] for rxyz in self.pdb.iterResidues(res)])
                 if self.subregionfx: coords = self.subregionfx(coords)
                 idx = npy.apply_along_axis(self.toIndex, 1, coords)
-                for idx in idx:
-                    if npy.all(idx == [-1,-1,-1]): continue
+                for ix in idx:
+                    if npy.all(ix == [-1,-1,-1]): continue
                     try:
-                        self.outCountGrids[probe][tuple(idx)] += 1
+                        self.outCountGrids[probe][tuple(ix)] += 1
                     except IndexError:
-                        raise IndexError, "{} {} {} grid shape: {}".format(idx, tuple(idx), probe, self.outCountGrids[probe].shape)
+                        raise IndexError, "{} {} {} grid shape: {}".format(ix, tuple(idx), probe, self.outCountGrids[probe].shape)
 
 
 def DensityGrids_postprocess(results, replica, **kwargs):

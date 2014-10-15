@@ -374,7 +374,7 @@ Solvent: {solvent}
         :kwargs: Other params to pass to :meth:`fetchGrids`
         :return: A nested dictionary will be returned with this shape: ``{type: {probe: grid}}``.
         """
-        self.fetchGrids(**kwargs)
+        if not self.grids: self.fetchGrids(**kwargs)
         d = {}
         if type: d[type] = {}
         for g in self.grids:
@@ -392,16 +392,15 @@ Solvent: {solvent}
 
         :arg list probelist: list of probe names to fetch grids
         :kwargs: Other params to pass to :meth:`fetchGrids`
-        :return: dictionary with shape ``{probe:{type:grid, type:grid},}``
+        :return: dictionary with shape ``{probe:[grid, grid,..],}``
         """
         if not isinstance(probelist, list): probelist = [probelist]
-        self.fetchGrids(**kwargs)
+        if not self.grids: self.fetchGrids(**kwargs)
         d = {}
         for g in self.grids:
-            if set(g.probe) & set(probelist):
-                if not d.has_key(g.probe): d[g.probe] = {}
-                if d[g.probe].has_key(g.type): self.log.warn("More than one grid found for probe %s and type %s"%(g.probe, g.type))
-                d[g.probe][g.type] = g
+            if set([g.probe]) & set(probelist):
+                if not d.has_key(g.probe): d[g.probe] = []
+                d[g.probe].append(g)
         return d
         
     def checkProductionExtension(self, steps=[]):

@@ -105,13 +105,16 @@ class SolvatedPDB(bi.PDBModel):
                 self.solvent = None
             else:
                 if len(possible) > 1:
-                    self.log.debug("More than one possible solvent identified for SolvatedPDB: %s. Using the first one: %s"%possible, possible[0])
+                    self.log.debug("More than one possible solvent identified for SolvatedPDB: %s. Using the first one: %s"%(possible, possible[0]))
                 else:
                     self.log.debug("Identified pdb solvation as %s solvent box."%possible[0])
                 self.solvent = man.getSolvent(possible[0])
 
         else:
-            self.solvent = man.getSolvent(solvname)
+            s = man.getSolvent(solvname)
+            if s: self.solvent = s
+            else: self.log.debug("Solvent name not found: %s"%solvname)
+            
 
     def setSoluteSolventMask(self):
         "When missing residues, only accept as part of the system those present in acceptList or in EXTRARESIDUES file.\
