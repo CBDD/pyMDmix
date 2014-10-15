@@ -315,15 +315,16 @@ def createRootLogger(level, logFile=None):
     pyMDMix.setLogger(level, logFile)
 
 def header():
+    
     print """
     ==========================================================
     ||              pyMDMix User Interface                  ||
     ==========================================================
     ||  Author: Daniel Alvarez-Garcia                       ||
-    ||  Version : 0.1.3                                     ||
+        Version : %s                                     
     ==========================================================
     
-    """
+    """%pyMDMix.__version__
 
 
 def main():
