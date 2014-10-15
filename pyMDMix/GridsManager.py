@@ -188,7 +188,7 @@ class GridSpace(object):
     kB = 1.38065E-23*6.022142E23/4.184/1000.0 # kcal/mol = R
 
     def __init__(self, GridList=None, spaceName=None, filterPositive=False, T=300., R=1.5, *args, **kwargs):
-        "GridList: list of Grid instances (also a list with 1 object is valid).\
+        "GridList: list of Grid instances or filepaths (also a list with 1 object is valid).\
         If GridList == None, then no action is done, waiting for a load command to restore from pickle.\
         If filterPositive is True, all values > 0 will be set to 0.\
         T is temperature. Used when doing boltzmann averages. Can be set later with setT().\
@@ -457,7 +457,7 @@ class GridSpace(object):
             if npy.any([el == None for el in ndim]):
                 raise ValueError, "%s name not in GridSpace mapping dict"%name
         elif cross:
-            ndim = [False]
+            ndim = False
         else:
             raise ValueError, "valid ndim, name or atype argument must be given. Else choose 'cross'"
 
@@ -482,7 +482,7 @@ class GridSpace(object):
                 p = self._vals(idx, ndim, radii=0)
                 return p.reshape((self.ndim,))
             else:
-                p = [self._vals(idx, d, radii=0) for d in ndim]
+                p = npy.array([self._vals(idx, d, radii=0) for d in ndim])
                 return p.reshape((len(ndim),))
             
         # CHOOSE PROCESSING MODE
@@ -536,13 +536,13 @@ class GridSpace(object):
     def setR(self, R):
         self._defR = R
 
-    def getDimInfo(self, i=False):
+    def getDimInfo(self, i=None):
         info = []
-        if i:
+        if i != None:
             return self.probeMapping.get(i)
 
         for i in range(self.ndim):
-            info.append(self.probeMapping[i])
+            info.append(self.probeMapping[i])[0]
 
         return info
 
@@ -635,9 +635,7 @@ class GridSpace(object):
         return npy.array(vals)
     
     def toIndex(self, xyz):
-        d = self.container.getIndex(xyz)
-        if d == 999.: return False
-        return d
+        return self.container.getIndex(xyz)
 
     def toCartesian(self, ijk):
         return self.container.getCartesian(ijk)
