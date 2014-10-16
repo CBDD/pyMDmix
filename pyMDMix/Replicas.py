@@ -516,6 +516,16 @@ Solvent: {solvent}
         self.log.debug("Changed nanos to %i, expectedtrajfiles: %i"%(self.nanos, self.ntrajfiles))
         if self.__folderscreated: self.write()
 
+    def setProductionSteps(self, steps):
+        """
+        Change number of production steps per job 
+        E.g. at 2fs per step, 500000 steps is 1ns, half nanosecond will be 250000 steps.
+        Remember to rewrite MDInput and Queue files if needed.
+        """
+        self.nvt_prod_steps = steps
+        self.__calcExpectedNTrajFiles()
+        self.write()
+
     def setOutFileTemplate(self, outfiletemplate):
         """
         Set/Modify output filename template for current replica. All filename templates must include {nano} and {extension}.
