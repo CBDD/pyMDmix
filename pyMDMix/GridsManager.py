@@ -345,7 +345,7 @@ class GridSpace(object):
         self.log.debug("Loading grids and creating GridSpace...")
         # Check all members of GList are Grid instances or convert otherwise
         for i,g in enumerate(GList):
-            if isinstance(g, Grid):
+            if isinstance(g, GridData) or isinstance(g, Grid):
                 self.grids.append(g)
             else:
                 self.grids.append(Grid(g))
