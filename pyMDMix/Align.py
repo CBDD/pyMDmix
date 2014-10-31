@@ -36,15 +36,25 @@ import os.path as osp
 import settings as S
 import tools as T
 
+class AlignError(Exception):
+    pass
+
 class Align(object):
-    def __init__(self, replica, steps=[], nthreads=False, warn=True, waitend=True, **kwargs):
+    def __init__(self, replica, steps=[], nthreads=False, run=True, write=True,
+                    warn=True, waitend=True, **kwargs):
         """
-        Constructor
+        Instantiating Align with a replica as argument will automatically start alignment process.
+        The process has two parts:
+            1) Writing of ptraj input scripts
+            2) Execution of the ptraj commands
+        The actions to be performed can be swritched using *run* and *write* arguments
         
         :arg replica: Replica to work with
         :type replica: :class:`~Replicas.Replica`
         :arg list steps: Selected steps to align. If empty, align all expected steps.
         :arg int nthreads: Number of processors to use.
+        :arg bool run: Execute ptraj scripts. Helps tuning only one of both actions.
+        :arg bool write: Write ptraj input scripts.
         :arg bool warn: Print warning messages.
         :arg bool waitend: When runing commands, wait until all steps are complete before exiting
         
@@ -57,28 +67,66 @@ class Align(object):
         self.warn = warn
         self.waitend=waitend
         
-        # Register to executor
-        # change number of threads if number given (use EXECUTOR nthreads if False)
-        if nthreads: 
-            self.log.debug("Changing nthreads in Executor to %d"%nthreads)
-            T.EXECUTOR.changeNthreads(nthreads)
-        T.EXECUTOR.start()
+        # Check if we are using cpptraj
+        if 'cpptraj' in S.AMBER_PTRAJ: 
+            self.log.debug("Using cpptraj")
+            self.cpptraj = True
+        else: self.cpptraj = False
+        
+        # Prepare reference with all atoms when cpptraj = True
+        self.ref = osp.join(os.pardir, self.replica.ref)
+        if self.cpptraj: self.__alignRefAllAtoms()
+        
+        if write: 
+            self.log.info("Writing (cp)ptraj input files")
+            self.writePtrajInput(**kwargs)
+        if run:
+            # Register to executor
+            # change number of threads if number given (use EXECUTOR nthreads if False)
+            self.log.info("Running alignment with (cp)ptraj")
+            if nthreads: 
+                self.log.debug("Changing nthreads in Executor to %d"%nthreads)
+                T.EXECUTOR.changeNthreads(nthreads)
+            T.EXECUTOR.start()
 
-        self.writePtrajInput(**kwargs)
-        self.run()
+            self.run()
         
-        # Exit executor
-        if waitend: T.EXECUTOR.waitJobCompletion()
-        T.EXECUTOR.terminate()
+            # Exit executor
+            if waitend: T.EXECUTOR.waitJobCompletion()
+            T.EXECUTOR.terminate()
+    
+    def __alignRefAllAtoms(self):
+        """
+        Cpptraj does not allow to use a reference PDB which contains different 
+        number of atoms to the topology file. So we need to take the replica pdb and align it to the
+        reference structure and use this full-atom pdb as reference in ptraj commands.
+        """
+        from PDB import SolvatedPDB
+        self.replica.go()
+        self.log.debug("Fitting all atoms PDB to reference PDB for cpptraj use")
+        newref = self.replica.ref.replace('.pdb','_allatoms.pdb')
+        if not osp.exists(newref): 
+            pdb = self.replica.getPDB()
+            ref = SolvatedPDB(self.replica.ref)
+            alpdb = pdb.magicFit(ref)
+            alpdb.writePdb(newref)
         
+        self.ref = osp.join(os.pardir, newref)
+        S.BROWSER.goback()
+    
     def __aligncmd(self, step):
         "Return ptraj execution command for step *step*"
         if not self.replica.checkProductionExtension([step])[step]:
             return False
         inf = self.replica.mdoutfiletemplate.format(step=step, extension='ptraj')
+        
+        # Check input file exists
+        if not osp.exists(inf):
+            raise AlignError, "File %s does not exists in alignment folder of replica %s"%(inf, self.replica.name)
+        
         outf= inf.replace('.ptraj','_ptraj.log')
         top = os.pardir+os.sep+self.replica.top
-        cmd = S.AMBEREXE+os.sep+'ptraj {top} < {inf} >& {outf}'.format(top=top, inf=inf, outf=outf)
+        cmd = S.AMBER_PTRAJ+' {top} < {inf} >& {outf}'.format(top=top, inf=inf, outf=outf)
         path = osp.join(self.replica.path, self.replica.alignfolder)
         return cmd, path
         
@@ -138,7 +186,7 @@ class Align(object):
             if writeavgpdb: avgpdb = 'prot_avg_%i.pdb'%i
 
             # Create script
-            script = awriter.getPtrajAlignScript(trajin=trajin, trajout=trajout, writermsd=writermsd,
+            script = awriter.getPtrajAlignScript(trajin=trajin, trajout=trajout, writermsd=writermsd, reference=self.ref,
                                     writeavgpdb=writeavgpdb, rmsdoutprefix=outrmsd, avgpdbout=avgpdb, alignmask=alignmask)
 
             # Write ptraj script

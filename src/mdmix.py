@@ -118,7 +118,9 @@ def createParser():
     align_parser.add_argument("-N", help="List production steps to consider for alignment using a colon separated range. Ex: 1:20 - first to 20th step.", default=False, nargs=1,dest="nanoselect")
     align_parser.add_argument("-C", type=int, help="Number of cpus to use for the action. If option not given, will use 1 CPU serial mode.", dest="ncpus", default=1, action="store")
     align_parser.add_argument("--mask", action="store", dest="alignmask", help="Modify alignment mask defined when creating the replicas. By default the macromolecule will be automatically identified. Give a list with comma separated residue numbers or hyphen separated range. E.g. 10-100,120-240.")
-
+    align_parser.add_argument("--only-write", action="store_true", default=False, dest="onlywrite", help="Only write ptraj input scripts BUT don't execute them. Useful when manual editing is needed. (default: False)")
+    align_parser.add_argument("--only-exe", action="store_true", default=False, dest="onlyexe", help="Only execute existing ptra scripts, do not overwrite them. If scripts don't exist, this function will fail. (Default: False)")
+    
     # In conversion from density to grids, allow also merging of densities between replicas before energy conversion
     energy_parser = subparseronreplica(anl_cmd, 'energy', help="Calculate free energy maps from density grids for selected probes and replicas", extras=False)
     energy_parser.add_argument("-nsnaps", action="store", dest="nsnaps", type=int, help="If given, use this number of snapshots for calculating the expected number instead of the total number. Useful when a subset of the trajectory is analyzed.")
@@ -475,7 +477,20 @@ def main():
                 nanosel = parsenanos(parserargs)
                 ncpus = parserargs.ncpus
                 mask = parserargs.alignmask
-                p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask)
+                onlywrite = parserargs.onlywrite
+                onlyexe = parserargs.onlyexe
+                
+                if onlywrite or onlyexe:
+                    # Options for partial execution selected
+                    if onlywrite:
+                        # Only write ptraj input scripts and do not execute them
+                        p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask, run=False)
+                    else:
+                        # Just execute existing alignment scripts
+                        # Fail if scripts do not exist
+                        p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask, run=True, write=False)
+                else:
+                    p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask)
                 print "DONE"
 
         elif parserargs.anl_command == 'density':

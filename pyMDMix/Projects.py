@@ -378,12 +378,7 @@ class Project(object):
         self.log.info("Running alignment for replicas %s"%replicalist)
         self.applyReplicas('runAlignment',replicalist, steps=steps, ncpus=ncpus, **kwargs)
         if waitend: T.EXECUTOR.waitJobCompletion()
-#        import multiprocessing as multi
-#        process = [multi.Process(target=r.runAlignment, args=(ncpus, steps, False)) for r in replicalist]
-#        [p.start() for p in process]
-#        [p.join() for p in process]
-#        if waitend: T.EXECUTOR.waitJobCompletion()  # Wait for executor to finish tasks
-#        T.EXECUTOR.terminate()
+
     
     def write(self):
         "Save object __dict__ to pickled file."
