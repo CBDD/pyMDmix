@@ -119,15 +119,15 @@ class Align(object):
         if not self.replica.checkProductionExtension([step])[step]:
             return False
         inf = self.replica.mdoutfiletemplate.format(step=step, extension='ptraj')
-        
+        path = osp.join(self.replica.path, self.replica.alignfolder)
         # Check input file exists
-        if not osp.exists(inf):
+        if not osp.exists(osp.join(path,inf)):
             raise AlignError, "File %s does not exists in alignment folder of replica %s"%(inf, self.replica.name)
         
         outf= inf.replace('.ptraj','_ptraj.log')
         top = os.pardir+os.sep+self.replica.top
         cmd = S.AMBER_PTRAJ+' {top} < {inf} >& {outf}'.format(top=top, inf=inf, outf=outf)
-        path = osp.join(self.replica.path, self.replica.alignfolder)
+        
         return cmd, path
         
     def run(self):
