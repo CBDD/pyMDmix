@@ -156,7 +156,7 @@ class HotSpot(object):
         """
         # Write a PDB for each point found
         head=[]
-        pstr='ATOM  %5d%4s  %s%2s%4d   %8.3f%8.3f%8.3f%6.2f%6.2f'
+        pstr='ATOM  %5d %4s %3s %s%4d    %8.3f%8.3f%8.3f%6.2f%6.2f'
         out = []
         
         # define resname and atom
@@ -809,6 +809,7 @@ class createByCutoff(CreateHotSpotSet):
         *cutdistance* is the distance under which two neighbour points will be considered as part of the same hotspot.
         """
         data = self.grid.data
+        probe = self.grid.probe
         # Stablish cutoff value if needed
         if not self.cutvalue:
             self.cutvalue = npy.percentile(data, self.percentile)
@@ -845,7 +846,8 @@ class createByCutoff(CreateHotSpotSet):
             clustMask = self.clusterIndexes == clustid
             clustCoords = coords[clustMask,:]
             clustEnergies = energies[clustMask]
-            results.append(HotSpot(clustCoords, clustEnergies, energymethod=self.energymethod, index=clustid, spacing=spacing, **self.kwargs))
+            results.append(HotSpot(clustCoords, clustEnergies, energymethod=self.energymethod,
+                                        probe=self.grid.probe, index=clustid, spacing=spacing, **self.kwargs))
 
         # Renumber hotspots. 1st HS should be the lowest energy one
         results.sort()
@@ -996,7 +998,7 @@ def createHotSpotsByCutoff(gridlist, percentile=0.02, cutoff=None, outprefix=Non
     for grid in gridlist:
         gset = hm.createHotSpotSetFromGrid(grid, method='cutoff', percentile=percentile, clustdistance=1.5, cutvalue=cutoff, **kwargs)
 #        gset.clusterHotSpots(1.5)
-        gset.reduceClusters(update=True)
+        #gset.reduceClusters(update=True)
         hsets.append(gset)
     multiset.addHSets(hsets)
     multiset.combine(1.5)
