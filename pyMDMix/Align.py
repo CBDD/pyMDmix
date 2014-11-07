@@ -67,6 +67,11 @@ class Align(object):
         self.warn = warn
         self.waitend=waitend
         
+        # Print some info for logging
+        stepsstr = ''
+        if steps: stepsstr=': Selected steps - %s'%steps
+        self.log.info("ALIGN: Replica %s %s"%(replica.name, stepsstr))
+        
         # Check if we are using cpptraj
         if 'cpptraj' in S.AMBER_PTRAJ: 
             self.log.debug("Using cpptraj")

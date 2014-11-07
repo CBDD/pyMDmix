@@ -485,13 +485,18 @@ Solvent: {solvent}
             return False
         return True
 
-    def isProductionFinished(self, stepselection=[]):
+    def isProductionFinished(self, stepselection=[], warn=True):
         """
         Return True if MD production stage has been completed
+        
+        :arg list stepselection: Selection of steps to be checked. Default is all.
+        :arg bool warn: Print a warning message when some file is missing or uncomplete.
+        
+        :returns: Bool indicating if steps are correctly finished.
         """
         if not stepselection: stepselection=range(1,self.ntrajfiles+1)
         if not isinstance(stepselection, list): stepselection = [stepselection]
-        check = self.getChecker(warn=False)
+        check = self.getChecker(warn=warn)
         return check.checkProduction(stepselection=stepselection)
 
     def isEquilibrationFinished(self):

@@ -311,6 +311,7 @@ def parseNumMask(mask):
 def parsenanos(argparser):
     if not argparser.nanoselect: return False
     nanosel = parseNumMask(argparser.nanoselect[0])
+    print "Selected steps: %s"%(', '.join(map(str, nanosel)))
     return nanosel
 
 def createRootLogger(level, logFile=None):
@@ -323,7 +324,7 @@ def header():
     ||              pyMDMix User Interface                  ||
     ==========================================================
     ||  Author: Daniel Alvarez-Garcia                       ||
-        Version : %s                                     
+    ||  Version : %s                                     
     ==========================================================
     
     """%pyMDMix.__version__

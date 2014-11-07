@@ -472,6 +472,7 @@ class AmberCheck(object):
             T.BROWSER.goback()
             return False
         T.BROWSER.goback()
+        self.log.debug("Minimization complete (replica %s)"%replica.name)
         return True
 
 
@@ -501,6 +502,7 @@ class AmberCheck(object):
                 if not S.AMBER_MD_COMPLETE in out:
                     if self.warn: self.log.warn("MD equilibration step %i not completed or errors arised"%i)
                     return False
+        self.log.debug("Equilibration complete (replica %s, step_selection %s)"%(replica.name,stepselection))
         return True
 
     def getEquilibrationOutputFile(self, step, replica=False, outextension='out'):
@@ -575,6 +577,8 @@ class AmberCheck(object):
                 if not S.AMBER_MD_COMPLETE in out:
                     if self.warn: self.log.warn("MD production step %i not completed or errors arised"%i)
                     return False
+        
+        self.log.debug("Production complete (replica %s step_selection %s)"%(replica.name, stepselection))
         return True    
 
     def checkMD(self, replica=False, returnsteps=False):
