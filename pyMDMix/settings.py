@@ -132,7 +132,7 @@ else:
     AMBEREXE = os.environ.get('AMBEREXE') or sys.exit('AMBEREXE env variable not defined and executables folder not found automatically. Define AMBEREXE pointing to the folder containing executable files.')
 
 # Check ptraj, ambpdb and tleap are found
-for prog in ('tleap', 'ptraj', 'ambpdb'):
+for prog in (AMBER_TLEAP, AMBER_PTRAJ, AMBER_AMBPDB):
     if not osp.exists(AMBEREXE+os.sep+prog): sys.exit("%s not found"%prog)
 
 # Check default forcefields are found to be loaded with tleap
