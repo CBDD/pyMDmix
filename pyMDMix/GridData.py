@@ -687,7 +687,7 @@ class GridData(object):
         Trim self array data to fit common data with grid X. 
         New shape and coordinates is common in the two arrays but data is copied from self
         """
-        if self.delta == X.delta:
+        if npy.all(self.delta == X.delta):
 
             A = self
 

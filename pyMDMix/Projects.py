@@ -246,9 +246,22 @@ class Project(object):
         T.BROWSER.chdir(self.replPaths)
         for root, dir, files in os.walk(os.curdir):
             for f in files:
-                if f.endswith('mrepl'): repls.append(Replica(fromfile=osp.join(root, f)))
+                if f.endswith('mrepl'): 
+                    repls.append(Replica(fromfile=osp.join(root, f)))
         T.BROWSER.chdir(cwd)
-        self.replicas = dict([(r.name, r) for r in repls])
+        
+        # Check no duplicate names exist
+        names = []
+        duplicate = []
+        for i,r in enumerate(repls): 
+            if not r.name in names: names.append(r.name)
+            else:
+                # Duplicate name
+                self.log.warning("Detected a duplicated replica with name %s in path %s"%(r.name,r.path))
+                self.log.warning("Skipping this replica. Make sure the replica file (*.mrepl) are located in the right directory and no duplicate names exist")
+                duplicate.append(i)
+                
+        self.replicas = dict([(r.name, r) for i,r in enumerate(repls) if not i in duplicate])
         self.solventCounter.clear()
         for r in repls: self.solventCounter[r.solvent] += 1
         return self.replicas
