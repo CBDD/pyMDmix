@@ -74,7 +74,13 @@ class ActionsManager(object):
         # Check all memebers are Actions
         actions = []
         for act in analysis:
-            a = globals().get(act)
+            if isinstance(act, str):
+                a = globals().get(act)
+            elif hasattr(DensityGrids,'action_name'):
+                # Assume its an action class
+                a = act
+            else:
+                raise ActionsManagerError, "Unrecognized Action type: %s, %s"%(act,type(act))
             if a: actions.append(a)
             else: raise ActionsManagerError, "Action %s not found"%act
         self.actions.extend(actions)
