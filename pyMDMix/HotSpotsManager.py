@@ -785,7 +785,7 @@ class createByCutoff(CreateHotSpotSet):
     Creates hotspot set by taking all points below a energy cutoff value.
     A hotspot will be defined as a set of points within a cutdistance of each other
     """
-    def setup(self, percentile=0.02, cutvalue=None, cutdistance=1.5, energymethod='volume', **kwargs):
+    def setup(self, percentile=0.02, cutvalue=None, cutdistance=1.5, energymethod='volume', maskcutvalue=False, **kwargs):
         """
         Setup for calculation
 
@@ -795,13 +795,15 @@ class createByCutoff(CreateHotSpotSet):
         :arg float cutvalue: Values under or equal to this energy will be taken for hotspot building. Optional.
         :arg float cutdistance: Distance in Angstroms for deciding if a hotspot belongs to same cluster or not.
         :arg str energymethod: HS energy computing method. Same as :attr:`HotSpot.energymethod` .
+        :arg float maskcutvalue: Remove all points with value *maskvalue* when calculating cutoff by percentile.
 
         """
         self.percentile = percentile
         self.cutvalue = cutvalue
         self.cutdistance = cutdistance
         self.energymethod = energymethod
-        self.log.debug("CreateByCutoff: Percentile %.2f. Cutdistance %.2f. Energymethod %s. Cutvalue %s"%(percentile, cutdistance, energymethod, str(cutvalue)))
+        self.maskcutvalue = maskcutvalue
+        self.log.debug("CreateByCutoff: Percentile %.2f. Cutdistance %.2f. Energymethod %s. Cutvalue %s. Maskcutvalue %s"%(percentile, cutdistance, energymethod, str(cutvalue),maskcutvalue))
 
     def calculate(self):
         """
@@ -812,7 +814,7 @@ class createByCutoff(CreateHotSpotSet):
         probe = self.grid.probe
         # Stablish cutoff value if needed
         if not self.cutvalue:
-            self.cutvalue = npy.percentile(data, self.percentile)
+            self.cutvalue = self.grid.getPercentileCutValue(self.percentile, self.maskcutvalue)
         self.log.info("Using energy cut value: %.2f"%self.cutvalue)
         
         # Identify indices for points < cutoffenergy

@@ -75,11 +75,12 @@ class Grid(GridData):
         else:
             raise TypeError, "%s type not valid. Valid types are: %s"%(type, S.GRIDTYPES)
 
-    def getPercentileCutValue(self, percentile):
+    def getPercentileCutValue(self, percentile, maskout=False):
         """
         Helper function. Will return the approximate cutvalue that will contain the percentile X number of points.
         Args:
             percentile  (float) Percentile value
+            maskout     (float) If given, remove all points with this value from percentile calculation
         Returns:
             float. Cutvalue.
             
@@ -89,7 +90,9 @@ class Grid(GridData):
             >> 100*(npy.sum(grid.data < -1.5))/float(grid.data.size)
             >> 0.1
         """
-        return npy.percentile(self.data.flat, percentile)
+        if maskout: d = npy.compress(self.data.flat!=maskout, self.data.flat)
+        else: d=self.data.flat
+        return npy.percentile(d, percentile)
 
     def getTypeFromHeader(self):
         "Look in grid file header to detect the type: MDMIX_DENS MDMIX_RAW MDMIX_CORR MDMIX_OTHER"       

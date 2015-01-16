@@ -141,6 +141,7 @@ def createParser():
     createhs.add_argument("-centroid",action="store_true", dest="centroid", default="false", help="Calculate centroid as the average of all coordinates. Default: Minimum energy coordinate.")
     createhs.add_argument("--allpoints",action="store_false", dest="onlycenter", default="true", help="Write all points belonging to the hotspots in the output PDB instead of only the minimums with mean energy")
     createhs.add_argument("-p", action="store", dest="percentile", default=0.02, help="Percentile of points to use for establishing the cutoff value. Default: 0.02")
+    createhs.add_argument("-x", action="store", dest="ignore", type=float, help="Ignore points with this value during percentile calculation. Useful when grids have values masking certain regions in space (like 999 to mask protein space).")
     createhs.add_argument("--hardcutoff", "-H", default=False, type=float, action="store", dest="hardcutoff", help="Stablish a hard energy cutoff instead of the adaptive one.")
     
     # UTILS
@@ -572,6 +573,7 @@ def main():
                 percentile = parserargs.percentile
                 hardcutoff = parserargs.hardcutoff
                 centroid = parserargs.centroid
+                maskcutvalue = parserargs.ignore
                 
                 for g in ingrids:
                     if not os.path.exists(g): raise MDMixError, "File %s not found."%g
@@ -581,7 +583,7 @@ def main():
                 else: centroid = 'min'
                 HM.createHotSpotsByCutoff(ingrids, outprefix=outprefix, percentile=percentile, 
                                             cutoff=hardcutoff, centroid=centroid, 
-                                            onlycenter=parserargs.onlycenter)
+                                            onlycenter=parserargs.onlycenter, maskcutvalue=maskcutvalue)
                 
     # UTILS COMMANDS
     elif command == 'tools':
