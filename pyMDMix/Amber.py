@@ -896,7 +896,7 @@ class AmberWriter(object):
 
     def writeCheckCOM(self, top, crd, mask, imagingCommands):
         template = string.Template(open(T.templatesRoot('check_com_temp.txt'),'r').read())
-        d = {'top':top, 'mask':mask, 'crd':crd, 'imaging':imagingCommands}
+        d = {'top':top, 'mask':mask, 'crd':crd, 'imaging':imagingCommands, 'ptraj':S.AMBER_PTRAJ}
         open('check_com.sh','w').write(template.substitute(d))
 
 #    def writeRestartImaging(self, replica=False):

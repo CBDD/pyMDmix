@@ -498,7 +498,7 @@ class DensityGridsAllHA(object):
         self.probes = []
         for res in self.solvent.residues:
             if res == 'WAT' or res == 'HOH': continue # Don't track water
-            self.hainfo[res.name] = {a.name:a.id for a in res.atoms if a.element != 1} # take non-hydrogen atoms only (id and name)
+            self.hainfo[res.name] = dict((a.name,a.id) for a in res.atoms if a.element != 1) # take non-hydrogen atoms only (id and name)
             self.probes.extend(['%s_%s'%(res.name, a.name) for a in res.atoms if a.element != 1])
             self.probes.extend(['%s_%s'%(res.name, 'COM')])
 
