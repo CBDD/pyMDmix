@@ -271,7 +271,7 @@ class EnergyConversion(object):
         T.BROWSER.goHome()
 
         # Fetch all density grids for all replicas
-        allgrids = {r.name:r.getGridsByType('MDMIX_DENS', prefix=inprefix) for r in replicalist}
+        allgrids = dict((r.name,r.getGridsByType('MDMIX_DENS', prefix=inprefix)) for r in replicalist)
         self.log.debug("allgrids: %s"%allgrids)
 
         # Will proceed different if average is requested
