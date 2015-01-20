@@ -40,7 +40,7 @@ if [ "$$d" -gt "5" ]; then
 	$$exeptraj ../$$top << EOF >& /dev/null
 	trajin $$rst
 	$imaging
-	center :$${mask} origin
+	center ':$${mask}' origin
 	translate :* $$xyz
         trajout $${rst%.rst}_translated.rst restart
 EOF
