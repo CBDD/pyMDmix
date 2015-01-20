@@ -9,8 +9,15 @@ trajout tmp0.pdb PDB nobox
 strip '@H*'
 strip '!(:$${mask})'
 EOF
+
+# Check if tmp0.pdb or tmp0.pdb.1 was written
+if [ -e tmp0.pdb.1 ]; then tmp0=tmp0.pdb.1;
+elif [ -e tmp0.pdb ]; then tmp0=tmp0.pdb;
+else; echo "tmp0.pdb or tmp0.pdb.1 not found"; exit;
+fi
+
 # calculate Center Of Mass
-com1=`grep ^ATOM tmp0.pdb.1 | perl -e 'while(<>){$$x+=substr($$_,30,8);$$y+=substr($$_,38,8);$$z+=substr($$_,46,8);$$n++};printf "%.3f %.3f %.3f\n",$$x/$$n,$$y/$$n,$$z/$$n;'`
+com1=`grep ^ATOM $$tmp0 | perl -e 'while(<>){$$x+=substr($$_,30,8);$$y+=substr($$_,38,8);$$z+=substr($$_,46,8);$$n++};printf "%.3f %.3f %.3f\n",$$x/$$n,$$y/$$n,$$z/$$n;'`
 # write PDB of atoms in mask (current restart file)
 $ptraj ../$$top << EOF >& /dev/null
 trajin $$rst
@@ -18,11 +25,19 @@ trajout tmp.pdb PDB nobox
 strip '@H*'
 strip '!(:$${mask})'
 EOF
+
+# Check if tmp.pdb or tmp.pdb.1 was written
+if [ -e tmp.pdb.1 ]; then tmp1=tmp.pdb.1;
+elif [ -e tmp.pdb ]; then tmp1=tmp.pdb;
+else; echo "tmp.pdb or tmp.pdb.1 not found"; exit;
+fi
+
+
 # calculate Center Of Mass
-com2=`grep ^ATOM tmp.pdb.1 | perl -e 'while(<>){$$x+=substr($$_,30,8);$$y+=substr($$_,38,8);$$z+=substr($$_,46,8);$$n++};printf "%.3f %.3f %.3f\n",$$x/$$n,$$y/$$n,$$z/$$n;'`
+com2=`grep ^ATOM $$tmp1 | perl -e 'while(<>){$$x+=substr($$_,30,8);$$y+=substr($$_,38,8);$$z+=substr($$_,46,8);$$n++};printf "%.3f %.3f %.3f\n",$$x/$$n,$$y/$$n,$$z/$$n;'`
 # calculate Distance
 d=`echo $$com1 $$com2 | awk '{printf "%i", sqrt(($$1-$$4)^2 + ($$2-$$5)^2 + ($$3-$$6)^2)}'`
-rm tmp0.pdb.1 tmp.pdb.1
+rm $$tmp0 $$tmp1
 
 # Translate if necessary
 if [ "$$d" -gt "5" ]; then
