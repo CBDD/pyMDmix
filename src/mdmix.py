@@ -466,7 +466,7 @@ def main():
         import pyMDMix.Plotter as P
         plot = P.Plot()
         replicas = fetchReplicaSelection(parserargs, p)
-        stepselection=parserargs.nanoselect
+        stepselection=parsenanos(parserargs)
         if parserargs.plot_command == 'ambermd':
             if replicas: plot.plotMDAmber(replicas, outfilename=parserargs.outname, selectedsteps=stepselection)
         elif parserargs.plot_command == 'rmsd':
