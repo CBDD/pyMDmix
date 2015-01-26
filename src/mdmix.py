@@ -88,9 +88,11 @@ def createParser():
     plot_cmd = plot_parser.add_subparsers(help='Plotting options', dest='plot_command')
     amber_plot = subparseronreplica(plot_cmd,'ambermd', help="Plot Amber MD properties",extras=False)
     amber_plot.add_argument("-o","--out",action="store", dest="outname", help="Name of the output file. Extension should be .png, .pdf, .jpeg, .ps or .eps. Default: ambermdplot.pdf", default="ambermdplot.pdf")
+    amber_plot.add_argument("-N", help="List production steps to be plotted using a colon separated range. Ex: 1:20 - first to 20th step.", default=False, nargs=1,dest="nanoselect")
     rmsd_plot = subparseronreplica(plot_cmd,'rmsd', help="Plot Backbone and Heavy atoms RMSD plot",extras=False)
     rmsd_plot.add_argument("-o","--out",action="store", dest="outname", help="Name of the output file. Extension should be .png, .pdf, .jpeg, .ps or .eps. Default: rmsdplot.pdf", default="rmsdplot.pdf")
-        
+    rmsd_plot.add_argument("-N", help="List production steps to be plotted using a colon separated range. Ex: 1:20 - first to 20th step.", default=False, nargs=1,dest="nanoselect")
+    
     # ANALYSIS OPTIONS
 #    anl_parser = parser.add_subparsers(help='Analysis commands', dest='anl_command')
     anl_parser = subparsers.add_parser("analyze", help="Several analysis tools to run on the replicas.")
@@ -464,10 +466,11 @@ def main():
         import pyMDMix.Plotter as P
         plot = P.Plot()
         replicas = fetchReplicaSelection(parserargs, p)
+        stepselection=parserargs.nanoselect
         if parserargs.plot_command == 'ambermd':
-            if replicas: plot.plotMDAmber(replicas, outfilename=parserargs.outname)
+            if replicas: plot.plotMDAmber(replicas, outfilename=parserargs.outname, selectedsteps=stepselection)
         elif parserargs.plot_command == 'rmsd':
-            if replicas: plot.plotRMSDReplicas(replicas, outfilename=parserargs.outname)
+            if replicas: plot.plotRMSDReplicas(replicas, outfilename=parserargs.outname, selectedsteps=stepselection)
                 
 
     # ANALYSIS COMMANDS

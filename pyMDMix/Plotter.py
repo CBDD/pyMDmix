@@ -39,6 +39,9 @@ import matplotlib.cm as cm
 
 ALL_AMBER_PROPS = ['Etot','EPtot', 'EKtot','TEMP(K)','RESTRAINT','VDWAALS','EELEC']
 
+class PlotError(Exception):
+    pass
+
 class Plot(object):
     def __init__(self):
         self.log = logging.getLogger("Plot")
@@ -69,6 +72,9 @@ class Plot(object):
             steps = selectedsteps or range(1, repl.ntrajfiles+1)
             for f in steps:
                 outfile = check.getProductionOutputFile(f)
+                
+                if not outfile:
+                    raise PlotError, "Output file for step %i could not be found. Make sure all selected steps are finished: %s"%(f,steps)
                 
                 # fetch properties from file
                 tmpdata = dict([(p,[]) for p in properties])
@@ -107,7 +113,7 @@ class Plot(object):
         if show: plt.show()
                 
     
-    def plotRMSDReplicas(self, replicaList, outfilename=None, show=True, *args, **kwargs):
+    def plotRMSDReplicas(self, replicaList, outfilename=None, show=True, selectedsteps=[], *args, **kwargs):
         """Plot rmsd evolution for the replica and save the plot to outfilename.  Plot using pyplot. 
         X axis is time and Y axis RMSD. args and kwargs can be used to tune the plot attributes.
         TRAJECTORY MUST BE ALIGNED BEFORE PLOTTING.
@@ -116,16 +122,18 @@ class Plot(object):
                 replicaList     (list of ReplicaInfo)   Replicas to plot
                 outfilename     (str)           Filename to store the plot. Use appropriate extension (pdf, png, jpg, etc) as pyplot will try 
                                                 to recognize the output format from filename.
+                show            (bool)          Plot directly to screen.
+                stepselection   (list)          Number of steps to plot.
                         
         Returns:
                 Function writes figure to file directly and it returns the Figure instance
                 so the user can further modify it.
         """
-        plotdata = self.fetchRMSDdata(replicaList)
+        plotdata = self.fetchRMSDdata(replicaList, selectedsteps)
         fig = self.plotRMSDdata(plotdata, outfilename=outfilename, show=show, *args, **kwargs)
         return fig
     
-    def fetchRMSDdata(self, replicaList):
+    def fetchRMSDdata(self, replicaList, selectedsteps=[]):
         """
         Collect RMSD data for the replicas in *replicaList*. Replicas must be aligned.
         All files ending with *rmsd.out in alignment folder will be collected, joined and stored in a dictionary
@@ -143,7 +151,7 @@ class Plot(object):
         plotdata = {}
         for i, replica in enumerate(replicaList):
             # Check if replica is centered and fetch rmsd output files
-            if replica.isAligned():
+            if replica.isAligned(selectedsteps):
                 plotdata[replica.name] = {}
                 folder = osp.join(replica.path,replica.alignfolder)
                 
@@ -220,7 +228,7 @@ class Plot(object):
         axes[1].set_xlabel('Time (ns)')
         axes[1].set_ylabel('RMSD ($\AA^2$)')
                 
-        plt.legend(fontsize='small', loc="upper center", ncol=min(len(replicarmsd.keys()), 3))
+        plt.legend(prop={'fontsize':'small'}, loc="upper center", ncol=min(len(replicarmsd.keys()), 3))
         if outfilename: 
             self.log.info("Saving RMSD plot to file %s"%outfilename)
             fig.savefig(outfilename, *args, **kwargs)
@@ -311,7 +319,7 @@ class Plot(object):
         plot.legend(scatterpoints=1,
                     loc='center', bbox_to_anchor=(0.5, 1.03),
                     ncol=4, fancybox=False, shadow=True, 
-                    fontsize=6)
+                    prop={'fontsize':6})
         if outfilename: 
             fig.savefig(outfilename, *args, **kwargs)
             self.log.info("Saved residence plot: %s"%os.path.abspath(outfilename))
