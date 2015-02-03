@@ -201,6 +201,7 @@ class GridSpace(object):
         self._defaultmode = 'point' # Calculation mode
         self._defT = T
         self._defR = R
+        self.probelist = []
         self.probeMapping = {}
         if GridList:
             self.loadGrids(GridList, filterPositive)
@@ -308,6 +309,7 @@ class GridSpace(object):
         "Build a dictionary mapping probe names with the 4D-array dimension\
         (1:1 or 1:N when multiple grids for same probe, eg: different replicas, same probe)"
         probes = [grid.probe for grid in self.grids]
+        self.probelist = probes
         for i in range(self.ndim):
             if self.probeMapping.has_key(probes[i]):
                 self.probeMapping[probes[i]] += [i]
