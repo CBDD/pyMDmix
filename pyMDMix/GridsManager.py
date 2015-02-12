@@ -220,11 +220,13 @@ class GridSpace(object):
 
     def dump(self, filename):
         self.log.debug("Dumping GridSpace to pickle file: %s"%filename)
+        import cPickle
         cPickle.dump(self, open(filename, 'wb'))
         self.log.debug("DONE")
 
     def load(self, filename):
         self.log.debug("Loading GridSpace from pickle file: %s"%filename)
+        import cPickle
         self = cPickle.load(open(filename, 'rb'))
         self.log.debug("DONE")
 
@@ -495,7 +497,7 @@ class GridSpace(object):
             process = npy.mean
         elif mode == 'volmean':
             kBT=GridSpace.kB*self._defT
-            process = lambda x: -kBT*npy.log(npy.exp(x[x<0]/-kBT).mean())
+            process = lambda x: -kBT*npy.log(npy.exp(x/-kBT).mean())
         elif mode == 'boltz':
             process = self._boltz
         elif mode == 'min':
