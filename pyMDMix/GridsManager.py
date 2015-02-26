@@ -479,25 +479,28 @@ class GridSpace(object):
             # If other values, retur All
             fchoose = lambda x: x
 
-
         # WORK WITH PASSED FUNCTION
         if ownF:
             process = ownF
         # JUST THE POINT
         elif mode == 'point':
             if cross:
-                p = self._vals(idx, ndim, radii=0)
-                return p.reshape((self.ndim,))
+                p = self._vals(idx, ndim, radii=0)                
             else:
                 p = npy.array([self._vals(idx, d, radii=0) for d in ndim])
-                return p.reshape((len(ndim),))
+            
+            p = p.reshape((len(ndim),))
+            if ignoreValue and p==ignoreValue: p = 0
+            return p
             
         # CHOOSE PROCESSING MODE
         elif mode == 'avg':
             process = npy.mean
         elif mode == 'volmean':
             kBT=GridSpace.kB*self._defT
-            process = lambda x: -kBT*npy.log(npy.exp(x/-kBT).mean())
+            def process(x):
+                if x.sum() == 0 or not npy.any(x): return 0
+                return -kBT*npy.log(npy.exp(x/-kBT).mean())
         elif mode == 'boltz':
             process = self._boltz
         elif mode == 'min':
@@ -517,15 +520,23 @@ class GridSpace(object):
                 vals = values[0][:,:,:,d]
                 if ignoreValue or type(ignoreValue) == int or type(ignoreValue) == float: # allow zeros as ignoredvalues
                     v = npy.ma.masked_equal(vals, ignoreValue)
+                    v = v.flatten()
+                    if npy.any(v.mask): v = v.compress(~v.mask)
                 else:
                     v = vals
-                result.append(process(vals))
+                result.append(process(v))
             return result
         else:
             if ignoreValue or type(ignoreValue) == int or type(ignoreValue) == float:
-                result = [process(npy.ma.masked_equal(val,ignoreValue)) for val in values]
+                result = []
+                for val in values:
+                    v = val.flatten()
+                    v = npy.ma.masked_equal(v,ignoreValue)
+                    if npy.any(v.mask): v = v.compress(~v.mask)
+                    result.append(process(v))
             else:
                 result = [process(val) for val in values]
+#            print values, result, fchoose(result)
             return fchoose(result)
 
     def setMode(self, mode):

@@ -101,13 +101,14 @@ class SolvatedPDB(bi.PDBModel):
                 if set(res) == resnames: possible.append(sol)
 
             if not possible:
-                self.log.debug("Solvent not identified: %s"%self.source)
+                self.log.warning("Solvent not identified: %s"%self.source)
                 self.solvent = None
             else:
                 if len(possible) > 1:
-                    self.log.debug("More than one possible solvent identified for SolvatedPDB: %s. Using the first one: %s"%(possible, possible[0]))
+                    self.log.warning("More than one possible solvent identified for SolvatedPDB: %s. Assignment failed."%possible)
+                    self.solvent = None
                 else:
-                    self.log.debug("Identified pdb solvation as %s solvent box."%possible[0])
+                    self.log.info("Identified pdb solvation as %s solvent box."%possible[0])
                 self.solvent = man.getSolvent(possible[0])
 
         else:

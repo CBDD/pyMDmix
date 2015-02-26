@@ -69,7 +69,7 @@ def createParser():
    
     #QUEUE
     queue_parser = subparsers.add_parser('queue', help="Queue input files options.")
-    queue_parser.add_argument("action", choices=('list','write'), help="LIST: Show installed queue system templates. WRITE: Write input files for all replicas.")
+    queue_parser.add_argument("action", choices=('list','write'), help="LIST: Show installed queue system templates. WRITE: Write input files for all replicas in current project or for REPLICA in current folder.")
     queue_parser.add_argument("-n", action="store", dest="queuename", help="WRITE action: queue system to use. Mandatory.")
        
     def subparseronreplica(subprs, name, help, extras=True):
@@ -285,18 +285,22 @@ def fetchReplicaSelection(parserargs, project):
     else:
         return False
 
+def returnMDMixProject(parserargs):
+    if parserargs.debug: level='DEBUG'
+    else: level='INFO'
+    pyMDMix.setLogger(level=level)
+    try:
+        p = pyMDMix.loadProject()
+        return p
+    except:
+        return False
+
 def returnMDMixProjectOrFail(parserargs):
         #When command is different to CREATE PROJECT or INFO, this program should be executed in project folder
         #Let's try to load a project or exit
-        import pyMDMix.Projects
-        if parserargs.debug: level='DEBUG'
-        else: level='INFO'
-        pyMDMix.setLogger(level=level)
-        try:
-            p = pyMDMix.loadProject()
-            return p
-        except pyMDMix.Projects.ProjectError, m:
-            raise MDMixError, m
+        p = returnMDMixProject(parserargs)
+        if not p: raise MDMixError, 'No project file found in current folder. Make sure you are in a pyMDMix project folder.'
+        return p
 
 def parseNumMask(mask):
     "Transform mask of form 1,2,5:10 to a list of ints"
@@ -457,8 +461,15 @@ def main():
                 raise MDMixError, "Queue name is needed: give it with option (-n). Avilable queues: %s"%qlist
             if qname not in qlist:
                 raise MDMixError, "Wrong queue name. Available queues: %s"%qlist
-            p = returnMDMixProjectOrFail(parserargs)
-            p.createQueueInputs(qname)
+            p = returnMDMixProject(parserargs)
+            if p: p.createQueueInputs(qname)
+            else:
+                # No project in current folder, try if there is a replica
+                try:
+                    r = pyMDMix.loadReplica()
+                    r.createQueueInput(qname)
+                except:
+                    raise MDMixError, "Could not find any project file or replica file in current folder."
 
     #  PLOT COMMANDS
     elif command == 'plot':
