@@ -98,7 +98,7 @@ class EnergyConversion(object):
 
         # Calculate number of snapshots if not given
         if not numsnaps:
-            numsnaps = replica.ntrajfiles*(replica.nvt_prod_steps/float(replica.trajfrequency))
+            numsnaps = replica.ntrajfiles*(replica.prod_steps/float(replica.trajfrequency))
 
         # Fetch unit corresponding to probe and count residues in pdb
         solv = replica.getSolvent()

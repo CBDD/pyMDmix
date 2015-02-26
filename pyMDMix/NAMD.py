@@ -311,7 +311,7 @@ class NAMDWriter(object):
             # Use template for output formats. Remove extension and trailing dot.
             step_outname = replica.mdoutfiletemplate.format(step=nfile, extension='')[:-1]
             substDict['post_out'] = step_outname
-            substDict['final_step'] = substDict['first_step'] + replica.nvt_prod_steps
+            substDict['final_step'] = substDict['first_step'] + replica.prod_steps
 
             outname = replica.mdfolder+os.sep+'%s.in'%step_outname
             outfiles.append(outname)

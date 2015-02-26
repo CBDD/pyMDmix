@@ -385,10 +385,11 @@ def main():
             crd = parserargs.crd
             if not file: raise MDMixError, "Input config file is needed with valid MDSETTINGS section for new replica creation from TOP and CRD files."
             if not top or not crd: raise MDMixError, "Amber Topology (-top) and Amber Crd files (-crd) are needed to create a solvated replica."
-            solvatedsys = pyMDMix.SolvatedSystem(name=name+'_sys',top=top, crd=crd)
+            sysname = os.path.splitext(os.path.basename(top))[0]
+            solvatedsys = pyMDMix.SolvatedSystem(name=sysname,top=top, crd=crd)
             sets = pyMDMix.parseSettingsConfigFile(file, noSolvent=True) # Parse MDSETTINGS ignoring solvent info
             repl = solvatedsys+sets
-            repl.setName(name=name+'_repl')
+            repl.setName(name=name)
             repl.createAll()
                         
         elif parserargs.action == 'solvents':

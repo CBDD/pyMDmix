@@ -169,7 +169,7 @@ class Plot(object):
                     self.log.info("Joined all independent BB rmsd files to a unique all_bb_rmsd.dat file for replica %s"%replica.name)
 
                     # Plot
-                    x = data[:,0]/(replica.nvt_prod_steps/float(replica.trajfrequency))
+                    x = data[:,0]/(replica.prod_steps/float(replica.trajfrequency))
                     y = data[:,1]
                     plotdata[replica.name]['BB'] = [x,y]
                 else:
@@ -187,7 +187,7 @@ class Plot(object):
                     npy.savetxt(folder+os.sep+'all_ha_rmsd.dat', data, fmt='%.4f', delimiter='\t')
                     self.log.info("Joined all independent HA rmsd files to a unique all_ha_rmsd.dat file for replica %s"%replica.name)
 
-                    # Plot                    x = data[:,0]/(replica.nvt_prod_steps/float(replica.trajfrequency))
+                    # Plot                    x = data[:,0]/(replica.prod_steps/float(replica.trajfrequency))
                     y = data[:,1]
                     plotdata[replica.name]['HA'] = [x,y]
                 else:

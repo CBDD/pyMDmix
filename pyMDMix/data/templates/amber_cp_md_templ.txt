@@ -1,11 +1,10 @@
 #  Constant Pressure MD
-#  This is for passing from Constant volume to Constant pressure (T=300K)
-#  Set "restraintmask" to the correct values for your system
+#  This is for passing from Constant volume to Constant pressure ()
 &cntrl
 timlim=999999., imin=0,
-ntx=5, irest=1,iwrap=1,
+ntx=5, irest=1, iwrap=1, ntc=2, 
 ntxo=1, ntpr=$freq, ntwx=$freq, ntwv=0, ntwe=0, ioutfm=$ioutfm,
-ntp=1, ntc=2, taup=2.0, 
+ntp=1, taup=2.0, pres0=$pres0,
 ntb=2, ntf=2, cut=9.0,
 ntt=3, temp0=$tempf, ig=-1,  gamma_ln=4.0,
 nstlim=$nsteps, dt=$timestep,

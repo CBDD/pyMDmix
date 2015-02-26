@@ -876,15 +876,18 @@ class AmberWriter(object):
 
         substDict['tempf'] = replica.temp
         substDict['nsteps'] = replica.npt_eq_steps# 1ns of equilibration under NPT
+        substDict['pres0'] = replica.npt_pressure   # Pressure for NPT simulation, default = 1 bar
         outf = replica.eqfolder+os.sep+'eq5.in'
         self.log.debug("Writing: %s"%outf)
         open(outf,'w').write(self.cpmd.substitute(substDict))
         
         # Write md input, 1ns each file and run under NVT conditions
-        substDict['nsteps'] = replica.nvt_prod_steps # 1ns each file
+        substDict['nsteps'] = replica.prod_steps # 1ns each file
         outf=replica.mdfolder+os.sep+'md.in'
         self.log.debug("Writing: %s"%outf)
-        open(outf,'w').write(self.cvmd.substitute(substDict))
+        if replica.production_ensemble == 'NPT': prodfile = self.cpmd
+        else: prodfile = self.cvmd
+        open(outf,'w').write(prodfile.substitute(substDict))
 
         # If replica has restraints, write ptraj imaging scripts for restart files
         if replica.hasRestraints:

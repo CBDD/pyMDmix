@@ -183,13 +183,13 @@ class MDSettings(object):
         if self.__folderscreated: self.write()
 
     def __calcNumberSnapshots(self):
-        self.nsnaps = self.nanos*(self.nvt_prod_steps/float(self.trajfrequency))
+        self.nsnaps = self.nanos*(self.prod_steps/float(self.trajfrequency))
 
     def __calcExpectedNTrajFiles(self):
         "Calculate from self.nanos and depending on steps per file and timestep, the total number of trajetory files expected"
         # convert nanosecond to femtosecond (1e6), divide by num of fs per step to obtain number of steps
         # Finally divide num of steps needed by num of steps per file
-        self.ntrajfiles=int((self.nanos*1e6/self.md_timestep)/self.nvt_prod_steps)
+        self.ntrajfiles=int((self.nanos*1e6/self.md_timestep)/self.prod_steps)
 
 
 ### Functions to create project from configfile
@@ -230,11 +230,11 @@ class Test(BT.BiskitTest):
         self.assertEqual(etaha, etacfg[0])
     
     def test_MDSettings_snapshots(self):
-        sets = MDSettings(nvt_prod_steps=1000000, trajfrequency=1000) #1Milion = 2ns at 1000 steps = 1000 snaps per nano x 20ns default 
+        sets = MDSettings(prod_steps=1000000, trajfrequency=1000) #1Milion = 2ns at 1000 steps = 1000 snaps per nano x 20ns default 
         self.assertEqual(sets.nsnaps, 20000)
         
     def test_MDSettings_ntrajfiles(self):
-        sets = MDSettings(nvt_prod_steps=1000000, nanos=50) # 50ns and 2ns per file: 25 files?
+        sets = MDSettings(prod_steps=1000000, nanos=50) # 50ns and 2ns per file: 25 files?
         self.assertEqual(sets.ntrajfiles, 25)
 #    def cleanUp(self):
 #        T.tryRemove( self.f_out )

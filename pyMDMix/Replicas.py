@@ -216,13 +216,13 @@ Solvent: {solvent}
         self.__dict__.update(d)
 
     def __calcNumberSnapshots(self):
-        self.nsnaps = self.nanos*(self.nvt_prod_steps/float(self.trajfrequency))
+        self.nsnaps = self.nanos*(self.prod_steps/float(self.trajfrequency))
 
     def __calcExpectedNTrajFiles(self):
         "Calculate from self.nanos and depending on steps per file and timestep, the total number of trajetory files expected"
         # convert nanosecond to femtosecond (1e6), divide by num of fs per step to obtain number of steps
         # Finally divide num of steps needed by num of steps per file
-        self.ntrajfiles=int((self.nanos*1e6/self.md_timestep)/self.nvt_prod_steps)
+        self.ntrajfiles=int((self.nanos*1e6/self.md_timestep)/self.prod_steps)
 
     def __fixTopology(self, prmtop):
         """
@@ -527,7 +527,7 @@ Solvent: {solvent}
         E.g. at 2fs per step, 500000 steps is 1ns, half nanosecond will be 250000 steps.
         Remember to rewrite MDInput and Queue files if needed.
         """
-        self.nvt_prod_steps = steps
+        self.prod_steps = steps
         self.__calcExpectedNTrajFiles()
         self.write()
 
