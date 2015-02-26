@@ -46,9 +46,11 @@ def createParser():
     
     #CREATE
     create_parser = subparsers.add_parser('create', help='Create Project or Solvents')
-    create_parser.add_argument("action", choices=("project", "solvents", "template"), help="Create new project or add solvent to the database. 'template' will save a project template for new project creation.")
-    create_parser.add_argument("-n", action="store", dest='projname', help="Project name. Default: mdmix_project.", default='mdmix_project')
-    create_parser.add_argument("-f", action="store", dest="file", help="Configuration file path or output file name in 'template' action. Project can be created empty.")
+    create_parser.add_argument("action", choices=("project", "replica", "solvents", "template"), help="Create new project, a new stand-alone replica or add solvent to the database. 'template' will save a project template for new project creation.")
+    create_parser.add_argument("-n", action="store", dest='projname', help="Project name or Replica Name. Default: mdmix_project.", default='mdmix_project')
+    create_parser.add_argument("-f", action="store", dest="file", help="Configuration file path or output file name in 'template' action. Project can be created empty. Replica will need a config file with MDSETTINGS section.")
+    create_parser.add_argument("-top", action="store", dest="top", help="Amber Topology file for stand-alone solvated replica creation.")
+    create_parser.add_argument("-crd", action="store", dest="crd", help="Amber CRD file for stand-alone solvated replica creation.")
 
     #INFO
     info_parser = subparsers.add_parser('info', help='Print information about the project or solventDB')
@@ -375,7 +377,20 @@ def main():
                 p = pyMDMix.Project(name=parserargs.projname)
                 p.createProjectFolder()
                 print "DONE"
-            
+                
+        elif parserargs.action == 'replica':
+            name = parserargs.projname
+            file = parserargs.file
+            top = parserargs.top
+            crd = parserargs.crd
+            if not file: raise MDMixError, "Input config file is needed with valid MDSETTINGS section for new replica creation from TOP and CRD files."
+            if not top or not crd: raise MDMixError, "Amber Topology (-top) and Amber Crd files (-crd) are needed to create a solvated replica."
+            solvatedsys = pyMDMix.SolvatedSystem(name=name+'_sys',top=top, crd=crd)
+            sets = pyMDMix.parseSettingsConfigFile(file, noSolvent=True) # Parse MDSETTINGS ignoring solvent info
+            repl = solvatedsys+sets
+            repl.setName(name=name+'_repl')
+            repl.createAll()
+                        
         elif parserargs.action == 'solvents':
             # CREATE NEW SOLVENT IN THE DATABASE
             #Checking mandatory file option is given and exists

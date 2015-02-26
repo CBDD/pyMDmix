@@ -194,7 +194,7 @@ class MDSettings(object):
 
 ### Functions to create project from configfile
 ### and load existing one
-def parseSettingsConfigFile(settingsConfigFile):
+def parseSettingsConfigFile(settingsConfigFile, noSolvent=False):
     """
     Auxiliary function to build replicas from a replica configuration file (RCF)
 
@@ -207,7 +207,8 @@ def parseSettingsConfigFile(settingsConfigFile):
     from Parsers import MDSettingsConfigFileParser
     
     if not osp.exists(settingsConfigFile): raise BadFile, "File %s not found."%settingsConfigFile
-    sets = MDSettingsConfigFileParser().parse(settingsConfigFile)
+    if noSolvent: sets = MDSettingsConfigFileParser().parseNoSolvent(settingsConfigFile)
+    else: sets = MDSettingsConfigFileParser().parse(settingsConfigFile)
     return sets
 
 

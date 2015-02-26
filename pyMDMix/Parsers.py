@@ -241,11 +241,11 @@ class MDSettingsConfigFileParser(object):
 
     def parse(self, configfile):
         """
-        Parse replica configuration file and return a list of Replica objects.
+        Parse MDSettings configuration file and return a list of MDSettings objects.
 
         :arg str configfile: Path to replica configuration file.
 
-        :return: Replica objects as a list
+        :return: MDSettings objects as a list
         """
         import SettingsParser as P
         import difflib
@@ -352,6 +352,72 @@ class MDSettingsConfigFileParser(object):
                                     restrForce=replicaRestrForce, temp=replicaTemp, restrMask=restrMask, alignMask=alignMask, **extracfg))
 
         return settingsInstances
+
+    def parseNoSolvent(self, configfile):
+        """
+        Parse MDSettings configuration file and return a MDSettings object.
+        Allow to build settings without solvent information.
+
+        :arg str configfile: Path to replica configuration file.
+
+        :return: One MDSetting instance
+        """
+        import SettingsParser as P
+        import difflib
+
+        if not osp.exists(configfile): raise BadFile, "Config file does not exist: %s"%configfile
+        self.__configHandle = ConfigParser.ConfigParser()
+        self.__configHandle.read(configfile)
+
+        #################################################################
+        ########                READ MDSETTINGS INFO                #####
+        #################################################################
+
+        # Make sure there are MDSETTINGS sections in file
+        sections = self.__configHandle.sections()
+        mdsections = [s for s in sections if s.startswith('MDSETTINGS')]
+        nummdsections = len(mdsections)
+        if not nummdsections: raise MDSettingsParserError, "No sections found starting with MDSETTINGS name."
+
+        # Visit all mdsettings sections
+        for section in mdsections:
+            fileSection = dict(self.__configHandle.items(section))
+
+            # SAME FORMAT FOR NANOS, TEMPERATURE AND FORCE
+            restr = fileSection.get('restr') or None
+            if restr: restr = restr.upper().strip()
+            force = fileSection.get('force') or None
+            if force: force=float(force)
+            nanos = fileSection.get('nanos') or None
+            if nanos: nanos=int(nanos)
+            temp = fileSection.get('temp') or None
+            if temp: temp=float(temp)
+            restrMask= fileSection.get('restrmask') or ''
+            alignMask=fileSection.get('alignmask') or ''
+
+            # Options in fileSection to be ignored as they where already treaten
+            mainopts = ['restr','nanos','temp', 'force', 'nrepl', 'restrmask','alignmask']
+
+            ### CHECK FOR CONFIGURATION PARAMETERS PRESENT IN CONFIG FILES
+            ### THAT CAN BE MODIFIED
+            m = P.SettingsManager(S.CFG_MD_DEFAULT, S.CFG_MD_USER, createmissing=True  )
+            m.collectSettings()
+            settingKeys = m.settings2dict().keys()
+            extracfg = {}
+            for k,v in fileSection.iteritems():
+                if v is None: continue
+                if k in mainopts: continue
+                # Will try to do fuzzy comparison to identify what config parameter should be modified
+                # to give some flexibility to the user (specially for case matching
+                bestmatch = difflib.get_close_matches(k, settingKeys, 1, 0.8)
+                if bestmatch:
+                    setting = m.settings[bestmatch[0]]
+                    extracfg.update({setting.name:setting.vtype(v)})
+                else: raise MDSettingsParserError, "Attribute %s not present in md-settings. Make sure the spelling is correct"%k
+
+            return MDSettings.MDSettings(nanos=nanos, restrMode=restr,
+                            restrForce=force, temp=temp, restrMask=restrMask, 
+                            alignMask=alignMask, **extracfg)
 
 
 import Biskit.test as BT
