@@ -868,6 +868,7 @@ Solvent: {solvent}
             d = T.load(f)
             d['log'] = logging.getLogger("Replica (%s)"%d['name'])
             d['grids'] = None
+            if not d.has_key('prod_steps'): d['prod_steps'] = d['nvt_prod_steps']
             self.__dict__.update(d)
 
 

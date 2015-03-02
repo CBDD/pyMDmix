@@ -97,8 +97,7 @@ class EnergyConversion(object):
         else: voxel=gridspacing**3
 
         # Calculate number of snapshots if not given
-        if not numsnaps:
-            numsnaps = replica.ntrajfiles*(replica.prod_steps/float(replica.trajfrequency))
+        if not numsnaps: numsnaps = replica.nsnaps
 
         # Fetch unit corresponding to probe and count residues in pdb
         solv = replica.getSolvent()
