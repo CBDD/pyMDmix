@@ -128,7 +128,8 @@ class OFFManager(object):
         :Returns: List with bonded pair indexes verbosely. Example: ((1,2),(1,3),(3,1),(2,1)...)
         :rtype: list
         """
-        connectinfo = self.readOffSection(unit, 'connectivity')
+        try: connectinfo = self.readOffSection(unit, 'connectivity')
+        except: return []
         connectivity = []
         for line in connectinfo:
             pair = map(int, line.split())[:2]

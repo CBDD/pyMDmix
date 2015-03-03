@@ -1,5 +1,4 @@
 #  Constant Pressure MD
-#  This is for passing from Constant volume to Constant pressure ()
 &cntrl
 timlim=999999., imin=0,
 ntx=5, irest=1, iwrap=1, ntc=2, 
