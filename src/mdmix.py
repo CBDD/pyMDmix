@@ -540,7 +540,7 @@ def main():
                 anal.addReplicas(replicas)
                 anal.addActions('DensityGrids')
                 anal.prepareRun(probeselection=probelist, outprefix=outprefix, 
-                                includeCOM=includeCOM, onlyCOM=onlyCOM)
+                                includeCOM=includeCOM, onlyCOM=onlyCOM, stepselection=nanosel)
                 anal.run(stepselection=nanosel, framestep=step)
             
             print "DONE"
@@ -574,7 +574,7 @@ def main():
                 anal = pyMDMix.Analysis.ActionsManager(ncpus=ncpus)
                 anal.addReplicas(replicas)
                 anal.addActions('Residence')
-                anal.prepareRun(hotspot=hotspot, spherecenter=center, tolerance=tolerance)
+                anal.prepareRun(hotspot=hotspot, spherecenter=center, tolerance=tolerance, stepselection=nanosel)
                 anal.run(stepselection=nanosel, framestep=step)
                 anal.processResults()
             print "DONE"

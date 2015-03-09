@@ -240,7 +240,7 @@ class Solvent(object):
                 atoms = set(d[res])
                 if not atoms <= resatoms:
                     raise MappingError, "In PROBES section, probe %s is mapping \
-                                        to unkown atom names for residue %: %s"%(probe, res, atoms - resatoms)
+                                        to unkown atom names for residue %s: %s"%(probe, res, atoms - resatoms)
 
             res = self.getResidue(d.keys()[0])
             atoms = d[res.name]
