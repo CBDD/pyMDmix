@@ -303,6 +303,7 @@ class HotSpotSet(object):
         :returns: List of hotspots
         :rtype: list of :class:`HotSpot` instances
         """
+        if not isinstance(id, list): id = [id]
         return [h for h in self.hotspots if h.index in id]
     
     def getCondensedDMatrix(self):

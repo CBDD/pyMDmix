@@ -363,8 +363,8 @@ Solvent: {solvent}
     def getPDB(self):
         "Return a SolvatedPDB with replica pdb"
         from PDB import SolvatedPDB
-        p = SolvatedPDB(pdb=osp.join(self.path, self.pdb), extraResidues=self.system.extraResList)
-        p.setSolvent(self.solvent)
+        p = SolvatedPDB(pdb=osp.join(self.path, self.pdb), solvent=self.solvent, extraResidues=self.system.extraResList)
+#        p.setSolvent(self.solvent)
         return p
     
     def getGridsByType(self, type=None, **kwargs):
@@ -498,6 +498,24 @@ Solvent: {solvent}
         if not isinstance(stepselection, list): stepselection = [stepselection]
         check = self.getChecker(warn=warn)
         return check.checkProduction(stepselection=stepselection)
+
+    def lastCompletedProductionStep(self, startstep=1):
+        """
+        Check each productio step and return the number of the last incompleted step.
+        Useful to track progress or in energy conversion to take volume from last completed step when analyzing
+        incompleted runs. Will return zero if no production step is complete.
+        
+        :arg int startstep: Check production steps starting with this number to reduce function timing when we already know info.
+        
+        :returns: int
+        """
+        last = 0
+        check = self.getChecker(warn=False)
+        for step in range(startstep,self.ntrajfiles+1):
+            if check.checkProduction(stepselection=[step]): last+=1
+            else: break
+        return last
+            
 
     def isEquilibrationFinished(self):
         """

@@ -49,7 +49,8 @@ class SolvatedPDB(bi.PDBModel):
         self.solventMask= None
         self.probeMasks = {}
         self.resMasks = {}
-        if pdb: self.setSolvent(solvent)
+        self.solvent=None
+        if solvent: self.setSolvent(solvent)
         
 #        self.fixNumbering()
 #        self.maskSoluteSolvent()
