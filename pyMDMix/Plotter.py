@@ -228,7 +228,7 @@ class Plot(object):
         axes[1].set_xlabel('Time (ns)')
         axes[1].set_ylabel('RMSD ($\AA^2$)')
                 
-        plt.legend(prop={'fontsize':'small'}, loc="upper center", ncol=min(len(replicarmsd.keys()), 3))
+        plt.legend(prop={'size':'small'}, loc="upper center", ncol=min(len(replicarmsd.keys()), 3))
         if outfilename: 
             self.log.info("Saving RMSD plot to file %s"%outfilename)
             fig.savefig(outfilename, *args, **kwargs)
@@ -319,7 +319,7 @@ class Plot(object):
         plot.legend(scatterpoints=1,
                     loc='center', bbox_to_anchor=(0.5, 1.03),
                     ncol=4, fancybox=False, shadow=True, 
-                    prop={'fontsize':6})
+                    prop={'size':6})
         if outfilename: 
             fig.savefig(outfilename, *args, **kwargs)
             self.log.info("Saved residence plot: %s"%os.path.abspath(outfilename))
