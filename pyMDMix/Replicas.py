@@ -365,6 +365,7 @@ Solvent: {solvent}
         from PDB import SolvatedPDB
         p = SolvatedPDB(pdb=osp.join(self.path, self.pdb), solvent=self.solvent, extraResidues=self.system.extraResList)
 #        p.setSolvent(self.solvent)
+        p.fixNumbering()
         return p
     
     def getGridsByType(self, type=None, **kwargs):
