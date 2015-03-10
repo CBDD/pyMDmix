@@ -170,6 +170,7 @@ class Residence(object):
             self.log.info("Residence: Tracking occupancy with sphere method. Center: %s"%self.hotspot_coords)
         elif self.hotspot:
             import pyMDMix.HotSpotsManager as HM
+            if isinstance(self.hotspot, list): self.hotspot = self.hotspot[0]
             if isinstance(self.hotspot, HM.HotSpot):
                 self.hotspot_coords = self.hotspot.coordList
                 self.log.info("Residence: Tracking occupancy of hotspot %s"%self.hotspot)
