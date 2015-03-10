@@ -152,6 +152,7 @@ def createParser():
     util_parser = subparsers.add_parser("tools", help="Complementary tools")
     util_cmd = util_parser.add_subparsers(help='Tool commands', dest='util_command')
     
+    #GET VALUES
     getvals_parser = util_cmd.add_parser('getvalues', help="Get energy values from grids at given coordinates.")
     getvals_parser.add_argument("-i", action="store", required=True, dest="ingrid", help="Input grid to query")
     getvals_parser.add_argument("-o", action="store", required=False, dest="outfile", help="Output file with results. Print to STDOUT if not given.")
@@ -159,17 +160,26 @@ def createParser():
     getvals_parser.add_argument("-pdb", action="store", dest="pdbfile", help="Define coordinates using a PDB file with optional radius in bfactor column")
     getvals_parser.add_argument("-r", action="store", dest="radius", type=float, help="Radius around each coordinate to average values")
     
+    # SUBTRACT GRIDS
     diffgrids_parser = util_cmd.add_parser('diffgrids', help="Save new grid with the difference from other two (grid1 - grid2)")
     diffgrids_parser.add_argument("-g1", action="store", required=True, dest="grid1", help="Input grid file path (grid 1)")
     diffgrids_parser.add_argument("-g2", action="store", required=True, dest="grid2", help="Input grid file path (grid 2)")
     diffgrids_parser.add_argument("-o", action="store", required=True, dest="outfile", help="Output grid file name (DX format)")
         
+    # SUM GRIDS
     sumgrids_parser = util_cmd.add_parser('sumgrids', help="Save new grid with the sum from other two (grid1 + grid2)")
     sumgrids_parser.add_argument("-g1", action="store", required=True, dest="grid1", help="Input grid file path (grid1)")
     sumgrids_parser.add_argument("-g2", action="store", required=True, dest="grid2", help="Input grid file path (grid 2)")
     sumgrids_parser.add_argument("-o", action="store", required=True, dest="outfile", help="Output grid file name (DX format)")
-        
     
+    # TRIM USING PDB
+    trim_parser = util_cmd.add_parser('trim', help="Use a PDB file as reference to crop/trim a grid and save just a part of the space (useful to reduce sizes and save disk space). WARNING: There might be a slight shift of coordinates in the trimmed grid.")
+    trim_parser.add_argument("-i", action="store", required=True, dest="ingrid", help="Input grid file to trim.")
+    trim_parser.add_argument("-o", action="store", required=True, dest="outname", help="Out grid file name where to save trimmed grid.")
+    trim_parser.add_argument("-pdb", action="store", required=True, dest="refpdb", help="PDB file used as reference to trim input grid. All coordinates will be used to select the space.")
+    trim_parser.add_argument("--buff", action="store", dest="buff", default=8.0, help="Add this buffer distance (Angstroms) to minimum and maximum coordinates extracted from the PDB when trimming. DEFAULT: 8.0 Angstroms")
+
+    # WRITE PROJECT TEMPLATE FILE
     write_template = util_cmd.add_parser('projecttemplate', help="Write template for project configuration")
     write_template.add_argument("-f", action="store", required=True, dest="filename", help="Filename to save")
 
@@ -178,59 +188,13 @@ def createParser():
     extend_parser.add_argument("-n",action="store",type=int, dest="extrananos",help="Extra number of nanoseconds to extend selected replicas", required=True)
 
 
-#    
 #    # ON THE FLY ALIGNMENT
 #    onfly_parser = subparseronreplica('trackalign', 'Track on-runing simulation and run trajectory alignment for already completed nanoseconds')
-#
-#    # AVERAGE ENERGY GRIDS
-#    average_parser = subparseronreplica('average', help="Average energy grids for selected replicas. Automatically done probe-wise.", extras=False)
-#    average_parser.add_argument("--probes", "-P",nargs='+', dest="probelist", help="Selection of probenames to average. If not given, all probes for the solvent will be selected.")
-#    average_parser.add_argument("-opref",action="store",dest="outprefix",help="Prefix for output average grid names")
-#    average_parser.add_argument("-ipref",action="store",dest="inprefix",help="Prefix for input energy grid names.")
-#    average_parser.add_argument("--path","-p",action="store",dest="outpath",help="out folder path")
-#
-#
-#   
-#
-#    # PLOTTING
-#    plot_parser = subparsers.add_parser('plotrmsd', help="Plot RMSD evolution along trajectory(ies)")
-#    plot_parser.add_argument("mode", choices=('all','bysolvent','byname'), action="store", default="all", help="Perform selection of replicas based on solvent name or replica names. If 'all', do action on all replicas.")
-#    plot_parser.add_argument("--selection", '-s', action="store", nargs='+', dest="selection", help="Selection list. if bysolvent, list of solvent names. If byname, list of replica names. Skip if 'all' was used.")
-#    plot_parser.add_argument("--show", help="Show plot after saving. Default: False",action="store_true", dest="show", default=False)
-#    plot_parser.add_argument("-o","--out",action="store", dest="outname", help="Name of the output file. Extension should be .png, .pdf, .jpeg, .ps. Default: plot.png", default="plot.png")
 #
 #    # BFACTORS FOR ALL PROTEIN
 #    bfact_parser = subparseronreplica('bfactors', help="Calculate protein bfactors for selected replicas and save results in PDB format and text file.")
 #    bfact_parser.add_argument("--prefix", action="store", dest="prefix", default="bfactors", help="Prefix to add to output pdb and txt files (replica name will be automatically included). Default='bfactors'")
 #
-#    # HOTSPOTS PDB GENERATION AND STUDY
-#    hs_parser = subparsers.add_parser("hotspots", help="Obtain hotspots and analyze them.")
-#    #hs_parser.add_argument("mode", choices=('spheres','blobs'), action="store", default="spheres", help="Mode of HS calculation. Sphere: minimum energy and radius. Blobs: percentile cutoff")
-#    
-#    ### Add creation subparser
-#    hs_commands = hs_parser.add_subparsers(help='Hotspots commands', dest='hs_command')
-#    
-#    hs_create = hs_commands.add_parser("create", help="Create a HotspotSet from energy grid files.")
-#    hs_create.add_argument("-i", "--in", action="store", dest="ingrid", help="Full path to energy grid file to transform to hots pots. File must exist.", required=True)
-#    hs_create.add_argument("-o","--out",action="store", dest="outname", help="Prefix name for output PDB and pickle file with hotspot set. Default: Input grid name with changed suffix.OPTIONAL.")
-#    hs_create.add_argument("--points", action="store_true", dest="onlycenter", help="Save hotspots only with centroid coordinate and total energy. If option not given, save all points forming a hotspot and all partial energies.")
-#    hs_create.add_argument("-m", choices=('spheres','cutoff'), default='cutoff',action="store", dest="method", help="Method for hotspot creation. Default: cutoff.")
-#    hs_create.add_argument("-c", default=-0.4, type=float, action="store", dest="ecut", help="Energy cut value for sphere method. Default: -0.4")
-
-#    ### Add analysis subparser
-#    hs_analyze = hs_commands.add_parser("analyze", help="Analyze Hotspots from a HotspotSet along a trajectory and replica.")
-#    hs_analyze.add_argument("mode", choices=('getsnaps','occupancy'), help="Analyze modes: 'getsnaps' \
-#                    to obtain snapshots along trajectory when the hotspot is occupied by the probe to which hotspot \
-#                    belongs. 'occupancy' will calculate which reisude IDs occupy the hotspot along the trajectory. Will output a txt file and a plot image.")
-#    hs_analyze.add_argument("-i", "--in", action="store", dest="inhset", help="Full path to a hotspotset pickled file as obtained with 'hotspots create' command. File must exist.", required=True)
-#    hs_analyze.add_argument("--id", "-id", action="store", dest="hsele", help="ID(s) of the hotspots to study.", required=True, nargs='+')
-#    hs_analyze.add_argument("--probe", "-P", action="store", dest="probe", help="Probe name inside replica solvent used for producing the hotspots. Only used for 'getsnaps'.")
-#    hs_analyze.add_argument("--out", "-o", action="store", dest="outname", help="Prefix name for output files.", required=True)
-#    hs_analyze.add_argument("--replica", "-r", action="store", dest="replicaname", help="Replica name to analyze trajectory", required=True)
-#    hs_analyze.add_argument("--nanoselect", "-N", help="List/select nanoseconds to consider for the analysis using a colon separated range. Ex: 1:20 - first to 20th nanosecond.", default=False, nargs=1,dest="nanoselect")
-#    hs_analyze.add_argument("--step", help="Take snapshots every STEP number. Default:1.", action="store", default=1, type=int, dest="step")
-#    hs_analyze.add_argument("--ncpus", "-C", type=int, help="Number of cpus to use for the action. If option not given, will use 1 CPU serial mode.", dest="ncpus", default=1, action="store")
-#    hs_analyze.add_argument("--tolerance", action="store", dest="tol", type=float, help="Tolerance around hotspot coordinates to consider in the analysis. DEFAULT=1.", default=1)
     return parser
 
 def fetchReplicaSelection(parserargs, project):
@@ -664,6 +628,22 @@ def main():
             from pyMDMix.GridsManager import gridSum
             gridSum(grid1, grid2, out)
         
+        elif parserargs.util_command == 'trim':
+            ingrid = parserargs.ingrid
+            outname = parserargs.outname
+            refpdb = parserargs.refpdb
+            buffer = parserargs.buff
+            
+            if not os.path.exists(refpdb): raise MDMixError, "PDB file %s not found"%refpdb
+            if not os.path.exists(ingrid): raise MDMixError, "Grid file %s not found"%ingrid
+            
+            from pyMDMix.GridsManager import trim, Grid, GridData
+            smallgrid = GridData.createFromPDB(refpdb, spacing=0.5, buff=buffer, takeProtein=False)
+            ingrid = Grid(ingrid)
+            trimmed = trim(smallgrid, ingrid)
+            trimmed[1].writeDX(outname)
+            print "DONE trimming"
+        
         elif parserargs.util_command == 'projecttemplate':
             import shutil
             fname = parserargs.filename
@@ -676,149 +656,6 @@ def main():
             if replicas:
                 p.extendSimulations(replicas, parserargs.extrananos)
 
-#    elif command == 'bfactors':
-#        mdmix = returnMDMixProjectOrFail(parserargs)
-#        replicas = fetchReplicaSelection(parserargs, mdmix.project)
-#        if replicas:
-#            anal = mdmix.getAnalysisManager()
-#            prefix = parserargs.prefix
-#            nanosel = parsenanos(parserargs)
-#            ncpus = parserargs.ncpus
-#            if ncpus > 1: parallel=True
-#            else: parallel=False
-#            anal.changeNumCpus(ncpus)
-#
-#            # Treat replicas independently
-#            for replica in replicas:
-#                outpdb = prefix+'_%s.pdb'%replica.name
-#                outtxt = prefix+'_%s.txt'%replica.name
-#                anal.calcReplicaBfactors(replica, atommask=False, outpdb=outpdb, outtxt=outtxt, parallel=parallel, nanoselection=nanosel, step=parserargs.step)
-#
-#    elif command == 'energy':
-#        mdmix = returnMDMixProjectOrFail(parserargs)
-#        replicas = fetchReplicaSelection(parserargs, mdmix.project)
-#        if replicas:
-#            force = parserargs.force
-#            anal = mdmix.getAnalysisManager()
-#            inprefix=parserargs.inprefix
-#            outprefix=parserargs.outprefix
-#            nsnaps = parserargs.nsnaps
-#            probelist = parserargs.probelist
-#
-#            if parserargs.avg:
-#                # If -avg, first sum densities and then convert to energies
-#                d = {}
-#                if parserargs.prefix: d.update({'outprefix':parserargs.outprefix})
-#                if parserargs.outpath: d.update({'outpath':parserargs.outpath})
-#                anal.sumDensitiesAndConvert(replicas, dg0=True, includeCM=True, skipWaterProbe=False,
-#                                            probeselection=probelist, **d )
-#            else:
-#                # Treat replicas independently
-#                for replica in replicas:
-#                    anal.runReplicaCountToRaw(replica, force=force, inprefix=inprefix, nsnaps=nsnaps,
-#                                                    probeselection=probelist, outprefix=outprefix)
-#
-#    elif command == 'average':
-#        mdmix = returnMDMixProjectOrFail(parserargs)
-#        replicas = fetchReplicaSelection(parserargs, mdmix.project)
-#        if replicas:
-#            anal = mdmix.getAnalysisManager()
-#            d = {}
-#            if parserargs.outprefix: d.update({'outprefix':parserargs.outprefix})
-#            if parserargs.inprefix: d.update({'inprefix':parserargs.inprefix})
-#            if parserargs.outpath: d.update({'outpath':parserargs.outpath})
-#            probelist = parserargs.probelist
-#            
-#            anal.boltzAverageByReplicas(replicas, gridtype='MDMIX_RAW', includeCM=True,
-#                                        probeselection=probelist, skipWaterProbe=False, **d)
-#
-#    elif command == 'plotrmsd':
-#        mdmix = returnMDMixProjectOrFail(parserargs)
-#        replicas = fetchReplicaSelection(parserargs, mdmix.project)
-#        if replicas:
-#            anal = mdmix.getAnalysisManager()
-#            replout = parserargs.outname
-#            f = anal.plotRMSD(replicas, outfilename=replout, show=parserargs.show)
-#            print "Saved plot %s in project folder"%replout
-#
-#    elif command == 'hotspots':
-#
-#        if parserargs.hs_command == 'create':
-#            # CALCULATE HOTSPOTS FOR USER GIVEN GRID
-#            anal = AnalysisManager()
-#            outprefix = parserargs.outname
-#            grid = parserargs.ingrid
-#            onlycenter = parserargs.onlycenter
-#            method = parserargs.method
-#            cut = parserargs.ecut
-#
-#            # Default output if not given
-#            if not outprefix:
-#                outprefix = os.path.splitext(grid)[0]
-#
-#            anal.createHotSpotSetFromGrid(grid, outprefix, method=method, onlycenter=onlycenter, energycut=cut)
-#            print "DONE"
-#
-#        elif parserargs.hs_command == 'analyze':
-#            import cPickle
-#            # This mode should be run inside MDMix project
-#            mdmix = returnMDMixProjectOrFail(parserargs)
-#            anal = mdmix.getAnalysisManager()
-#            replica = mdmix.project.replicas.get(parserargs.replicaname)
-#            if not replica:                raise MDMixError, "Wrong replica name %s"%parserargs.replicaname
-#
-#            nanosel = parsenanos(parserargs)
-#            ncpus = parserargs.ncpus
-#            step=parserargs.step
-#            if ncpus > 1: parallel=True
-#            else: parallel=False
-#            anal.changeNumCpus(ncpus)
-#
-#            # Get selected hotspots
-#            hselection = map(int, parserargs.hsele)
-#            inhset = cPickle.load(open(parserargs.inhset,'rb'))
-#            hotspots = inhset.getHSbyID(hselection)
-#            if not hotspots:
-#                raise MDMixError, "No hotspot selected."
-#            tolerance = parserargs.tol
-#
-#            # Outname
-#            outname = parserargs.outname
-#
-#            if parserargs.mode == 'getsnaps':
-#                print "TO BE IMPLEMENTED"
-#
-#            elif parserargs.mode == 'occupancy':
-#                resultsdict = anal.calcHSOccupancy(replica, hotspots, parallel=parallel, outprefix=outname,
-#                                                                      step=step, nanoselection=nanosel, tolerance=tolerance)
-#
-#                for id, res in resultsdict.iteritems():
-#                    anal.plotOccupancyResults(res, outfilename=outname+'_id_%d_plot.png'%id)
-#
-#                print "DONE"
-#
-#
-#
-#    elif command == 'trackalign':
-#        # TRACK RUNNING SIMULATION AND RUN TRAJECTORY ALIGNMENT FOR FINISHED NANOSECONDS
-#        mdmix = returnMDMixProjectOrFail(parserargs)
-#        replicas = fetchReplicaSelection(parserargs, mdmix.project)
-#        force = parserargs.force
-#        if replicas:
-#            anal = mdmix.getAnalysisManager()
-#            nanosel = parsenanos(parserargs)
-#            max = False
-#            min = 1
-#            if nanosel:
-#                min= nanosel[0]
-#                if len(nanosel) > 1: max = nanosel[-1]
-#
-#            anal.trackAndAlignSim(replicaList=replicas, force=force, nanostart=min, nanoend=max)
-#            print "DONE"
-#        else:
-#            print "NOTHING DONE"
-#    else:
-#        print "INVALID COMMAND"
     sys.stdout.flush()
     print "Total execution time: %.3fs"%(time.time()-t0)
 
