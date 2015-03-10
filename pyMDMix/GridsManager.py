@@ -36,7 +36,7 @@ import numpy as npy
 import logging
 
 import settings as S
-from GridData import GridData
+import GridData 
 
 class GridError(Exception):
     pass
@@ -53,16 +53,17 @@ class BadFile(GridError):
 class ValueError(GridError):
     pass
 
-class Grid(GridData):
-    "Grid information for a single atomtype/probe"
-    def __init__(self, gridfile, probe=False, type=False, name="", description="", info="", *args, **kwargs):
+class Grid(GridData.GridData):
+    "Grid information for a single atomtype/probe. It wraps GridData instance to add functionalities."
+    def __init__(self, fname=False, probe="", type="", name="", description="", info="", *args, **kwargs):
         self.probe = probe
         self.headerinfo = info
         self.name = name
+        self.type = type
         self.description = description
         self.typeheader = ''
-        GridData.__init__(self, fname=gridfile, *args, **kwargs)
-        if gridfile: 
+        GridData.GridData.__init__(self, fname=fname, *args, **kwargs)
+        if fname: 
             self.getProbeFromHeader()
             self.getTypeFromHeader()
         if type: self.setType(type)
@@ -137,14 +138,14 @@ class Grid(GridData):
         
     def writeDX(self, outname):
         "Overwrite gr.writeDX function to include file existance checking."
-        GridData.writeDX(self, outname, self.typeheader)
+        GridData.GridData.writeDX(self, outname, self.typeheader)
         if not os.path.exists(outname):
             return False
         return True
     
     def writeXPLOR(self, outname):
         "Overwrite gr.writeXPLOR function to include file existance checking."
-        GridData.writeXPLOR(self, outname, self.typeheader)
+        GridData.GridData.writeXPLOR(self, outname, self.typeheader)
         if not os.path.exists(outname):
             return False
         return True
@@ -352,7 +353,7 @@ class GridSpace(object):
         self.log.debug("Loading grids and creating GridSpace...")
         # Check all members of GList are Grid instances or convert otherwise
         for i,g in enumerate(GList):
-            if isinstance(g, GridData) or isinstance(g, Grid):
+            if isinstance(g, GridData.GridData) or isinstance(g, Grid):
                 self.grids.append(g)
             else:
                 self.grids.append(Grid(g))
@@ -372,7 +373,7 @@ class GridSpace(object):
             origins = npy.array([g.origin for g in self.grids])
             if npy.any(origins != origins[0]) or npy.any(shapes != shapes[0]):
                 self.log.info("Different shapes and/or origins between all grids in Grid Space. Will try to trim them to normalize and match the space.")
-                trimmed = gr.trim(self.grids)
+                trimmed = trim(self.grids)
             else:
                 trimmed = self.grids
         else: trimmed = self.grids
@@ -791,6 +792,51 @@ def gridSum(grid1, grid2, outname):
     if 'xplor' in outname: outg.writeXPLOR(outname)
     else: outg.writeDX(outname)
     print "Saved %s with sum of grids (%s + %s)"%(outname, grid1, grid2)
+
+def trim(*Glist):
+    """
+    Trim all grids in Glist.
+    
+    :arg list Glist: List containing more than 1 Grid instances to crop.
+    :returns: a list of trimmed grid instances
+    """     
+    if len(Glist)<2:
+        if type(Glist[0]) is list:
+          Glist = Glist[0]
+        else:
+          return "ERROR. Must provide at least 2 grids."
+        
+    deltaList = npy.array( [grid.delta for grid in Glist] )
+    
+    if npy.any(deltaList != deltaList[0]): 
+      return "ERROR. All grids should have same spacing."
+    
+    delta = deltaList[0]
+    originList = npy.array( [grid.origin for grid in Glist] )
+    maxCoordList = npy.array( [grid.getCartesian(grid.data.shape) for grid in Glist] )
+    
+    #Get maximum Origin and Cartesian Coordinates for minimum shape
+    newOrigin = originList.max(axis=0)
+    newMaximum = maxCoordList.min(axis=0)
+    newShape = ( newMaximum - newOrigin ) / delta
+    newShape.astype('int')
+    
+    trimmedList = []
+    
+    for grid in Glist:
+        newarray = Grid(shape=newShape, origin=newOrigin, spacing=delta)
+        newarray.source = 'Trimmed array of %s'%(grid.source)
+        #Copy data to the new array
+        init = grid.getIndex(newarray.origin)
+        newarray.update( grid.data[ init[0]:init[0]+newarray.data.shape[0], init[1]:init[1]+newarray.data.shape[1], init[2]:init[2]+newarray.data.shape[2] ].copy() )
+        if hasattr(grid, 'type'): newarray.setType(grid.type)
+        else: newarray.setType('MDMIX_UNK')
+        if hasattr(grid, 'probe'): newarray.setProbe(grid.probe)
+        else: newarray.setProbe('UNK_UNK')
+        trimmedList.append(newarray)
+        
+    return trimmedList
+
 
 
 if __name__ == "__main__":
