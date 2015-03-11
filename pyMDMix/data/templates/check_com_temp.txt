@@ -10,7 +10,7 @@ else ext="";
 fi
 
 # write PDB of atoms in mask (reference structure)
-$$exeptraj ../$$top << EOF >& /dev/null
+$$exeptraj ../$$top << EOF 
 trajin ../$$crd
 strip '@H*'
 strip '!(:$${mask})'
@@ -20,7 +20,7 @@ EOF
 # calculate Center Of Mass
 com1=`grep ^ATOM tmp0.pdb$$ext | perl -e 'while(<>){$$x+=substr($$_,30,8);$$y+=substr($$_,38,8);$$z+=substr($$_,46,8);$$n++};printf "%.3f %.3f %.3f\n",$$x/$$n,$$y/$$n,$$z/$$n;'`
 # write PDB of atoms in mask (current restart file)
-$$exeptraj ../$$top << EOF >& /dev/null
+$$exeptraj ../$$top << EOF 
 trajin $$rst
 strip '@H*'
 strip '!(:$${mask})'
@@ -37,7 +37,7 @@ rm tmp0.pdb$$ext tmp.pdb$$ext
 # Translate if necessary
 if [ "$$d" -gt "5" ]; then
 	xyz=`echo $$com1 | awk '{printf "x %.7f y %.7f z %.7f",$$1, $$2, $$3}'`
-	$$exeptraj ../$$top << EOF >& /dev/null
+	$$exeptraj ../$$top << EOF 
 	trajin $$rst
 	$imaging
 	center ':$${mask}' origin

@@ -3,7 +3,7 @@
 # 
 &cntrl
 timlim=999999., imin=0,
-ntx=1, iwrap=1,
+ntx=1, iwrap=$iwrap,
 ntxo=1, ntpr=$freq, ntwx=$freq, ntwv=0, ntwe=0, ioutfm=$ioutfm,
 ntp=0, ntc=2,
 ntb=1, ntf=2, cut=9.0,

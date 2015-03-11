@@ -40,7 +40,7 @@ class AlignError(Exception):
     pass
 
 class Align(object):
-    def __init__(self, replica, steps=[], nthreads=False, run=True, write=True,
+    def __init__(self, replica, reference=False, steps=[], nthreads=False, run=True, write=True,
                     warn=True, waitend=True, **kwargs):
         """
         Instantiating Align with a replica as argument will automatically start alignment process.
@@ -51,6 +51,7 @@ class Align(object):
         
         :arg replica: Replica to work with
         :type replica: :class:`~Replicas.Replica`
+        :arg str reference: File path to pdb to be used as reference for the trajectory alignment. It does not need to have all the atoms in the solvated system.
         :arg list steps: Selected steps to align. If empty, align all expected steps.
         :arg int nthreads: Number of processors to use.
         :arg bool run: Execute ptraj scripts. Helps tuning only one of both actions.
@@ -79,7 +80,15 @@ class Align(object):
         else: self.cpptraj = False
         
         # Prepare reference with all atoms when cpptraj = True
-        self.ref = osp.join(os.pardir, self.replica.ref)
+        self.ref = osp.join(os.pardir, self.replica.ref)      
+        if reference:
+            if osp.exists(reference): 
+                # Substitute replica reference for the given file 
+                self.log.info("USING %s as reference for alignment"%reference)
+                self.ref=osp.abspath(reference)
+            else: 
+                self.log.warn("Reference PDB file %s not found! Using Replica reference pdb: %s."%(reference, self.ref))
+
         if self.cpptraj: self.__alignRefAllAtoms()
         
         if write: 
@@ -108,7 +117,7 @@ class Align(object):
         """
         from PDB import SolvatedPDB
         self.replica.go()
-        self.log.debug("Fitting all atoms PDB to reference PDB for cpptraj use")
+        self.log.info("Fitting all atoms PDB to reference PDB for cpptraj use")
         newref = self.replica.ref.replace('.pdb','_allatoms.pdb')
         if not osp.exists(newref): 
             pdb = self.replica.getPDB()

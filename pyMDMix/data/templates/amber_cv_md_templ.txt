@@ -1,7 +1,7 @@
 #  Production MD: Constant Volume
 &cntrl
 ntx=5, irest=1,
-iwrap=1,
+iwrap=$iwrap,
 ntxo=1, ntpr=$freq, ntwx=$freq, ntwv=0, ntwe=0, ioutfm=$ioutfm,
 ntc=2, ntf=2,
 ntb=1, cut=9.0,

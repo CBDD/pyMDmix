@@ -11,5 +11,8 @@ UPDATE HISTORY (ZIP)
 11/03/2015
 - Added trim tool function
 - Added replica creation from TOP+CRD
+- Added --ref option to align command
+- Added iwrap option to mdsettings. It will be now 0 by default (instead of 1) to avoid problems with check_com.sh file when using restraints.
 - Fixed several bugs in replica volume calculation, pdb renumbering for large PDBs (>9999 residues), Density calculation on partial trajectories.
 - Added Replica function to calculate last completed step in production
+

@@ -122,6 +122,7 @@ def createParser():
     align_parser.add_argument("-N", help="List production steps to consider for alignment using a colon separated range. Ex: 1:20 - first to 20th step.", default=False, nargs=1,dest="nanoselect")
     align_parser.add_argument("-C", type=int, help="Number of cpus to use for the action. If option not given, will use 1 CPU serial mode.", dest="ncpus", default=1, action="store")
     align_parser.add_argument("--mask", action="store", dest="alignmask", help="Modify alignment mask defined when creating the replicas. By default the macromolecule will be automatically identified. Give a list with comma separated residue numbers or hyphen separated range. E.g. 10-100,120-240.")
+    align_parser.add_argument("--ref", action="store", dest="ref", help="Path to reference PDB file. By default, pyMDmix generates one automatic reference pdb file which can be found inside each replica folder. This option will override it.")
     align_parser.add_argument("--only-write", action="store_true", default=False, dest="onlywrite", help="Only write ptraj input scripts BUT don't execute them. Useful when manual editing is needed. (default: False)")
     align_parser.add_argument("--only-exe", action="store_true", default=False, dest="onlyexe", help="Only execute existing ptra scripts, do not overwrite them. If scripts don't exist, this function will fail. (Default: False)")
     
@@ -475,18 +476,19 @@ def main():
                 mask = parserargs.alignmask
                 onlywrite = parserargs.onlywrite
                 onlyexe = parserargs.onlyexe
+                reference = parserargs.ref
                 
                 if onlywrite or onlyexe:
                     # Options for partial execution selected
                     if onlywrite:
                         # Only write ptraj input scripts and do not execute them
-                        p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask, run=False)
+                        p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask, reference=reference, run=False)
                     else:
                         # Just execute existing alignment scripts
                         # Fail if scripts do not exist
-                        p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask, run=True, write=False)
+                        p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask, run=True, reference=reference, write=False)
                 else:
-                    p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask)
+                    p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, reference=reference, alignmask=mask)
                 print "DONE"
 
         elif parserargs.anl_command == 'density':

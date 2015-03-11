@@ -676,6 +676,11 @@ class AmberWriter(object):
         else:
             ref = False
             
+        # Check iwrap option used
+        # if 1 and replica has restraints, use check_com.sh
+        # do not use it otherwise
+        iwrap = replica.iwrap == '1'
+            
         if process == 'min':
             command = S.AMBER_MIN_EXE+' -O -i min.in -o min.out -p %s -c %s -r min.rst'%(prevsep+top, prevsep+crd)
             if ref and not replica.minimizationAsRef: command += ' -ref %s'%ref
@@ -697,7 +702,7 @@ class AmberWriter(object):
             if ref:
                 # Add reference flag and trajectory imaging of restart file
                 command += ' -ref %s\n'%(ref)
-                command += 'sh %scheck_com.sh %srst'%(prevsep, eqfname)
+                if iwrap: command += 'sh %scheck_com.sh %srst >&%simage.log'%(prevsep, eqfname, eqfname)
 
             return command
             
@@ -710,7 +715,7 @@ class AmberWriter(object):
                 command = S.AMBER_PROD_EXE+' -O -i md.in -o {fname}.out -p %s -c %seq5.rst -r {fname}.rst -x {fname}.%s'%(prevsep+top, prevsep+replica.eqfolder+os.sep, extension)
                 if ref:
                     command += ' -ref %s\n'%(ref)
-                    command += 'sh %scheck_com.sh %s.rst'%(prevsep, fname)
+                    if iwrap: command += 'sh %scheck_com.sh %s.rst >&%s.image.log'%(prevsep, fname, fname)
 
                 command = command.format(fname=fname)
 
@@ -721,7 +726,7 @@ class AmberWriter(object):
                 fname = nextfname
                 if ref:
                     command += ' -ref %s\n'%(ref)
-                    command += 'sh %scheck_com.sh %s.rst'%(prevsep, fname)
+                    if iwrap: command += 'sh %scheck_com.sh %s.rst >&%s.image.log'%(prevsep, fname, fname)
 
                 command = command.format(nextfname=nextfname, prevfname=prevfname)
 
@@ -832,8 +837,13 @@ class AmberWriter(object):
 
         # Substitute frequency, ioutfm flags
         substDict['ioutfm'] = replica.mdnetcdf
+        substDict['iwrap'] = replica.iwrap
         substDict['freq'] = '%i'%replica.trajfrequency
         substDict['timestep'] = '%.3f'%(replica.md_timestep/1000.)
+
+        # check iwrap 
+        # if 1 and replica has restraints write check_com.sh
+        iwrap = replica.iwrap == '1'
 
         # Before starting writting, we need to obtain masks according to the option chosen
         if replica.hasRestraints:
@@ -890,7 +900,7 @@ class AmberWriter(object):
         open(outf,'w').write(prodfile.substitute(substDict))
 
         # If replica has restraints, write ptraj imaging scripts for restart files
-        if replica.hasRestraints:
+        if replica.hasRestraints and iwrap:
             self.writeCheckCOM(replica.top, replica.crd, m.lstrip(':'), self.getPtrajImagingCommands())
 
         # Once done leave replica directory back to previous dir
