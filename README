@@ -94,11 +94,3 @@ Test the program works correctly:
 Read program usage at online documentation.
 
 
-UPDATES
---------
-26/01/2015
-- Fixed plotting to take selected steps (when simulation is not finished but we want to plot some data).
-
-20/01/2015
-- Fixed compatibility issues with python2.6
-- Fixed compatibility issues with cpptraj

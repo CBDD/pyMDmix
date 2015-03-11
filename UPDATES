@@ -1,0 +1,15 @@
+UPDATE HISTORY (ZIP)
+--------------------
+
+26/01/2015
+- Fixed plotting to take selected steps (when simulation is not finished but we want to plot some data).
+
+20/01/2015
+- Fixed compatibility issues with python2.6
+- Fixed compatibility issues with cpptraj
+
+11/03/2015
+- Added trim tool function
+- Added replica creation from TOP+CRD
+- Fixed several bugs
+
