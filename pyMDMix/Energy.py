@@ -168,7 +168,7 @@ class EnergyConversion(object):
             If **False**, will take default values (NAMD: xsc, AMBER: rst)
 
         """
-        step = step or replica.ntrajfiles
+        step = step or replica.lastCompletedProductionStep()
         # Fetch last nanosecond of production volume information
         if replica.mdProgram == 'AMBER':
             # Fetch rst file and read last line to get box side length
