@@ -182,7 +182,7 @@ class NewGrid(Grid):
         if not npy.any(origin):
             origin = -npy.array(dimensions) / 2.
         shape = (dimensions/spacing).astype(int)
-        Grid.__init__(self, gridfile=None, probe=probe, type=type, shape=shape,
+        Grid.__init__(self, fname=None, probe=probe, type=type, shape=shape,
                                     origin=origin, spacing=spacing, *args, **kwargs)
         
 
