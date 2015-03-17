@@ -16,3 +16,9 @@ UPDATE HISTORY (ZIP)
 - Fixed several bugs in replica volume calculation, pdb renumbering for large PDBs (>9999 residues), Density calculation on partial trajectories.
 - Added Replica function to calculate last completed step in production
 
+17/03/2015
+- updated VERSION 0.1.6
+- Added --ref option to density command to build density on subregion of space or to follow --ref option in alignment
+- Added hotspots create_min action to use minimum search method instead of clustering one to locate hotspots
+- Modified Projects.py to add iwrap attribute to replicas that don't have it (for back compatibility)
+

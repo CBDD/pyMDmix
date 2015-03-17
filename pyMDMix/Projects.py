@@ -247,7 +247,12 @@ class Project(object):
         for root, dir, files in os.walk(os.curdir):
             for f in files:
                 if f.endswith('mrepl'): 
-                    repls.append(Replica(fromfile=osp.join(root, f)))
+                    r = Replica(fromfile=osp.join(root, f))
+                    # For back compatibility
+                    if not hasattr(r,'iwrap'): 
+                        r.iwrap=1    
+                        r.write()
+                    repls.append(r)
         T.BROWSER.chdir(cwd)
         
         # Check no duplicate names exist
