@@ -107,6 +107,7 @@ def createParser():
     density_parser.add_argument("-opref", action="store", dest="outprefix", help="Prefix for grids saved inside density folder for each replica. If this is given, automatic energy conversion will not work until you restablish expected names or explicitely give the prefix in energy command. Default: False")
     density_parser.add_argument("--onlycom", help="Density calculations ONLY for center of masses of each co-solvent. Probe list is ignored. Default: False",action="store_true", dest="onlycom", default=False)
     density_parser.add_argument("--com", help="Include center of mass to list of probes probes in density calculation. Default: False",action="store_true", dest="com", default=False)
+    density_parser.add_argument("--ref", help="Reference PDB file to build grid shape over which counts will be added. By default, replica reference PDB will be used. This option is useful to build density grids on a subregion of the space or when replica trajectory was also aligned using --ref option.", action="store", dest="ref")
 
     # ANALYSIS: RESIDENCE
     residence_parser = subparseronreplica(anl_cmd, 'residence', help="Calculate hotspot residence dens from aligned trajectory")
@@ -140,7 +141,7 @@ def createParser():
     hs_parser = anl_cmd.add_parser("hotspots", help="Analysis tools on hot spots")
     hs_cmd = hs_parser.add_subparsers(help='Hot spots analysis commands', dest='hs_command')
     
-    createhs = hs_cmd.add_parser("create", help="Create hot spots sets from selected grids")
+    createhs = hs_cmd.add_parser("create", help="Create hot spots sets from selected grids using cutoff clustering method")
     createhs.add_argument("-i", action="store", dest="ingrids", required=True, nargs='+', help="List of grid files to use for hotspots creation. If multiple probes are given, a hot spot set with the minimum energy probes is obtained.")
     createhs.add_argument("-o", action="store", required=True, dest="outprefix", help="Output prefix. A PDB with the hotspots and a pickle file will be saved")
     createhs.add_argument("-centroid",action="store_true", dest="centroid", default="false", help="Calculate centroid as the average of all coordinates. Default: Minimum energy coordinate.")
@@ -148,6 +149,16 @@ def createParser():
     createhs.add_argument("-p", action="store", dest="percentile", default=0.02, help="Percentile of points to use for establishing the cutoff value. Default: 0.02")
     createhs.add_argument("-x", action="store", dest="ignore", type=float, help="Ignore points with this value during percentile calculation. Useful when grids have values masking certain regions in space (like 999 to mask protein space).")
     createhs.add_argument("--hardcutoff", "-H", default=False, type=float, action="store", dest="hardcutoff", help="Stablish a hard energy cutoff instead of the adaptive one.")
+    
+    createhs_min = hs_cmd.add_parser("create_min", help="Create hot spots sets from selected grids using Minima Search method")
+    createhs_min.add_argument("-i", action="store", dest="ingrids", required=True, nargs='+', help="List of grid files to use for hotspots creation. If multiple probes are given, a hot spot set with the minimum energy probes is obtained.")
+    createhs_min.add_argument("-o", action="store", required=True, dest="outprefix", help="Output prefix. A PDB with the hotspots and a pickle file will be saved")
+    createhs_min.add_argument("-cut", required=True, type=float, action="store", dest="cutoff", help="Stablish an energy cutoff to stop searching for more minima.")
+    createhs_min.add_argument("--meanradius", type=float, action="store",default=0.5, dest="meanradius", help="Distance around the minimum which values will be used to calculate hotspot average value. DEFAULT: 0.5.")
+    createhs_min.add_argument("--cancelradius", type=float, action="store",default=2.0, dest="cancelradius", help="Distance around the minimum that will be discarded in further iterations. DEFAULT: 2.0.")
+    createhs_min.add_argument("--ignoreval", type=float, action="store",default=999, dest="ignoreval", help="Ignore values equal to this number (e.g. excluded volume with 999 value). DEFAULT: 999.")
+    
+    
     
     # UTILS
     util_parser = subparsers.add_parser("tools", help="Complementary tools")
@@ -500,13 +511,15 @@ def main():
             probelist = parserargs.probelist
             includeCOM=parserargs.com
             onlyCOM=parserargs.onlycom
+            ref=parserargs.ref
             
             if replicas:
                 anal = pyMDMix.Analysis.ActionsManager(ncpus=ncpus)
                 anal.addReplicas(replicas)
                 anal.addActions('DensityGrids')
                 anal.prepareRun(probeselection=probelist, outprefix=outprefix, 
-                                includeCOM=includeCOM, onlyCOM=onlyCOM, stepselection=nanosel)
+                                includeCOM=includeCOM, onlyCOM=onlyCOM, stepselection=nanosel,
+                                reference=ref)
                 anal.run(stepselection=nanosel, framestep=step)
             
             print "DONE"
@@ -580,6 +593,20 @@ def main():
                 HM.createHotSpotsByCutoff(ingrids, outprefix=outprefix, percentile=percentile, 
                                             cutoff=hardcutoff, centroid=centroid, 
                                             onlycenter=parserargs.onlycenter, maskcutvalue=maskcutvalue)
+            elif parserargs.hs_command == 'create_min':
+                ingrids = parserargs.ingrids
+                outprefix = parserargs.outprefix
+                meanradius = parserargs.meanradius
+                cancelradius = parserargs.cancelradius
+                ignorevalue = parserargs.ignoreval
+                cutoff = parserargs.cutoff
+                
+                for g in ingrids:
+                    if not os.path.exists(g): raise MDMixError, "File %s not found."%g
+                
+                import pyMDMix.HotSpotsManager as HM
+                HM.createHotSpotsByMinSearch(ingrids, cutoff, outprefix=outprefix, meanradius=meanradius, 
+                                            cancelRadius=cancelradius, protValue=ignorevalue)
                 
     # UTILS COMMANDS
     elif command == 'tools':

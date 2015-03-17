@@ -47,16 +47,23 @@ class DensityError(Exception):
 class DensityGrids(object):
     action_name = "DensityGrids"
     def __init__(self, replica, probeselection=False, includeCOM=False, 
-                        onlyCOM=False, subregion=None, stepselection=[], outprefix='', *args, **kwargs):
+                        onlyCOM=False, subregion=None, stepselection=[], 
+                        reference=False, outprefix='', *args, **kwargs):
         """Calculate density grids from a previously aligned trajectory for all probes in replica and its center of mass
 
         :arg list probeselection: List of probe names to calculate for replica solvent. If not given, all probes will be calculated.
         :arg bool includeCOM: Calculate center of mass coordinates as an extra probe.
         :arg bool onlyCOM: Consider only COM probes for calculation. Any probeselection list will be ignored as well as the probelist in the solvent.
         :arg tuple subregion: coordinates of minimum and maximum point to consider. 
+        :arg str reference: Path to a reference PDB file over which to construct the initial 
+                grid where counts will be added. If not given, the default replica reference PDB file will be used.
+                Important to give this argument if trajectory was aligned using a reference PDB other than the replica's one.
         """
         self.log = logging.getLogger("DensityGrids")
         self.replica = replica
+
+        if not isinstance(replica, pyMDMix.Replica): raise DensityError, "replica argument of wrong type."
+                
         self.log.info("Setting up density grids calculation for replica %s"%replica.name)
         if not replica.isAligned(stepselection):
             raise DensityError, "Cannot calculate density over non-aligned trajectory"
@@ -85,8 +92,17 @@ class DensityGrids(object):
         self.container = None
         self.countGrids = {}
         
-        if not isinstance(replica, pyMDMix.Replica): raise DensityError, "replica argument of wrong type."
-        self.setup()
+        # Reference given or use replica's one?
+        self.ref = osp.join(self.replica.path,self.replica.ref)
+        if reference:
+            if osp.exists(reference): 
+                self.log.info("Using PDB file %s as reference to construct density grid"%reference)
+                self.ref=osp.abspath(reference)
+            else:
+                raise DensityError, "Reference PDB file %s not found."%reference
+            
+        self.setup()        
+        
     
     def setup(self):
         self.__setProbes()
@@ -141,7 +157,7 @@ class DensityGrids(object):
         
     def __calcGridDimensionsAndOrigin(self):
         "From reference PDB calculate dimensions of the grid to be calculated and the origin"
-        refpdb = bi.PDBModel(osp.join(self.replica.path,self.replica.ref))
+        refpdb = bi.PDBModel(self.ref)
         maxdist = npy.sqrt(((refpdb.xyz.max(axis=0) - refpdb.xyz.min(axis=0))**2).sum())
         dimensions = npy.round(maxdist)
         origin = refpdb.xyz.mean(axis=0) - (dimensions/2.)

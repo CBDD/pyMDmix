@@ -716,7 +716,7 @@ class CreateBySpheres(CreateHotSpotSet):
     The algorithm iteratively searches the minimum energy point MIN in the grid. Then removes all surounding points at CANCELRADIUS angstroms around.
     It establishes a hotspot in MIN with radius VALSRADIUS angstroms. This hotspot is only finally considered if the total energy is below ENERGYCUT.
     """
-    def setup(self, cutvalue=-0.4, valsradius=2.0, cancelRadius=2.0, protValue=1, rejectvalues=0, **kwargs):
+    def setup(self, cutvalue=-0.4, valsradius=1.0, cancelRadius=2.0, protValue=999., filter_gt=False, **kwargs):
         """
         protValue are the values for points occupied by protein (initial zeros in counts).
         If the grid is already corrected by StandardState DG, this 1 will be modified. That's why we should modify this argument in those cases.
@@ -726,15 +726,14 @@ class CreateBySpheres(CreateHotSpotSet):
         :args float valsradius: Distance in angstroms. Considrer surrounding values as hotspot.
         :args float cancelRadius: Radius in angstroms to tell apart different hotspots centers.
         :args float protValue: Any value used to mask the protein occupied points. All points corresponding to this value will be ignored.
-        :args float rejectvalues: All grid points between MIN and VALSRADIUS with energy higher to this value will not be considered as part of the hotspot.
-    
+        :args float filter_gt: Values greater than this cutoff will be ignored (e.g. positive values .gt. 0.)
         """
         self.protValue = protValue
         self.cutvalue = cutvalue
 #        self.convolvPointEnergy = convolvPointEnergy
         self.cancelRadius = cancelRadius
         self.valsradius= valsradius
-        self.rejectvalues = rejectvalues
+        self.rejectvalues = filter_gt
         
 #        self.average = average
         self.log.debug("CreateBySpheres SETUP. energycut:%.3f valsradius:%.2f cancelRadius: %.2f protValue:%.2f"%(cutvalue,
@@ -763,12 +762,20 @@ class CreateBySpheres(CreateHotSpotSet):
             coords = self.grid.origin+(sphereindexes*self.grid.delta)
             vals = npy.array([self.grid.data[tuple(i)] for i in sphereindexes])
 
-            # Keep only negative valued coordinates
-            maskneg = vals < self.rejectvalues
-            if not npy.any(maskneg): continue
-            vals = vals[maskneg]
-            coords=coords[maskneg,:]
-
+            # Discard values masked as protein
+            mask = vals != self.protValue
+            if not npy.any(mask): continue
+            vals = vals[mask]
+            coords=coords[mask,:]
+            
+            # Filter_gt
+            if not self.rejectvalues is False:
+                self.log.info("Filtering out points greater than %.2f"%self.rejectvalues)
+                m = vals < self.rejectvalues
+                if not npy.any(m): continue
+                vals = vals[m]
+                coords = coords[m,:]
+                
             # finally create a hotspot for these values and check if we keep it or not
             hp = HotSpot(coords, vals, probe=self.grid.probe, index=index, energymethod='volume',**self.kwargs)
             henergy = hp.energy
@@ -1007,5 +1014,38 @@ def createHotSpotsByCutoff(gridlist, percentile=0.02, cutoff=None, outprefix=Non
     multiset.combine(1.5)
     if outprefix:
         multiset.writeCombinedHSetPDB(outprefix+'.pdb', onlycenter=onlycenter)
+        multiset.combinedhset.dump(outprefix+'.hset')
+    return multiset.combinedhset
+
+
+def createHotSpotsByMinSearch(gridlist, cutoff, meanradius=0.5, cancelRadius=2.0, 
+                                protValue=999,outprefix=None, **kwargs):
+    """
+    Create a combined hot spot set from all input grids using cutoff hot spot creation method.
+
+    :arg list gridlist: List of :class:`GridsManager.Grid` instances.
+    :arg float cutoff: Use this hard cutoff value and ignore percentile.
+    :arg float meanradius: Take values  *meanradius* angstroms around minimum to calculate a mean hotspot value.
+    :arg float cancelRadius: Once a hotspot minima is identified, set all values *cancelRadius* angstroms around to 999 to ignore them in future iterations.
+    :arg float protValue: Ignore points with this value (e.g. Masked excluded volume).
+    :arg float igonrevals_gt: When calculating mean value for the hotspot ignore values greater than this cutoff. 
+    :arg str outprefix: If given, will save a PDB file and a pickle file containing the hot spot set found.
+    
+    :return: :class:`HotSpotMultipleSet` with results. If outprefix is given, will save two files with this prefix.
+    """
+    if not isinstance(gridlist, list): gridlist = [gridlist]
+    hm = HotSpotsManager()
+    multiset = HotSpotMultipleSet(**kwargs)
+    hsets = []
+    for grid in gridlist:   
+        gset = hm.createHotSpotSetFromGrid(grid, method='spheres',cutvalue=cutoff, 
+                                    valsradius=meanradius, cancelRadius=cancelRadius, protValue=protValue, **kwargs)
+#        gset.clusterHotSpots(1.5)
+        #gset.reduceClusters(update=True)
+        hsets.append(gset)
+    multiset.addHSets(hsets)
+    multiset.combine(1.5)
+    if outprefix:
+        multiset.writeCombinedHSetPDB(outprefix+'.pdb', onlycenter=True)
         multiset.combinedhset.dump(outprefix+'.hset')
     return multiset.combinedhset
