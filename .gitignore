@@ -1,0 +1,3 @@
+*.pyc
+/build
+/pyMDMix.egg-info/
