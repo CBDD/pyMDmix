@@ -103,7 +103,7 @@ setup(name='pyMDMix',
       package_data={'pyMDMix.data':['pyMDMix/data/*']},
       scripts=scriptlist,
 	dependency_links=['https://sourcesup.renater.fr/frs/?group_id=180&release_id=2467#stable-releases-_2.8.1-title-content'],
-      install_requires=["numpy","ScientificPython","Biskit","scipy","matplotlib","mechanize"])
+      install_requires=["numpy","ScientificPython","Biskit","scipy","matplotlib","mechanize","parmed"])
 
       #extras_require={'HotSpotsManager':["scipy","matplotlib"],
 #			"CUDA":["pycuda"]})

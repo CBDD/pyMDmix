@@ -1,6 +1,9 @@
 UPDATE HISTORY (ZIP)
 --------------------
 
+23/03/2015
+- Initial OpenMM support
+
 26/01/2015
 - Fixed plotting to take selected steps (when simulation is not finished but we want to plot some data).
 

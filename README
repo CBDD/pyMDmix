@@ -49,6 +49,7 @@ will be automatically installed but these 2:
   Its automatic installation fails and that's why the user has to install 
   it beforehand. Scientific Python which is a dependency of pyMDMix is also
   a dependency for Biskit. I recommend to install it with NetCDF support.
+3) ParmEd 1.1.
 
 Once these 3 dependencies are installed, these other list will be automatically installed:
 
