@@ -22,3 +22,6 @@ UPDATE HISTORY (ZIP)
 - Added hotspots create_min action to use minimum search method instead of clustering one to locate hotspots
 - Modified Projects.py to add iwrap attribute to replicas that don't have it (for back compatibility)
 
+18/03/2015
+- Improved solvent printing to add number of snapshots to obtain 1 expected count per probe.
+- Added 'stepselection' to energy conversion to correctly calculated number of snapshots when a subset of the trajectory was used in density calculation.

@@ -107,6 +107,8 @@ class Replica(object):
             # Update paths if changed
             path = osp.split(osp.abspath(fromfile))[0]
             if path != self.path: self.setPath(path)
+            # For back compatibility
+            if not hasattr(self,'iwrap'): self.iwrap=1    
         else:
             # Folder structure and control
             self.__folderscreated = False

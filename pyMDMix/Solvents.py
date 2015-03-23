@@ -210,6 +210,8 @@ class Solvent(object):
         s = "SOLVENT: {name}\nINFO: {info}\nBOXUNIT: {boxunit}"
         s = s.format(**self.__dict__)
         s += '\nPROBES: %s'%(', '.join(self.probelist))
+        s += '\nSNAPS_1_EXPECTED (spacing %.1f): %s'%(S.GRID_SPACING, ', '.join(map(lambda x: '%.1f'%(1./x), 
+                                            [self.getProbeProbability(p) for p in self.probelist])))
         return s
 
     def __repr__(self):
@@ -304,7 +306,10 @@ class Solvent(object):
         """
         Return probe probability
         """
-        if probename in self.probelist: return self.getProbeByName(probename).p
+        if probename in self.probelist: 
+            # Recalculate probabilities each time, just in case GRIDSPACING was customized
+            p = self.getProbeByName(probename)
+            return self.getProbability(p.residue.name, p.atoms)
         elif probename in self.comprobes.keys(): return self.getProbability(self.comprobes[probename].name)
         return False
 

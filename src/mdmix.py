@@ -130,6 +130,7 @@ def createParser():
     # In conversion from density to grids, allow also merging of densities between replicas before energy conversion
     energy_parser = subparseronreplica(anl_cmd, 'energy', help="Calculate free energy maps from density grids for selected probes and replicas", extras=False)
     energy_parser.add_argument("-nsnaps", action="store", dest="nsnaps", type=int, help="If given, use this number of snapshots for calculating the expected number instead of the total number. Useful when a subset of the trajectory is analyzed.")
+    energy_parser.add_argument("-N", help="Specify production steps used for density grid calculation to correctly calculate the expected number when a subset of the trajectory was analyzed. Use a colon separated range. Ex: 1:20 - first to 20th step. If not given, all trajectory is considered.", default=False, nargs=1,dest="nanoselect")
     energy_parser.add_argument("--probes", "-P",nargs='+', dest="probelist", help="Selection of probenames to convert. If not given, all probes for the solvent will be converted.")
     energy_parser.add_argument("-noavg",action="store_false",dest="noavg",default="true", help="By default, densities for the diferent replicas will be  merged before energy conversion and a single replica-averaged energy map for each probe will be saved at project folder. \
                                                                                             To save separately each replica it's own energy grids, use -noavg. Energy grids will then be saved inside each replica folder independently.")
@@ -391,7 +392,7 @@ def main():
     elif command == 'info':
         if parserargs.infoselection == 'project':
             p = returnMDMixProjectOrFail(parserargs)
-            print p
+            print p.longdesc()
         elif parserargs.infoselection == 'solvents':#Actions on solvent database
             man = pyMDMix.Solvents.SolventManager()
             print man
@@ -567,11 +568,12 @@ def main():
                 probelist = parserargs.probelist
                 dg0 = parserargs.nodg0
                 avg = parserargs.noavg
+                nanosel = parsenanos(parserargs)
 
                 from pyMDMix.Energy import EnergyConversion
                 econv = EnergyConversion()
                 econv.convert(replicas, probelsit=probelist, average=avg, dg0correct=dg0,
-                                    inprefix=inprefix, outprefix=outprefix, nsnaps=nsnaps)
+                                    inprefix=inprefix, outprefix=outprefix, nsnaps=nsnaps, stepselection=nanosel)
 
         # HOTSPOTS SUBPARSER UNDER ANALYSIS
         elif parserargs.anl_command == 'hotspots':
