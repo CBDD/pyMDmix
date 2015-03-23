@@ -338,7 +338,7 @@ class AmberCreateSystem(object):
         
         # add box of solvents
         # and neutralize charge
-        out = self.leap.command("solvateOct %s %s %.2f iso 1"%(unit,solventBox,buffer))
+        out = self.leap.command("solvateBox %s %s %.2f iso 1"%(unit,solventBox,buffer))
 
         if solvent.isIonic():        # Only in Ionic Box
             negative_res = [r.name for r in solvent.residues if r.charge < 0]
@@ -359,7 +359,7 @@ class AmberCreateSystem(object):
         return True
     
     def solvateWater(self, unit, outPrefix, watbox=False, buffer=False):
-        "Take unit and solvate in octahedron tip3pbox water box. outPrefix to save top and crd files. Buffer for solvateOct command."
+        "Take unit and solvate in octahedron tip3pbox water box. outPrefix to save top and crd files. Buffer for solvateBox command."
         if not watbox: watbox = S.DEF_AMBER_WATBOX+'BOX'
         if not buffer: buffer = S.DEF_AMBER_BUFFER
         self.log.debug("SolvateWater unit %s watbox %s buffer %s"%(unit, watbox, buffer))
@@ -369,7 +369,7 @@ class AmberCreateSystem(object):
         # add box of water
         # and neutralize charge with NaCl
         if not self.leap: self.initLeap()
-        outmessage = self.leap.command("solvateOct %s %s %.2f iso 1"%(unit,watbox, buffer))
+        outmessage = self.leap.command("solvateBox %s %s %.2f iso 1"%(unit,watbox, buffer))
         if self.neutralizeWNaCl(unit):
             # System is neutralized
             # write topology and crd files
