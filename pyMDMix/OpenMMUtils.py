@@ -6,7 +6,8 @@ import sys
 
 def getHeavyAtomIndexExceptWat(modeller):
     """ Return the index of all heavy atoms, except solvent, from a modeller
-     object.
+    object. This needs to be improved to allow the parsing of a ptraj
+    style atom mask.    
     """
     # Get ligand index
     HeavyAtomIndex = []
@@ -23,6 +24,7 @@ def getHeavyAtomIndexExceptWat(modeller):
 
 def applyHarmonicPositionalRestraints(system, forceConstant, inpcrd,
                                       indexOfAtomsToBeModified):
+    """ This is essentially mimicking AMBER's restraint_wt"""
 
     force = mm.CustomExternalForce("k*((x-x0)^2+(y-y0)^2+(z-z0)^2)")
 
@@ -37,6 +39,8 @@ def applyHarmonicPositionalRestraints(system, forceConstant, inpcrd,
     system.addForce(force)
 
 def setContextFromRst(simulation, inpcrd):
+    """ Restore the simulation's context from all the information
+    present in an AMBER rst7 file"
     simulation.context.setPositions(inpcrd.positions)
     simulation.context.setVelocities(inpcrd.velocities)
 
