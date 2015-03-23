@@ -22,7 +22,7 @@ prmtop = app.AmberPrmtopFile(prmtopName)
 inpcrd = app.AmberInpcrdFile(inpcrdName)
 
 system = prmtop.createSystem(nonbondedMethod=app.PME, nonbondedCutoff=9*u.angstrom, constraints=app.HBonds)
-mdm.applyHarmonicPositionalRestraints(system, 4.184, inpcrd,
+mdm.applyHarmonicPositionalRestraints(system, $force, inpcrd,
                                   mdm.getHeavyAtomIndexExceptWat(prmtop))
 
 print "Density correction under NPT"

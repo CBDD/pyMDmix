@@ -22,13 +22,18 @@ def getHeavyAtomIndexExceptWat(modeller):
     return HeavyAtomIndex
 
 
-def applyHarmonicPositionalRestraints(system, forceConstant, inpcrd,
-                                      indexOfAtomsToBeModified):
+def applyHarmonicPositionalRestraints(system, forceConstantInKcalPerMolePerAngSquared,
+                                      inpcrd, indexOfAtomsToBeModified):
     """ This is essentially mimicking AMBER's restraint_wt"""
+
+    forceConstant = u.Quantity(value=forceConstantInKcalPerMolePerAngSquared,
+               unit=u.kilocalorie/(u.mole * u.angstrom * u.angstrom))
 
     force = mm.CustomExternalForce("k*((x-x0)^2+(y-y0)^2+(z-z0)^2)")
 
-    force.addGlobalParameter("k", forceConstant)
+    force.addGlobalParameter("k",
+       forceConstant.in_units_of(u.kilojoule/(u.mole * u.nanometer * u.nanometer )))
+
     force.addPerParticleParameter("x0")
     force.addPerParticleParameter("y0")
     force.addPerParticleParameter("z0")
@@ -40,7 +45,8 @@ def applyHarmonicPositionalRestraints(system, forceConstant, inpcrd,
 
 def setContextFromRst(simulation, inpcrd):
     """ Restore the simulation's context from all the information
-    present in an AMBER rst7 file"
+    present in an AMBER rst7 file.
+    """
     simulation.context.setPositions(inpcrd.positions)
     simulation.context.setVelocities(inpcrd.velocities)
 
