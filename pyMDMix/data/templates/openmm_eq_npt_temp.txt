@@ -12,7 +12,6 @@ platformProperties = {}
 platformProperties['CudaPrecision'] = 'mixed'
 platformProperties['CudaDeviceIndex'] = '0'
 
-
 runName  = sys.argv[0].split(".")[0]
 prmtopName = sys.argv[1]
 inpcrdName = sys.argv[2]
@@ -22,8 +21,7 @@ prmtop = app.AmberPrmtopFile(prmtopName)
 inpcrd = app.AmberInpcrdFile(inpcrdName)
 
 system = prmtop.createSystem(nonbondedMethod=app.PME, nonbondedCutoff=9*u.angstrom, constraints=app.HBonds)
-mdm.applyHarmonicPositionalRestraints(system, $force, inpcrd,
-                                  mdm.getHeavyAtomIndexExceptWat(prmtop))
+$maskfield
 
 print "Density correction under NPT"
 system.addForce(mm.MonteCarloBarostat($pres0*u.bar, 300*u.kelvin))

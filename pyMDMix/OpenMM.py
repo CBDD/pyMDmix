@@ -74,9 +74,12 @@ class OpenMMWriter(object):
         if mdNPT:   self.cpmd = string.Template(open(mdNPT, 'r').read())
         else:       self.cpmd = string.Template(open(T.templatesRoot('openmm_eq_npt_temp.txt'), 'r').read())
 
-
         if mdNVT:   self.cvmd = string.Template(open(mdNVT, 'r').read())
         else:       self.cvmd = string.Template(open(T.templatesRoot('openmm_md_temp.txt'), 'r').read())
+
+        if restr: self.restrT = string.Template(open(restr, 'r').read().rstrip())
+        else: self.restrT = string.Template(open(T.templatesRoot('openmm_restr_templ.txt'), 'r').read().rstrip())
+
 
     def getBoxFromCRD(self, crd):
         "Read box size from CRD file bottom line"
@@ -109,12 +112,10 @@ class OpenMMWriter(object):
 
         command = False
 
-        # Set reference file if restrained simulation
         if replica.hasRestraints:
-            if replica.minimizationAsRef: ref = prevsep+replica.minfolder+os.sep+'min.rst'
-            else: ref = prevsep+crd
+            mfield = self.restrT.substitute({'force':replica.restrForce})
         else:
-            ref = False
+            mfield = ''
 
         if process == 'min':
             command = S.OPENMM_EXE+' min.py %s %s min.rst '%(prevsep+top, prevsep+crd)
@@ -270,14 +271,14 @@ class OpenMMWriter(object):
 
     def writeReplicaInput(self, replica=False):
         replica = replica or self.replica
-        if not replica: raise AmberWriterError, "Replica not assigned."
+        if not replica: raise OpenMMWriterError, "Replica not assigned."
 
-        self.log.info("Writing AMBER simulation input files for replica %s ..."%(replica.name))
+        self.log.info("Writing OpenMM simulation input files for replica %s ..."%(replica.name))
         cwd = T.BROWSER.cwd
         T.BROWSER.gotoReplica(replica)
 
         if not (osp.exists(replica.top) and osp.exists(replica.crd)): # and osp.exists(replica.pdb)):
-            raise AmberWriterError, "Replica top or crd files not found in current folder: %s, %s"%(replica.top, replica.crd)
+            raise OpenMMWriterError, "Replica top or crd files not found in current folder: %s, %s"%(replica.top, replica.crd)
 
         substDict = {}
 
@@ -298,8 +299,11 @@ class OpenMMWriter(object):
         # only add restraining field if we want the starting structure to be restrained
         # otherwise, the minimization will have no restraints and will use this output for 
         # future restrains
-        if replica.minimizationAsRef: substDict['maskfield'] = ''
-        else: substDict['maskfield'] = mfield
+        if replica.hasRestraints:
+           mfield = self.restrT.substitute({'force':replica.restrForce})
+           substDict['maskfield'] = mfield
+        else:
+           substDict['maskfield'] = ''
         outf = replica.minfolder+os.sep+'min.py'
         self.log.debug("Writing: %s"%outf)
         open(outf,'w').write(self.minT.substitute(substDict))
@@ -518,7 +522,7 @@ class Test(BT.BiskitTest):
         
         T.BROWSER.chdir(self.testdir)
         
-        # write replica folder and check methods of AmberWriter
+        # write replica folder and check methods of OpenMMWriter
         self.r1.createFolder()
         self.r1.createMDInput()
         writer = OpenMMWriter(self.r1)
