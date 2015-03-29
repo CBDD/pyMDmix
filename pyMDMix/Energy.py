@@ -90,13 +90,14 @@ class EnergyConversion(object):
         if not unitnum or not refnum: raise EnergyConversionError, "Unit %s or refunit %s not found in pdb %s"%(unit, refunit, pdb.source)
         return refnum/float(unitnum)
 
-    def calcReplicaExpectedValue(self, replica, probe, numsnaps=False, gridspacing=S.GRID_SPACING):
+    def calcReplicaExpectedValue(self, replica, probe, numsnaps=False, stepselection=[], gridspacing=S.GRID_SPACING):
         "Return the expected density value per grid voxel for the probe given. Will consider the number of snapshots in replica instance"
         # Voxel volume
         if (isinstance(gridspacing, list) or isinstance(gridspacing, npy.ndarray)) and len(gridspacing) == 3: voxel = npy.prod(gridspacing)
         else: voxel=gridspacing**3
 
         # Calculate number of snapshots if not given
+        if stepselection: numsnaps = replica.prod_steps/float(replica.trajfrequency)*len(stepselection)
         if not numsnaps: numsnaps = replica.nsnaps
 
         # Fetch unit corresponding to probe and count residues in pdb
@@ -226,7 +227,7 @@ class EnergyConversion(object):
         return grid
 
     def convert(self, replicalist, probelist=[], average=False, dg0correct=True, inprefix=None,
-                    outprefix=None, nsnaps=None, outpath="PROBE_AVG", protvalue=999.,**kwargs):
+                    outprefix=None, nsnaps=None, stepselection=[], outpath="PROBE_AVG", protvalue=999.,**kwargs):
         """
         Convert density grids to energies.
         If *average* is **True**, density grids will be added up before conversion. Only one grid will be saved inside *outpath* folder in project home directory.
@@ -238,6 +239,7 @@ class EnergyConversion(object):
         :arg bool dg0correct: Apply standard state correction.
         :arg str outprefix: Prepend prefix to output grid.
         :arg int nsnaps: Number of snapshots with wich density grid was constructed. If None, use expected number of snapshots according to replica simulation settings.
+        :arg list stepselection: If density grids were calculated on a subset of the trajectory, give the list of steps used to know correct nubmer of snapshots for expected number calculation.
         :arg float protvalue: Identify zeros in density grid and substitute energy at these regions with *protvalue*. Usually zeros occur at protein occupied regions.
         """
         # check types
@@ -291,7 +293,7 @@ class EnergyConversion(object):
                 self.log.debug("Grids: %s"%[g.source for g in grids])
 
                 # Calc expected values for each replica and add them up
-                expectedvals = [self.calcReplicaExpectedValue(r, probe=probe, numsnaps=nsnaps) for r in replicalist]
+                expectedvals = [self.calcReplicaExpectedValue(r, probe=probe, numsnaps=nsnaps, stepselection=stepselection) for r in replicalist]
                 sumexpectval = npy.sum(expectedvals)
 
                 # Averaging if more than 1 replica

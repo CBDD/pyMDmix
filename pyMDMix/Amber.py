@@ -179,10 +179,6 @@ class AmberCreateSystem(object):
             self.log.warn("FORCEFIELD FRCMOD FOUND: %s"%self.listFrcmod())
             return False
 
-#    def loadProject(self, project):
-#        self.project = project
-#        if self.project.extraFF: [self.addFF(f) for f in self.project.extraFF]
-        
     def loadOff(self, objectFile):
         if not self.leap: self.initLeap()
         self.leap.command("loadOff %s"%objectFile)
@@ -204,15 +200,6 @@ class AmberCreateSystem(object):
             self.log.error("Could not save PDB from TOP and CRD. Check %s file in project folder for the reason."%null)
             raise AmberCreateSystemError, "Could not save PDB from TOP and CRD. Check leap.log file in project folder."
         return True
-        
-#    def writeTopCrdPdbFromProject(self):
-#        "Use the objectfile loaded in the project along with the unitname to save the top, crd and pdb."
-#        if not self.project: return False   # ProjectManager not loaded
-#        done = self.leapSaveAmberParm(self.project.unitName, self.project.top, self.project.crd)
-#        if done:
-#            if self.ambpdb(self.project.top, self.project.crd, self.project.pdb):
-#                return True
-#        return False
 
     def saveAmberParm(self, unit, top, crd, leapHandler=None):
         if leapHandler: self.leap = leapHandler   # Useful when working on same unit to not init leap each time (like solvate and then save)
@@ -326,19 +313,31 @@ class AmberCreateSystem(object):
         leapHandle.command('loadOff %s'%tmpOff)
         return self.solvent.boxunit
 
-    def solvateOrganic(self, unit, solvent=False, buffer=False):
-        "Solvate unit in solvent box. Use saveAmberParm to save top and crd files."
+    def solvateOrganic(self, unit, solvent=False, buffer=False, cubicBox=False):
+        """
+        Solvate unit in solvent box. Use saveAmberParm to save top and crd files.
+        
+        :arg str unit: tLeap unit name to be solvated.
+        :arg str solvent: Solvent mixture name to use for solvating the system. If not given, will be taken from self.replica.
+        :arg float buffer: Buffer distance to add in solvate command. By default will take settings.DEF_AMBER_BUFFER.
+        :arg bool cubicBox: Use a cubic box (TRUE) instead of an orthorombic box (FALSE). Default: Take from settings.DEF_AMBER_CUBICBOX.
+        """
         if not solvent and self.replica: solvent = self.replica.solvent
         if not buffer: buffer = S.DEF_AMBER_BUFFER
+        if not cubicBox: cubicBox = S.DEF_AMBER_CUBICBOX == 1 # Try to take info from settings
         if isinstance(solvent, str): solvent = Solvents.getSolvent(solvent)
-        self.log.debug("SolvateOrganic: unit %s solvent %s buffer %.3f"%(unit, solvent, buffer))
+        self.log.debug("SolvateOrganic: unit %s solvent %s buffer %.3f cubicBox %s"%(unit, solvent, buffer, cubicBox))
         
         # Load solvent into leap
         solventBox = self.loadSolventLeap(solvent)
-        
+
+        # Solvate command depends on cubic or orthorombic box choice
+        if cubicBox: solvate_cmd = 'solvateBox'
+        else: solvate_cmd = 'solvateOct'
+
         # add box of solvents
         # and neutralize charge
-        out = self.leap.command("solvateBox %s %s %.2f iso 1"%(unit,solventBox,buffer))
+        out = self.leap.command("%s %s %s %.2f iso 1"%(solvate_cmd, unit,solventBox,buffer))
 
         if solvent.isIonic():        # Only in Ionic Box
             negative_res = [r.name for r in solvent.residues if r.charge < 0]
@@ -358,18 +357,33 @@ class AmberCreateSystem(object):
         self.log.debug("solvateOrganic OK")
         return True
     
-    def solvateWater(self, unit, outPrefix, watbox=False, buffer=False):
-        "Take unit and solvate in octahedron tip3pbox water box. outPrefix to save top and crd files. Buffer for solvateBox command."
+    def solvateWater(self, unit, outPrefix, watbox=False, buffer=False, cubicBox=False):
+        """
+        Take unit and solvate in tip3pbox water box.
+        
+        :arg str unit: tLeap unit name to be solvated.
+        :arg str outPrefix: Prefix to output prmtop and prmcrd files.
+        :arg str watbox: Water model to use. Default will be taken from settings.DEF_AMBER_WATBOX.
+        :arg float buffer: Buffer distance to add in solvate command. By default will take settings.DEF_AMBER_BUFFER.
+        :arg bool cubicBox: Use a cubic box (TRUE) instead of an orthorombic box (FALSE). Default: Take from settings.DEF_AMBER_CUBICBOX.
+        """
         if not watbox: watbox = S.DEF_AMBER_WATBOX+'BOX'
         if not buffer: buffer = S.DEF_AMBER_BUFFER
-        self.log.debug("SolvateWater unit %s watbox %s buffer %s"%(unit, watbox, buffer))
+        if not cubicBox: cubicBox = S.DEF_AMBER_CUBICBOX == 1
+        self.log.debug("SolvateWater unit %s watbox %s buffer %s cubicBox %s"%(unit, watbox, buffer, cubicBox))
+
         # output names
         top = outPrefix+'.top'
         crd = outPrefix+'.crd'
+
+        # Solvate command depends on cubic or orthorombic box choice
+        if cubicBox: solvate_cmd = 'solvateBox'
+        else: solvate_cmd = 'solvateOct'
+
         # add box of water
         # and neutralize charge with NaCl
         if not self.leap: self.initLeap()
-        outmessage = self.leap.command("solvateBox %s %s %.2f iso 1"%(unit,watbox, buffer))
+        outmessage = self.leap.command("%s %s %s %.2f iso 1"%(solvate_cmd, unit,watbox, buffer))
         if self.neutralizeWNaCl(unit):
             # System is neutralized
             # write topology and crd files

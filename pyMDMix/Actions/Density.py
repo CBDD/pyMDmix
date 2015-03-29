@@ -119,18 +119,21 @@ class DensityGrids(object):
         self.log.info("Ready to calculate")
 
     def __setSubregion(self):
-        if self.subregion:
-            def subfx(xyz):
-                "x is an Nx3 numpy array"
-                x,y,z = xyz.T
-                validx = (x < self.subregion[0][0]) * (x > self.subregion[1][0])
-                validy = (y < self.subregion[0][1]) * (y > self.subregion[1][1])
-                validz = (z < self.subregion[0][2]) * (z > self.subregion[1][2])
-                validcoords = validx*validy*validz
-                return xyz[validcoords]
-            self.subregionfx = subfx
+        if not self.subregion:
+            # If not manually defined, use container min and max coordinates
+            # to still filter coordinates and increase speed
+            sub = (self.container.origin,self.container.origin+self.container.shape*self.container.delta)
         else:
-            self.subregionfx = None
+            sub = self.subregion
+        def subfx(xyz):
+            "x is an Nx3 numpy array"
+            x,y,z = xyz.T
+            validx = (x >= sub[0][0]) * (x < sub[1][0])
+            validy = (y >= sub[0][1]) * (y < sub[1][1])
+            validz = (z >= sub[0][2]) * (z < sub[1][2])
+            validcoords = validx*validy*validz
+            return xyz[validcoords,:]
+        self.subregionfx = subfx
             
     def __setProbes(self):
         if self.onlyCOM:
@@ -237,7 +240,9 @@ class DensityGrids(object):
         # Add counts to corresponding grid
         for probe in self.probes:
             coords = self.pdb.getProbeCoords(probe)
-            if self.subregionfx: coords = self.subregionfx(coords)
+            if self.subregionfx: 
+                coords = self.subregionfx(coords)
+                if not npy.any(coords): continue
             idx = npy.apply_along_axis(self.indexFunction, 1, coords)
             for idx in idx:
                 if npy.all(idx == [-1,-1,-1]): continue
@@ -265,7 +270,9 @@ class CountGridsWorker(multiprocessing.Process):
             # Add counts to corresponding grid
             for probe in self.probelist:
                 coords = self.pdb.getProbeCoords(probe)
-                if self.subregionfx: coords = self.subregionfx(coords)
+                if self.subregionfx: 
+                    coords = self.subregionfx(coords)
+                    if not npy.any(coords): continue
                 idx = npy.apply_along_axis(self.toIndex, 1, coords)
                 for idx in idx:
                     if npy.all(idx == [-1,-1,-1]): continue

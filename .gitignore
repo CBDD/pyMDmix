@@ -1,3 +1,8 @@
 *.pyc
-/build
-/pyMDMix.egg-info/
+addiwraptorepl.py
+build/
+makezip.sh
+nbproject/
+pyMDMix-0.1.6.zip
+pyMDMix.egg-info/
+src/mdmixscore.py

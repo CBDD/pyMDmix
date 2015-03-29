@@ -718,7 +718,7 @@ def getEnergyFromTxtCoords(grid, txtfile, radius=0, temp=300.):
     coords = []
     rads = []
     for line in txt:
-        line = line.strip().split()
+        line = map(float, line.strip().split())
         if len(line) == 3:
             x,y,z = line
             coords.append([x,y,z])

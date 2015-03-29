@@ -736,7 +736,7 @@ class CreateBySpheres(CreateHotSpotSet):
         self.rejectvalues = filter_gt
         
 #        self.average = average
-        self.log.debug("CreateBySpheres SETUP. energycut:%.3f valsradius:%.2f cancelRadius: %.2f protValue:%.2f"%(cutvalue,
+        self.log.info("CreateBySpheres SETUP. energycut:%.3f valsradius:%.2f cancelRadius: %.2f protValue:%.2f"%(cutvalue,
                         valsradius,cancelRadius,protValue))
 
     def calculate(self):

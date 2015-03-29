@@ -115,7 +115,7 @@ class Project(object):
         s+= '\n'
         s+= 'REPLICAS\n'
         s+= '========\n'
-        for repl in self.replicas.values(): replinfo+=repl.desc()
+        for repl in self.replicas.values(): replinfo+=repl.name+'\n'
         if not replinfo: replinfo='NO SYSTEM FOUND\n'
         s+= replinfo
         s+='\n'
@@ -137,6 +137,36 @@ class Project(object):
         system.write()
         self.log.info("Writing system reference file: %s"%system.name+'_ref.pdb')
         system.ref.writePdb(system.name+'_ref.pdb')
+
+    def longdesc(self):
+        "Do some pretty printing of most important attributes"
+        sysinfo = ''
+        replinfo= ''
+        s ="\n"+"-"*30
+        s+= "\nPROJECT %s INFO\n"%self.projName
+        s+="-"*30
+        s+='\n'
+        s+= 'SYSTEMS:\n'
+        s+= '========\n'
+        for sys in self.systems.values(): sysinfo+=str(sys)
+        if not sysinfo: sysinfo='NO SYSTEM FOUND\n'
+        s+= sysinfo
+        s+= '\n'
+        s+= 'REPLICAS\n'
+        s+= '========\n'
+        for repl in self.replicas.values(): replinfo+=repl.desc()
+        if not replinfo: replinfo='NO SYSTEM FOUND\n'
+        s+= replinfo
+        s+='\n'
+        if self.replicagroups:
+            s+='GROUPS\n'
+            s+='======\n'
+            for n, g in self.replicagroups.iteritems():
+                s+="%s: %s\n"%(n,', '.join(g))
+        s+='\n'
+        s+="-"*30
+        s+='\n'
+        return s
 
     def addNewSystems(self, systems):
         """
@@ -248,10 +278,6 @@ class Project(object):
             for f in files:
                 if f.endswith('mrepl'): 
                     r = Replica(fromfile=osp.join(root, f))
-                    # For back compatibility
-                    if not hasattr(r,'iwrap'): 
-                        r.iwrap=1    
-                        r.write()
                     repls.append(r)
         T.BROWSER.chdir(cwd)
         
