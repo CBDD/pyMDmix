@@ -86,6 +86,53 @@ class OpenMMWriter(object):
         boxline = open(crd, 'r').readlines()[-1]
         return npy.array( boxline.split()[0:3] , dtype='float32')
 
+    def getRestraintsIndex(self, replica=False):
+        """
+        Get the index of atoms to be restrained.
+        If replica.restrMask is 'AUTO', calculate mask from solute residue ids.
+        
+        :args replica: Replica to obtain mask for. If False, use replica loaded at instantiation.
+        :type replica: :class:`~Replicas.Replica`
+        
+        :returns: index of atoms to be restrained or **False** if replica has FREE restrain mode.
+        """
+        replica = replica or self.replica
+        if not replica: raise OpenMMWriterError, "Replica not assigned."
+
+        if replica.restrMode == 'FREE': return False
+
+        if not replica.restrMask or replica.restrMask.upper() == 'AUTO':
+            # Obtain mask from residue ids in solute
+            if not replica.system:
+                raise OpenMMWriterError, "Replica System not set. Can not generate mask."
+            pdb = replica.getPDB()
+            pdb.setSoluteSolventMask()
+
+            if not pdb:
+                raise OpenMMWriteError, "Error creating SolvatedPDB from System in replica %s"%replica.name
+          
+                out = npy.where(pdb.soluteMask)[0]
+            else:
+                #TOCHECK
+                out = replica.restrMask
+
+        if replica.restrMode == 'BB':
+             # Back bone only
+             mask_solute_BB = pdb.maskBB() * pdb.soluteMask
+             out = npy.where(mask_solute_BB)[0]
+
+        elif replica.restrMode == 'HA':
+             # If you want non-hydrogen ids in the protein side
+             mask_solute_noH = pdb.maskHeavy() * pdb.soluteMask
+             out = npy.where(mask_solute_noH)[0]
+
+        else:
+            return
+
+        self.log.debug("Mask index:")
+        self.log.debug(out.tolist())
+        return out.tolist()
+
 
     def getCommand(self, process, step=False, replica=None):
         """
@@ -113,7 +160,8 @@ class OpenMMWriter(object):
         command = False
 
         if replica.hasRestraints:
-            mfield = self.restrT.substitute({'force':replica.restrForce})
+            m = self.getRestraintsIndex()
+            mfield = self.restrT.substitute({'force':replica.restrForce,'mask':m})
         else:
             mfield = ''
 
@@ -300,7 +348,8 @@ class OpenMMWriter(object):
         # otherwise, the minimization will have no restraints and will use this output for 
         # future restrains
         if replica.hasRestraints:
-           mfield = self.restrT.substitute({'force':replica.restrForce})
+           m = self.getRestraintsIndex()
+           mfield = self.restrT.substitute({'force':replica.restrForce,'mask':m})
            substDict['maskfield'] = mfield
         else:
            substDict['maskfield'] = ''

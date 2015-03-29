@@ -4,24 +4,6 @@ import simtk.unit as u
 
 import sys
 
-def getHeavyAtomIndexExceptWat(modeller):
-    """ Return the index of all heavy atoms, except solvent, from a modeller
-    object. This needs to be improved to allow the parsing of a ptraj
-    style atom mask.    
-    """
-    # Get ligand index
-    HeavyAtomIndex = []
-    for residue in modeller.topology.residues():
-        if (residue.name != "HOH"):
-            # print residue.name
-            for atom in residue.atoms():
-                if (atom.element != app.element.hydrogen):
-                    # print atom.name, atom.index, atom.element
-                    HeavyAtomIndex.append(atom.index)
-
-    return HeavyAtomIndex
-
-
 def applyHarmonicPositionalRestraints(system, forceConstantInKcalPerMolePerAngSquared,
                                       inpcrd, indexOfAtomsToBeModified):
     """ This is essentially mimicking AMBER's restraint_wt"""

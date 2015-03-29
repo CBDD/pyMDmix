@@ -1,1 +1,1 @@
-mdm.applyHarmonicPositionalRestraints(system, $force, inpcrd, mdm.getHeavyAtomIndexExceptWat(prmtop))
+mdm.applyHarmonicPositionalRestraints(system, $force, inpcrd, $mask)
