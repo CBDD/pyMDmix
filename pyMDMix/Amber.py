@@ -716,7 +716,7 @@ class AmberWriter(object):
             if ref:
                 # Add reference flag and trajectory imaging of restart file
                 command += ' -ref %s\n'%(ref)
-                if iwrap: command += 'sh %scheck_com.sh %srst >&%simage.log'%(prevsep, eqfname, eqfname)
+                if iwrap: command += 'sh %scheck_com.sh %srst &> %simage.log'%(prevsep, eqfname, eqfname)
 
             return command
             
@@ -729,7 +729,7 @@ class AmberWriter(object):
                 command = S.AMBER_PROD_EXE+' -O -i md.in -o {fname}.out -p %s -c %seq5.rst -r {fname}.rst -x {fname}.%s'%(prevsep+top, prevsep+replica.eqfolder+os.sep, extension)
                 if ref:
                     command += ' -ref %s\n'%(ref)
-                    if iwrap: command += 'sh %scheck_com.sh %s.rst >&%s.image.log'%(prevsep, fname, fname)
+                    if iwrap: command += 'sh %scheck_com.sh %s.rst &> %s.image.log'%(prevsep, fname, fname)
 
                 command = command.format(fname=fname)
 
@@ -740,7 +740,7 @@ class AmberWriter(object):
                 fname = nextfname
                 if ref:
                     command += ' -ref %s\n'%(ref)
-                    if iwrap: command += 'sh %scheck_com.sh %s.rst >&%s.image.log'%(prevsep, fname, fname)
+                    if iwrap: command += 'sh %scheck_com.sh %s.rst &> %s.image.log'%(prevsep, fname, fname)
 
                 command = command.format(nextfname=nextfname, prevfname=prevfname)
 
