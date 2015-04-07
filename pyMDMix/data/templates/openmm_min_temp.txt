@@ -1,0 +1,44 @@
+import simtk.openmm as mm
+import simtk.openmm.app as app
+import simtk.unit as u
+
+import pyMDMix.OpenMMUtils as mdm
+
+import sys
+
+from chemistry.openmm.reporters import EnergyMinimizerReporter, RestartReporter, MdcrdReporter
+
+platform = mm.Platform_getPlatformByName("CUDA")
+platformProperties = {}
+platformProperties['CudaPrecision'] = 'mixed'
+platformProperties['CudaDeviceIndex'] = '0'
+
+
+prmtopName = sys.argv[1]
+inpcrdName = sys.argv[2]
+rst7Name   = sys.argv[3]
+
+prmtop = app.AmberPrmtopFile(prmtopName)
+inpcrd = app.AmberInpcrdFile(inpcrdName)
+
+system = prmtop.createSystem(nonbondedMethod=app.PME, nonbondedCutoff=9*u.angstrom)
+$maskfield
+
+# Not really needed
+integrator = mm.VerletIntegrator(1*u.femtosecond)
+
+simulation = app.Simulation(prmtop.topology, system, integrator, platform,
+                        platformProperties)
+
+simulation.context.setPositions(inpcrd.positions)
+
+# Currently broken
+#simulation.reporters.append(EnergyMinimizerReporter("min.out"))
+
+simulation.reporters.append(RestartReporter("min.rst", 1))
+
+simulation.minimizeEnergy(maxIterations=$minsteps)
+
+# Trick to trigger RestartReporter() after minimisation
+simulation.step(1)
+

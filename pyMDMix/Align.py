@@ -140,7 +140,7 @@ class Align(object):
         
         outf= inf.replace('.ptraj','_ptraj.log')
         top = os.pardir+os.sep+self.replica.top
-        cmd = S.AMBER_PTRAJ+' {top} < {inf} >& {outf}'.format(top=top, inf=inf, outf=outf)
+        cmd = S.AMBER_PTRAJ+' {top} < {inf} &> {outf}'.format(top=top, inf=inf, outf=outf)
         
         return cmd, path
         

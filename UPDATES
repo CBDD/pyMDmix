@@ -1,6 +1,5 @@
 UPDATE HISTORY (ZIP)
 --------------------
-
 26/01/2015
 - Fixed plotting to take selected steps (when simulation is not finished but we want to plot some data).
 
@@ -25,3 +24,10 @@ UPDATE HISTORY (ZIP)
 18/03/2015
 - Improved solvent printing to add number of snapshots to obtain 1 expected count per probe.
 - Added 'stepselection' to energy conversion to correctly calculated number of snapshots when a subset of the trajectory was used in density calculation.
+
+23/03/2015
+- Initial OpenMM support
+
+07/04/215
+- Merged OpenMM support fork (Mark J. Williamson work) to master. 
+- Changed version to 0.2.0

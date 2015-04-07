@@ -1,0 +1,44 @@
+import simtk.openmm as mm
+import simtk.openmm.app as app
+import simtk.unit as u
+import pyMDMix.OpenMMUtils as mdm
+
+import sys
+
+from chemistry.openmm.reporters import RestartReporter, NetCDFReporter
+
+platform = mm.Platform_getPlatformByName("CUDA")
+platformProperties = {}
+platformProperties['CudaPrecision'] = 'mixed'
+platformProperties['CudaDeviceIndex'] = '0'
+
+runName  = sys.argv[0].split(".")[0]
+prmtopName = sys.argv[1]
+inpcrdName = sys.argv[2]
+rst7Name   = sys.argv[3]
+
+prmtop = app.AmberPrmtopFile(prmtopName)
+inpcrd = app.AmberInpcrdFile(inpcrdName)
+
+system = prmtop.createSystem(nonbondedMethod=app.PME, nonbondedCutoff=9*u.angstrom, constraints=app.HBonds)
+$maskfield
+
+print "Heating system under NVT"
+integrator = mm.LangevinIntegrator($tempf*u.kelvin, 4/u.picosecond, $timestep*u.picosecond)
+
+simulation = app.Simulation(prmtop.topology, system, integrator, platform,
+                        platformProperties)
+
+mdm.setContextFromRst(simulation, inpcrd)
+
+simulation.reporters.append(RestartReporter(rst7Name, reportInterval=$freq))
+simulation.reporters.append(NetCDFReporter(runName + ".nc", reportInterval=$freq))
+
+simulation.reporters.append(app.StateDataReporter(runName + ".log", $freq, time=True,
+                                              potentialEnergy=True,
+                                              temperature=True,
+                                              density=True))
+
+simulation.step($nsteps)
+
+
