@@ -18,7 +18,7 @@ There are three ways of initializing this object:
 2. From an Amber formatted PDB (should be ready to be loaded into tLeap without errors)
 3. From a previously saved System (using :meth:`write`, a System can be pickled to disk)
 
-Initializaation using Amber Object Files
+Initialization using Amber Object Files
 ########################################
 An Amber Object File -OFF- (usually found with ``off`` or ``lib`` extensions) are used by Amber to store parameterized molecules.
 The user should prepare the system to simulate following standard procedures and store the system inside this sort of files

@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="pyMDMix 0.1.1 documentation" href="index.html" />
     <link rel="next" title="Containers Module documentation" href="containers.html" />
-    <link rel="prev" title="Replicas Module documentation" href="replicas.html" /> 
+    <link rel="prev" title="Project Module documentation" href="project.html" /> 
   </head>
   <body>
     <div class="related">
@@ -41,7 +41,7 @@
           <a href="containers.html" title="Containers Module documentation"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="replicas.html" title="Replicas Module documentation"
+          <a href="project.html" title="Project Module documentation"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
       </ul>
@@ -214,16 +214,24 @@ correctly working when setting up systems with it.</li>
 </dd></dl>
 
 <dl class="method">
+<dt id="pyMDMix.Solvents.Solvent.getNumRes">
+<tt class="descname">getNumRes</tt><big>(</big><em>res</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.Solvent.getNumRes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count number of residues with name <em>res</em> in current box</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="pyMDMix.Solvents.Solvent.getProbability">
-<tt class="descname">getProbability</tt><big>(</big><em>res</em>, <em>atoms</em>, <em>voxel=None</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.Solvent.getProbability" title="Permalink to this definition">¶</a></dt>
-<dd><p>Obtain expected probability for all the atoms to fall into the voxel volume.</p>
+<tt class="descname">getProbability</tt><big>(</big><em>res</em>, <em>atoms=</em>, <span class="optional">[</span><span class="optional">]</span><em>voxel=None</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.Solvent.getProbability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain expected probability for residue atoms to fall into the voxel volume.
+If atoms list is empty, the probability of the residue to be in a voxel volume will
+be returned.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>res</strong> (<em>str</em>) &#8211; Residue name.</li>
-<li><strong>atoms</strong> (<em>list</em>) &#8211; Atom name list</li>
+<li><strong>atoms</strong> (<em>list</em>) &#8211; Atom name list. If not given, will consider 1 (= probability of the residue)</li>
 <li><strong>voxel</strong> (<em>float</em>) &#8211; Volume of the voxel.
 If not given, it is automatically calculated from defaults.</li>
 </ul>
@@ -242,7 +250,9 @@ If not given, it is automatically calculated from defaults.</li>
 <dl class="method">
 <dt id="pyMDMix.Solvents.Solvent.getProbeByName">
 <tt class="descname">getProbeByName</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.Solvent.getProbeByName" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference internal" href="containers.html#pyMDMix.containers.Probe" title="pyMDMix.containers.Probe"><tt class="xref py py-class docutils literal"><span class="pre">Probe</span></tt></a> instance with name <em>name</em>. <strong>False</strong> otherwise.</p>
+<dd><p>Returns <a class="reference internal" href="containers.html#pyMDMix.containers.Probe" title="pyMDMix.containers.Probe"><tt class="xref py py-class docutils literal"><span class="pre">Probe</span></tt></a> instance with name <em>name</em>.
+If name is a COM probe, will return the linked residue insetad of a probe instance.
+Return <strong>False</strong> if <em>name</em> not found.</p>
 </dd></dl>
 
 <dl class="method">
@@ -301,6 +311,12 @@ Examples of this file are available at template folder <tt class="xref py py-fun
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyMDMix.Solvents.SolventManager.fetchSolventByProbe">
+<tt class="descname">fetchSolventByProbe</tt><big>(</big><em>probename</em><big>)</big><a class="headerlink" href="#pyMDMix.Solvents.SolventManager.fetchSolventByProbe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Giving a probe name, return the corresponding solvent</p>
 </dd></dl>
 
 <dl class="method">
@@ -426,8 +442,8 @@ If False, copy data from package DB to the new DB.</li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="replicas.html"
-                        title="previous chapter">Replicas Module documentation</a></p>
+  <p class="topless"><a href="project.html"
+                        title="previous chapter">Project Module documentation</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="containers.html"
                         title="next chapter">Containers Module documentation</a></p>
@@ -466,7 +482,7 @@ If False, copy data from package DB to the new DB.</li>
           <a href="containers.html" title="Containers Module documentation"
              >next</a> |</li>
         <li class="right" >
-          <a href="replicas.html" title="Replicas Module documentation"
+          <a href="project.html" title="Project Module documentation"
              >previous</a> |</li>
         <li><a href="index.html">pyMDMix 0.1.1 documentation</a> &raquo;</li> 
       </ul>

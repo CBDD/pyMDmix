@@ -8,11 +8,6 @@ Welcome to pyMDMix's documentation!
 The package provides facilities for setting up and analyzing molecular dynamics simulations using aqueous-organic solvent mixtures as solvation medium to discover hihgh affinity interaction spots (Hot Spots) over the surface and identify possible binding sites.
 
 
-
-Example
-=======
-
-
 Contents:
 
 .. toctree::

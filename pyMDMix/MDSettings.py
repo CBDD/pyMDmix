@@ -104,6 +104,9 @@ import settings as S
 class MDSettingsError(Exception):
     pass
 
+class BadFile(MDSettingsError):
+    pass
+
 class MDSettings(object):
     def __init__(self, solvent=None, name=None, restrMask='', alignMask='', **kwargs):
         """

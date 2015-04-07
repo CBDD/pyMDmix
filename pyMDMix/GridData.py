@@ -236,6 +236,11 @@ class GridData(object):
         self.source = CNS
 
     def readBinXPLOR(self, binxplor):
+        """
+        Read XPLOR grid in binary format.
+        
+        :arg str binxplor: Path to file.
+        """
         import struct
         of = open(binxplor, 'rb')
 
@@ -265,11 +270,11 @@ class GridData(object):
         self.shape = npy.array([nx,ny,nz])
         self.source = binxplor
 
-    def readDX(self, DX, buff = None):
+    def readDX(self, DX):
         """
-        Read data from a DX file
-        parmam  buff:   buffer to expand the initial grid with zeros to a given number of ansgtroms each side
-        type            float
+        Read grid data from a DX formated file.
+        
+        :parm str DX: Path to file to read.
         """
         # Unzip if zipped
         if 'gz' in DX:
@@ -328,11 +333,12 @@ class GridData(object):
         self.delta = delta
         self.source = DX
 
-        if buff != None:
-          self.expand(buff)
-
     def loadData(self, pick):
-        """Loads grid data from existing pickle"""
+        """
+        DEPREACTED.Loads grid data from existing pickle. DEPREACTED.
+        
+        :parm str pick: Path to pickle file.
+        """
         if os.path.exists(pick):
             grid = npy.load(pick)
             self.data = grid
@@ -340,7 +346,7 @@ class GridData(object):
         else: raise IOError, "File not found."
 
     def loadVar(self, pick):
-        """Loads origin and delta information from a pickled file"""
+        """DEPREACTED. Loads origin and delta information from a pickled file"""
         if os.path.exists(pick):
             V = npy.load(pick)
             origin, delta= V[:]
@@ -350,9 +356,11 @@ class GridData(object):
 
     def writeDX(self, dxname, header=False, gzip=False):
         """
-        Writes data into a DX Formated File
-        header can be a custom string (one line without breaks) to be introduced at the top of the file for identification.
-        If 'header' is false. User default string.
+        Writes data into a DX Formated File. 
+        
+        :parm str dxname: File name to write.
+        :parm str header: Custom string (one line without breaks) to be introduced at the top of the file for identification. If false a predefined string will be writen.
+        :parm bool gzip: Write file in gzipped form.
         """
         if (self.data !='' and self.origin !='' and self.delta !=''):
             grid = self.data
@@ -390,7 +398,9 @@ class GridData(object):
         else: raise GridError, "Data or parameters missing. Can't write DX File."
         
     def dump(self, dataname=None, varname=None):
-        """This method uses by default the source name of self to generate the dumped file's names. For a specific name, it must be provided when calling the method."""
+        """
+        DEPRECATED. This method uses by default the source name of self to generate the dumped file's names. For a specific name, it must be provided when calling the method.
+        """
         if (self.data !='' and self.origin !='' and self.delta !=''):
 
           if not self.source:
@@ -415,6 +425,11 @@ class GridData(object):
     def writeXPLOR(self, xplorname, header="", gzip=False, binary=False):
         """
         Write data into XPLOR/CNS formated file.
+        
+        :parm str xplorname: File to write.
+        :parm str header: Custom header line to add at the beggining of the file. If empty, a custom line will be written.
+        :parm bool gzip: Write in gzipped form.
+        :parm bool binary: Write in binary format to speed up reading.
         """
         grid = self.data
         origin = self.origin
@@ -498,8 +513,9 @@ class GridData(object):
     def averageData(self, contract=False):
         """ 
         Will average each grid point by the surrounding ones.
-        If contract=True, points in the edges will be removed, thus size of the grid will change
-        by one point. Also origin will be modified accordingly.
+        
+        :parm bool contract: Points in the edges will be removed, thus size of the grid will change
+        by one point. Also origin coordinate will be modified accordingly.
         """
         calcgrid = npy.zeros((3,3,3))
         calcgrid += 1/27. 
@@ -530,7 +546,12 @@ class GridData(object):
         where :math:`R` is gas constant, :math:`T` temperature, :math:`N_{i}` observed distribution and :math:`N_{0}` the
         expected distribution.
         
-        Maskvalue will identify points where density was zero after conversion to energy. That is, zero values will be set to *maskvalue* in the converted grid.
+        :parm float expected: Expected number (N_0).
+        :parm float T: Temperatue to use in Boltzmann expression.
+        :parm float correction: Correction factor to apply to the expected number N0.
+        :parm float maskvalue: Mask with this value point with zero density.
+        
+        :return: numpy.ndarray with energy converted values in kcal/mol.
         """
         Cgrid = self.data   # Grid count data
         Kb = 1.987/1000.    # Boltzmann Constant in kcal/mol units   
@@ -544,11 +565,21 @@ class GridData(object):
         return DGgrid
 
     def update(self, data):
-        """Updates data information"""
+        """
+        Updates data information.
+        
+        :parm numpy.ndarray data: Grid data to be updated.
+        """
         self.data = data
 
     def getCartesian(self, indexes):
-        """Returns cartesian coordinates of the index values passed as arguments."""
+        """
+        Returns cartesian coordinates of the index value.
+        
+        :parm list indexes: List, numpy array or tuple with size 3 identifying a point in the grid.
+        
+        :return: numpy array with length 3 with the corresponding artesian coordinates.
+        """
         if len(indexes)==3:
           indexes = npy.array(indexes, dtype=float)
           spacing = self.delta
@@ -557,7 +588,13 @@ class GridData(object):
         else: raise BadAttribute, "indexes should be tuple or list of len 3."
 
     def getIndex(self, cartesian):
-        """Returns grid indexes for a given cartesian point (x,y,z)"""
+        """
+        Returns grid indices for a given cartesian point (x,y,z)
+        
+        :parm list cartesian: List, numpy array or tuple with length 3 cartesian coordinates to be transformed to indices.
+        
+        :return: tuple with the corresponding indices (length 3).
+        """
         spacing = self.delta
         origin = self.origin
         if type(cartesian) is not npy.array: cartesian = npy.array(cartesian)
@@ -588,7 +625,7 @@ class GridData(object):
 
     def mergeDeleteProt(self, PDB, cutoff, value=999):
         """
-        Method to "Delete" grid information on the points overlaping atoms of a PDB.
+        Method to "Delete" grid information on the points overlaping atoms of a PDB. It is actually a method to mask the overlapping points with a certain value.
 
         @param1 PDB:     protein
         @param1 type:    Biskit PDBModel instance or PDB File name

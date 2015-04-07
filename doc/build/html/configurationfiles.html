@@ -52,15 +52,14 @@
 <span id="pcf"></span><h1>Project Configuration File (PCF)<a class="headerlink" href="#project-configuration-file-pcf" title="Permalink to this headline">¶</a></h1>
 <p>File used to create Project instances. Here, we will give information about the system
 we are going to simulate. It has this shape:</p>
-<div class="highlight-ini"><div class="highlight"><pre><span class="c1"># pyMDMix Project Configuration file</span>
-<span class="c1"># WARNING: All empty options, should be removed from the file or commented</span>
+<div class="highlight-ini"><div class="highlight"><pre><span class="c1"># pyMDMix System Configuration file (SCF)</span>
+<span class="c1"># WARNING: All empty options, should be removed from the file or commented</span>
 
-<span class="k">[PROJECT]</span>
-<span class="c1"># Project name to be created (default: mdmix_project)</span>
-<span class="na">PROJNAME</span> <span class="o">=</span> 
-
+<span class="k">[SYSTEM]</span>
+<span class="c1"># Name to identify the system to be loaded</span>
+<span class="na">NAME</span> <span class="o">=</span> 
 <span class="c1"># One of these two options should be given:</span>
-<span class="c1"># Path to amber object file containing the system unit (without solvation). MANDATORY (unless PDB is given)</span>
+<span class="c1"># Path to amber object file containing the system unit (without solvation). MANDATORY (unless PDB is given)</span>
 <span class="c1"># Path to PDB file that should be prepared as an object file (experimental). MANDATORY (unless OFF is given)</span>
 <span class="na">OFF</span> <span class="o">=</span>
 <span class="na">PDB</span> <span class="o">=</span>
@@ -68,20 +67,62 @@ we are going to simulate. It has this shape:</p>
 <span class="c1"># Unit name containing the system inside the object file (default: first unit found)</span>
 <span class="c1">#UNAME = </span>
 
-<span class="c1"># Residue mask of residues where restraints should be applied (default: auto detect). E.g.: 1-100</span>
-<span class="c1">#RESTRMASK = auto</span>
-
-<span class="c1"># Residue mask of residues to which backbone atoms we should align the trajectories in analysis process (default: same as restramask: all protein). E.g.: 1-100</span>
-<span class="c1">#ALIGNMASK = auto</span>
-
 <span class="c1"># Comma separated list of non-standard residues that should be considered part of the system and not the solvent</span>
-<span class="c1"># Used in automask detection and solute-solvent idetnfication (default: empty)</span>
+<span class="c1"># Used in automask detection and solute-solvent idetnfication (default: empty)</span>
 <span class="c1">#EXTRARES =</span>
 
 <span class="c1"># Forcefields or Forcefield modification files (frcmod) we should consider when parameterizing the solvated system</span>
 <span class="c1"># If the object file was prepared using leaprc.ff12SB, give it here. If the system contains non-standard residues</span>
-<span class="c1"># that you have parameterized, give the frcmod files here (and include the units inside the object file).</span>
+<span class="c1"># that you have parameterized, give the frcmod files here (and include the units inside the object file).</span>
+<span class="c1"># By default, leaprc.ff99SB is considered</span>
 <span class="c1">#EXTRAFF =</span>
+
+<span class="c1"># pyMDMix MD Settings Configuration File (MSCF)</span>
+<span class="c1"># All non used options should be commented/removed</span>
+
+<span class="k">[MDSETTINGS]</span>
+<span class="c1">###########</span>
+<span class="c1"># GENERAL #</span>
+<span class="c1">###########</span>
+<span class="c1"># Comma separated list of solvent box names to be used in the project (e.g. MAM,ETA,WAT). NO DEFAULT. MANDATORY</span>
+<span class="na">SOLVENTS</span> <span class="o">=</span> 
+
+<span class="c1"># Number of replicas for each solvent (read documentation for advanced options). E.g: 3, WAT:1. DEFAULT:1</span>
+<span class="c1">#NREPL = </span>
+
+<span class="c1"># Number of nanoseconds to run (advanced configuration in the documentation). E.g: 20, WAT//10. DEFAULT:20</span>
+<span class="c1">#NANOS = </span>
+
+<span class="c1"># Temperature of each replica (again advanced configuration assigning independent temperatures is possible). E.g.: 300. DEFAULT:300K</span>
+<span class="c1">#TEMP = </span>
+
+<span class="c1"># Restraining scheme (OPTIONS: HA, FREE, BB for heavyatoms, no-restraints, back-bone atoms). DEFAULT: FREE. Also accepts advanced configuration.</span>
+<span class="c1">#RESTR= </span>
+
+<span class="c1"># Restraining force when RESTR!=FREE. In kcal/mol.A^2. Default=0.0. Advanced configuration is possible.</span>
+<span class="c1">#FORCE= </span>
+
+<span class="c1"># Residue mask of residues where restraints should be applied (default: auto detect). E.g.: 1-100</span>
+<span class="c1">#RESTRMASK = auto</span>
+
+<span class="c1"># Residue mask of residues to which backbone atoms we should align the trajectories in analysis process (default: same as restrmask: all protein). E.g.: 1-100</span>
+<span class="c1">#ALIGNMASK = auto</span>
+
+<span class="c1">#####################</span>
+<span class="c1"># SETTINGS OVERRIDE #</span>
+<span class="c1">#####################</span>
+<span class="c1"># All parameters present in replica-settings.cfg can be here overriden.</span>
+
+<span class="c1"># For instance, if we want to modify the trajectory writing frequency:</span>
+<span class="c1"># TRAJFREQUENCY =  </span>
+
+<span class="c1"># Modify number of steps per run file (step).</span>
+<span class="c1"># We might be interested in increase the file size to include several nanosecods</span>
+<span class="c1"># instead of only 1 (the default; 500000 steps with md_timestep of 2fs)</span>
+<span class="c1"># NVT_PROD_STEPS = 1000000</span>
+<span class="c1"># NPT_PROD_STEPS = 1000000</span>
+
+<span class="c1"># ETC...</span>
 </pre></div>
 </div>
 </div>
@@ -90,10 +131,10 @@ we are going to simulate. It has this shape:</p>
 <p>With same idea, replicas can also be created using a configuration file.
 In this case, the majority of information we will give is regarding
 the simulation parameters and conditions.</p>
-<div class="highlight-ini"><div class="highlight"><pre><span class="c1"># pyMDMix Replica Configuration File (RCF)</span>
-<span class="c1"># All non used options should be commented/removed</span>
+<div class="highlight-ini"><div class="highlight"><pre><span class="c1"># pyMDMix MD Settings Configuration File (RCF)</span>
+<span class="c1"># All non used options should be commented/removed</span>
 
-<span class="k">[REPLICAS]</span>
+<span class="k">[MDSETTINGS]</span>
 <span class="c1">###########</span>
 <span class="c1"># GENERAL #</span>
 <span class="c1">###########</span>
@@ -103,40 +144,36 @@ the simulation parameters and conditions.</p>
 <span class="c1"># Number of replicas for each solvent (read documentation for advanced options). E.g: 3, WAT:1. DEFAULT:3</span>
 <span class="c1">#NREPL = </span>
 
-<span class="c1"># Number of nanoseconds to run (advanced configuration in the documentation). E.g: 20, WAT//10. DEFAULT:20</span>
+<span class="c1"># Number of nanoseconds to run (advanced configuration in the documentation). E.g: 20, WAT//10. DEFAULT:20</span>
 <span class="c1">#NANOS = </span>
 
-<span class="c1"># Temperature of each replica (again advanced configuration assigning independent temperatures is possible). E.g.: 300. DEFAULT:300K</span>
+<span class="c1"># Temperature of each replica (again advanced configuration assigning independent temperatures is possible). E.g.: 300. DEFAULT:300K</span>
 <span class="c1">#TEMP = </span>
 
-<span class="c1"># Restraining scheme (OPTIONS: HA, FREE, BB for heavyatoms, no-restraints, back-bone atoms). DEFAULT: FREE. Also accepts advanced configuration.</span>
+<span class="c1"># Restraining scheme (OPTIONS: HA, FREE, BB for heavyatoms, no-restraints, back-bone atoms). DEFAULT: FREE. Also accepts advanced configuration.</span>
 <span class="c1">#RESTR= </span>
 
-<span class="c1"># Restraining force when RESTR!=FREE. In kcal/mol.A^2. Default=0.0. Advanced configuration is possible.</span>
+<span class="c1"># Restraining force when RESTR!=FREE. In kcal/mol.A^2. Default=0.0. Advanced configuration is possible.</span>
 <span class="c1">#FORCE= </span>
 
-<span class="c1"># When system is already solvated and we just want to create MD inputs, give here the PRMTOP and PRMCRD paths</span>
-<span class="c1">#TOP = </span>
-<span class="c1">#CRD = </span>
+<span class="c1"># Residue mask of residues where restraints should be applied (default: auto detect). E.g.: 1-100</span>
+<span class="c1">#RESTRMASK = auto</span>
 
-<span class="c1"># When we are preparing the system from an object file without initiating a project,</span>
-<span class="c1"># give here the object file path and unitnames to use for solvating the system and creating MD input</span>
-<span class="c1"># UNAME is optional if only one unit is inside the OFF file</span>
-<span class="c1">#OFF =</span>
-<span class="c1">#UNAME =</span>
+<span class="c1"># Residue mask of residues to which backbone atoms we should align the trajectories in analysis process (default: same as restrmask: all protein). E.g.: 1-100</span>
+<span class="c1">#ALIGNMASK = auto</span>
 
 <span class="c1">#####################</span>
 <span class="c1"># SETTINGS OVERRIDE #</span>
 <span class="c1">#####################</span>
-<span class="c1"># All parameters present in replica-settings.cfg can be here overriden.</span>
+<span class="c1"># All parameters present in replica-settings.cfg can be here overriden.</span>
 
 <span class="c1"># For instance, if we want to modify the trajectory writing frequency:</span>
-<span class="c1"># TRAJFREQUENCY =  </span>
+<span class="c1"># TRAJFREQUENCY =  </span>
 
 <span class="c1"># Modify number of steps per run file (step).</span>
-<span class="c1"># We might be interested in increase the file size to include several nanosecods</span>
+<span class="c1"># We might be interested in increase the file size to include several nanosecods</span>
 <span class="c1"># instead of only 1 (the default; 500000 steps with md_timestep of 2fs)</span>
-<span class="c1"># NVT_PROD_STEPS = 1000000</span>
+<span class="c1"># NVT_PROD_STEPS = 1000000</span>
 <span class="c1"># NPT_PROD_STEPS = 1000000</span>
 
 <span class="c1"># ETC...</span>
@@ -146,87 +183,6 @@ the simulation parameters and conditions.</p>
 <div class="section" id="complete-configuration">
 <span id="completecf"></span><h1>Complete configuration<a class="headerlink" href="#complete-configuration" title="Permalink to this headline">¶</a></h1>
 <p>In this case, the file contains both sections. All replicas will take system information from the system and therefore, do not require any system information.</p>
-<div class="highlight-ini"><div class="highlight"><pre><span class="c1"># pyMDMix Complete Configuration file</span>
-<span class="c1"># WARNING: All empty options, should be removed from the file or commented</span>
-<span class="c1">#</span>
-<span class="c1"># This file contains both Project and Replicas sections</span>
-<span class="c1"># All system information will be grabbed from the project to </span>
-<span class="c1"># set up and solvent each replica (in this case, the replica section</span>
-<span class="c1"># SHOULD NOT contain OFF, TOP or CRD entries).</span>
-<span class="c1">#</span>
-<span class="c1"># SYSTEM CONFIG: Should be done in PROJECT</span>
-<span class="c1"># MD CONFIG: Should be done in REPLICAS</span>
-<span class="c1">#</span>
-
-<span class="k">[PROJECT]</span>
-<span class="c1"># Project name to be created (default: mdmix_project)</span>
-<span class="na">PROJNAME</span> <span class="o">=</span> 
-
-<span class="c1"># One of these two options should be given:</span>
-<span class="c1"># Path to amber object file containing the system unit (without solvation). MANDATORY (unless PDB is given)</span>
-<span class="c1"># Path to PDB file that should be prepared as an object file (experimental). MANDATORY (unless OFF is given)</span>
-<span class="na">OFF</span> <span class="o">=</span>
-<span class="na">PDB</span> <span class="o">=</span>
-
-<span class="c1"># Unit name containing the system inside the object file (default: first unit found)</span>
-<span class="c1">#UNAME = </span>
-
-<span class="c1"># Residue mask of residues where restraints should be applied (default: auto detect). E.g.: 1-100</span>
-<span class="c1">#RESTRMASK = auto</span>
-
-<span class="c1"># Residue mask of residues to which backbone atoms we should align the trajectories in analysis process (default: same as restramask: all protein). E.g.: 1-100</span>
-<span class="c1">#ALIGNMASK = auto</span>
-
-<span class="c1"># Comma separated list of non-standard residues that should be considered part of the system and not the solvent</span>
-<span class="c1"># Used in automask detection and solute-solvent idetnfication (default: empty)</span>
-<span class="c1">#EXTRARES =</span>
-
-<span class="c1"># Forcefields or Forcefield modification files (frcmod) we should consider when parameterizing the solvated system</span>
-<span class="c1"># If the object file was prepared using leaprc.ff12SB, give it here. If the system contains non-standard residues</span>
-<span class="c1"># that you have parameterized, give the frcmod files here (and include the units inside the object file).</span>
-<span class="c1">#EXTRAFF =</span>
-<span class="c1"># pyMDMix Replica Configuration File (RCF)</span>
-<span class="c1"># All non used options should be commented/removed</span>
-
-<span class="k">[REPLICAS]</span>
-<span class="c1">###########</span>
-<span class="c1"># GENERAL #</span>
-<span class="c1">###########</span>
-<span class="c1"># Comma separated list of solvent box names to be used in the project (e.g. MAM,ETA,WAT). NO DEFAULT. MANDATORY</span>
-<span class="na">SOLVENTS</span> <span class="o">=</span> 
-
-<span class="c1"># Number of replicas for each solvent (read documentation for advanced options). E.g: 3, WAT:1. DEFAULT:3</span>
-<span class="c1">#NREPL = </span>
-
-<span class="c1"># Number of nanoseconds to run (advanced configuration in the documentation). E.g: 20, WAT//10. DEFAULT:20</span>
-<span class="c1">#NANOS = </span>
-
-<span class="c1"># Temperature of each replica (again advanced configuration assigning independent temperatures is possible). E.g.: 300. DEFAULT:300K</span>
-<span class="c1">#TEMP = </span>
-
-<span class="c1"># Restraining scheme (OPTIONS: HA, FREE, BB for heavyatoms, no-restraints, back-bone atoms). DEFAULT: FREE. Also accepts advanced configuration.</span>
-<span class="c1">#RESTR= </span>
-
-<span class="c1"># Restraining force when RESTR!=FREE. In kcal/mol.A^2. Default=0.0. Advanced configuration is possible.</span>
-<span class="c1">#FORCE= </span>
-
-<span class="c1">#####################</span>
-<span class="c1"># SETTINGS OVERRIDE #</span>
-<span class="c1">#####################</span>
-<span class="c1"># All parameters present in replica-settings.cfg can be here overriden.</span>
-
-<span class="c1"># For instance, if we want to modify the trajectory writing frequency:</span>
-<span class="c1"># TRAJFREQUENCY =  </span>
-
-<span class="c1"># Modify number of steps per run file (step).</span>
-<span class="c1"># We might be interested in increase the file size to include several nanosecods</span>
-<span class="c1"># instead of only 1 (the default; 500000 steps with md_timestep of 2fs)</span>
-<span class="c1"># NVT_PROD_STEPS = 1000000</span>
-<span class="c1"># NPT_PROD_STEPS = 1000000</span>
-
-<span class="c1"># ETC...</span>
-</pre></div>
-</div>
 </div>
 
 

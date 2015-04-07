@@ -63,7 +63,7 @@ the input files to run molecular dynamics.</p>
 <dl class="docutils">
 <dt>The <tt class="xref py py-class docutils literal"><span class="pre">Replica</span></tt> has to be configured using two sorts of information::</dt>
 <dd><ul class="first last simple">
-<li>System related information, through a <tt class="xref py py-class docutils literal"><span class="pre">System.SolvatedSystem</span></tt> object</li>
+<li>System related information, through a <tt class="xref py py-class docutils literal"><span class="pre">Systems.SolvatedSystem</span></tt> object</li>
 <li>MD related parameters, through a <a class="reference internal" href="mdsettings.html#MDSettings.MDSettings" title="MDSettings.MDSettings"><tt class="xref py py-class docutils literal"><span class="pre">MDSettings.MDSettings</span></tt></a> object</li>
 </ul>
 </dd>
@@ -86,27 +86,6 @@ If <em>replicafile</em> path is not given, will try to load any <tt class="docut
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">Replica</span></tt> object</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="Replicas.createReplicas">
-<tt class="descclassname">Replicas.</tt><tt class="descname">createReplicas</tt><big>(</big><em>replicaConfigFile</em>, <em>makefolders=False</em><big>)</big><a class="headerlink" href="#Replicas.createReplicas" title="Permalink to this definition">¶</a></dt>
-<dd><p>Auxiliary function to build replicas from a replica configuration file (RCF)</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>replicaConfigFile</strong> (<em>str</em>) &#8211; Path to config file containing REPLICA section.</li>
-<li><strong>makefolders</strong> (<em>bool</em>) &#8211; Create folders for each replica in current path? Automatic names will be given to each replica.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of <tt class="xref py py-class docutils literal"><span class="pre">Replica</span></tt> objects constructed with all parameters in the RCF</p>
-</td>
 </tr>
 </tbody>
 </table>

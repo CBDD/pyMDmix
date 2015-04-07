@@ -331,7 +331,7 @@ class AmberCreateSystem(object):
         # Load solvent into leap
         solventBox = self.loadSolventLeap(solvent)
 
-        # Solvate command depends on cubic or orthorombic box choice
+        # Solvate command depends on cubic or orthorombic box choice
         if cubicBox: solvate_cmd = 'solvateBox'
         else: solvate_cmd = 'solvateOct'
 
@@ -376,7 +376,7 @@ class AmberCreateSystem(object):
         top = outPrefix+'.top'
         crd = outPrefix+'.crd'
 
-        # Solvate command depends on cubic or orthorombic box choice
+        # Solvate command depends on cubic or orthorombic box choice
         if cubicBox: solvate_cmd = 'solvateBox'
         else: solvate_cmd = 'solvateOct'
 

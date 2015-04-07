@@ -89,7 +89,7 @@ or at user&#8217;s home directory <tt class="docutils literal"><span class="pre"
 
 <span class="na">DEF_AMBER_WATBOX</span> <span class="o">=</span> <span class="s">TIP3P # default water model name</span>
 <span class="na">float-DEF_AMBER_BUFFER</span> <span class="o">=</span> <span class="s">14.0</span>
-<span class="na">int-DEF_NREPLICAS</span> <span class="o">=</span> <span class="s">3</span>
+<span class="na">int-DEF_NREPLICAS</span> <span class="o">=</span> <span class="s">1</span>
 
 <span class="c1"># Strings that identify if an output file is complete</span>
 <span class="na">AMBER_MIN_COMPLETE</span> <span class="o">=</span> <span class="s">Maximum number of minimization cycles reached.</span>
@@ -97,7 +97,11 @@ or at user&#8217;s home directory <tt class="docutils literal"><span class="pre"
 <span class="na">NAMD_FILE_COMPLETE</span> <span class="o">=</span> <span class="s">End of program</span>
 <span class="na">list-DEF_AMBER_FF</span> <span class="o">=</span> <span class="s">leaprc.ff99SB, leaprc.gaff</span>
 
-<span class="na">int-DISABLE_BISKIT_LOADING_WARNS</span> <span class="o">=</span> <span class="s">1 # Disable recurring warnings when loading Biskit</span>
+<span class="c1"># Expected trajetory file extensions</span>
+<span class="na">list-avail_trajext</span> <span class="o">=</span> <span class="s">nc, netcdf, x, x.gz, dcd</span>
+
+<span class="c1"># Disable recurring warnings when loading Biskit</span>
+<span class="na">int-DISABLE_BISKIT_LOADING_WARNS</span> <span class="o">=</span> <span class="s">1 </span>
 
 <span class="c1"># Executables</span>
 <span class="na">AMBER_MIN_EXE</span> <span class="o">=</span> <span class="s">sander</span>
