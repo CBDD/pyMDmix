@@ -28,6 +28,12 @@ UPDATE HISTORY (ZIP)
 23/03/2015
 - Initial OpenMM support
 
-07/04/215
+07/04/2015
 - Merged OpenMM support fork (Mark J. Williamson work) to master. 
 - Changed version to 0.2.0
+
+09/04/2015
+- Moved simulation volume functions from Energy.py to Checkers of each MD program. OpenMM function still missing.
+- Fixed bug in replica number of snapshots calculation (failing when npt_prod_steps != 1 ns).
+- Modified ratio-correction in Energy.py to allow pure solvent boxes (e.g. ETA 100%).
+- Modified version numbering control

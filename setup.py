@@ -90,10 +90,15 @@ except AttributeError:
 include_dirs = [numpy_include]
 
 
+def getVersionFromInit():
+	lines = open('pyMDMix/__init__.py','r').readlines()
+	for l in lines:
+		if '__version__' in l: return l.split('=')[1].split('"')[1]
+
 setup(name='pyMDMix',
       cmdclass={'install': CustomInstall},
       zip_safe=False,
-      version=open('VERSION','r').read().strip(),
+      version= getVersionFromInit(),
       description='Molecular Dynamics with organic solvent mixtures setup and analysis',
       author='Daniel Alvarez-Garcia',
       author_email='algarcia.daniel@gmail.com',

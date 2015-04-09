@@ -616,7 +616,37 @@ class AmberCheck(object):
         else:
             if self.warn: self.log.warn("Checking replica MD failed. Some steps could not pass the check: %s"%stepsdone)
             return False
-
+    
+    def getSimVolume(self, replica=False, step=False, boxextension=False):
+        """
+        Fetch simulation volume information from restart files. 
+        
+        :arg Replica replica: Replica to study. If false, will take replica loaded in initalization.
+        :arg int step: Step to fetch volume for. If False, will identify last completed production step and use that one.
+        :arg str boxextension: Extension for the output file containing the restart information. DEFAULT: rst.
+        
+        :return float Volume: Simulation volume.
+        """
+        replica = replica or self.replica
+        if not replica: raise AmberCheckError, "Replica not assigned."
+        
+        boxextension = boxextension or 'rst'
+        
+        # Work on step. If not given, fetch last completed production step.
+        step = step or replica.lastCompletedProductionStep()
+        
+        # Fetch rst file and read last line to get box side length and angle
+        fname = replica.mdoutfiletemplate.format(step=step, extension=boxextension)
+        fname = osp.join(replica.path, replica.mdfolder, fname)
+        if not os.path.exists(fname):
+            self.log.error("No file found with name %s to fetch box volume in DG0 penalty calculation. Returning no penalty..."%fname)
+            return False
+        box = map(float, open(fname,'r').readlines()[-1].strip().split())
+        vol = box[0]*box[1]*box[2]
+        
+        if box[3] != 90.0: vol *= 0.77 # orthorombic volume correction
+        return vol
+        
 
 class AmberWriter(object):
     "Write input files to run the simulations with AMBER for each replica"

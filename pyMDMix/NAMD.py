@@ -513,7 +513,40 @@ class NAMDCheck(object):
             if self.warn: self.log.warn("Checking replica MD failed. Some steps could not pass the check: %s"%stepsdone)
             return False
 
-    
+    def getSimVolume(self, replica=False, step=False, boxextension=False):
+        """
+        Fetch simulation volume information from restart files. 
+        
+        :arg Replica replica: Replica to study. If false, will take replica loaded in initalization.
+        :arg int step: Step to fetch volume for. If False, will identify last completed production step and use that one.
+        :arg str boxextension: Extension for the output file containing the restart information. DEFAULT: xsc.
+        
+        :return float Volume: Simulation volume.
+        """
+        replica = replica or self.replica
+        if not replica: raise NAMDCheckError, "Replica not assigned."
+        boxextension = boxextension or 'xsc'
+        
+        # Work on step. If not given, fetch last completed production step.
+        step = step or replica.lastCompletedProductionStep()
+        
+        # Fetch file and read last line to get box side length
+        fname = replica.mdoutfiletemplate.format(step=step, extension=boxextension)
+        fname = osp.join(replica.path, replica.mdfolder, fname)
+        if not os.path.exists(fname):
+            self.log.error("No file found with name %s to fetch box volume in DG0 penalty calculation. Returning no penalty..."%fname)
+            return False
+        
+        # Read file and fetch 3 vectors to calculate volume
+        box = map(float, open(fname,'r').readlines()[2].strip().split())
+        vec_a = npy.array(box[1:4]).astype(float)
+        vec_b = npy.array(box[4:7]).astype(float)
+        vec_c = npy.array(box[7:10]).astype(float)
+        vol = npy.linalg.norm(a)*npy.linalg.norm(b)*npy.linalg.norm(c)
+        if b[0] != 0: # Assume we have an orthorombic box
+            vol *= 0.77
+        return vol
+
 import Biskit.test as BT
 
 class Test(BT.BiskitTest):

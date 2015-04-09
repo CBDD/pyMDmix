@@ -218,7 +218,7 @@ Solvent: {solvent}
         self.__dict__.update(d)
 
     def __calcNumberSnapshots(self):
-        self.nsnaps = self.nanos*(self.prod_steps/float(self.trajfrequency))
+        self.nsnaps = self.ntrajfiles*(self.prod_steps/float(self.trajfrequency))
 
     def __calcExpectedNTrajFiles(self):
         "Calculate from self.nanos and depending on steps per file and timestep, the total number of trajetory files expected"
@@ -520,8 +520,8 @@ Solvent: {solvent}
         for step in range(startstep,self.ntrajfiles+1):
             if check.checkProduction(stepselection=[step]): last+=1
             else: break
+        if last == 0: self.log.warn("No output files found in production folder OR no production step is still complete.")
         return last
-            
 
     def isEquilibrationFinished(self):
         """

@@ -108,19 +108,23 @@ class EnergyConversion(object):
             raise EnergyConvertError, "Probe %s not found for solvent in replica %s"%(probe, replica.name)
 
         # Calculate ratio-correction factor
-        if unit == 'WAT' and len(solv.residues) > 1:
-            solv.residues.remove(unit)
-            refunit = solv.residues[0].name
-            self.log.debug("Setting residue %s as reference for ratio-correcting water probe"%refunit)
+        if len(solv.residues) > 1:
+            if unit == 'WAT' and len(solv.residues) > 1:
+                solv.residues.remove(unit)
+                refunit = solv.residues[0].name
+                self.log.debug("Setting residue %s as reference for ratio-correcting water probe"%refunit)
+            else:
+                refunit = 'WAT'
+
+            self.log.debug("Unit: %s RefUnit: %s"%(unit, refunit))
+            expectedratio = solv.getNumRes(refunit) / float(solv.getNumRes(unit))
+            observedratio = self.calcPDBRatio(replica.getPDB(), unit, refunit)
+            ratio_correction = expectedratio/observedratio
+            self.log.debug("Expected ratio: %.4f Observed ratio: %.4f Correctionfactor: %.4f"%(expectedratio, observedratio, ratio_correction))
         else:
-            refunit = 'WAT'
-
-        self.log.debug("Unit: %s RefUnit: %s"%(unit, refunit))
-        expectedratio = solv.getNumRes(refunit) / float(solv.getNumRes(unit))
-        observedratio = self.calcPDBRatio(replica.getPDB(), unit, refunit)
-        ratio_correction = expectedratio/observedratio
-        self.log.debug("Expected ratio: %.4f Observed ratio: %.4f Correctionfactor: %.4f"%(expectedratio, observedratio, ratio_correction))
-
+            ratio_correction = 1.
+            self.log.debug("Only one residue in the mixture, no ratio correction applied.")
+                
         # Finally calculate expected number
         expectedVal = solv.getProbeProbability(probe)*numsnaps*ratio_correction
         self.log.debug("Replica %s probe %s. ExpectedValue: %.3f, snapshots: %i, Voxel: %.3f"%(replica.name, probe, expectedVal, numsnaps, voxel))
@@ -169,38 +173,8 @@ class EnergyConversion(object):
             If **False**, will take default values (NAMD: xsc, AMBER: rst)
 
         """
-        step = step or replica.lastCompletedProductionStep()
-        # Fetch last nanosecond of production volume information
-        if replica.mdProgram == 'AMBER':
-            # Fetch rst file and read last line to get box side length
-            boxextension = boxextension or 'rst'
-            fname = replica.mdoutfiletemplate.format(step=step, extension=boxextension)
-            fname = osp.join(replica.path, replica.mdfolder, fname)
-            if not os.path.exists(fname):
-                self.log.error("No file found with name %s to fetch box volume in DG0 penalty calculation. Returning no penalty..."%fname)
-                return False
-            box = map(float, open(fname,'r').readlines()[-1].strip().split())
-            if box[3] == 90.0:
-                cubic = True
-            else:
-                cubic = False
-            vol = box[0]*box[1]*box[2]
-        elif replica.mdProgram == 'NAMD':
-            # Fetch xsc file and read first length as cube side length
-            boxextension = boxextension or 'xsc'
-            fname = replica.mdoutfiletemplate.format(step=step, extension=boxextension)
-            fname = osp.join(replica.path, replica.mdfolder, fname)
-            if not os.path.exists(fname):
-                self.log.error("No file found with name %s to fetch box volume in DG0 penalty calculation. Returning no penalty..."%fname)
-                return False
-            box = map(float, open(fname,'r').readlines()[2].strip().split())
-            a = box[1]
-            b = box[4]
-            if a!=b: cubic = True # all sides same size, cubic box
-            else: cubic = False   # if different, orthorombic box
-            vol = a**3
-
-        if not cubic: vol *= 0.77 # orthorombic volume correction
+        check = replica.getChecker()
+        vol = check.getSimVolume(step=step, boxextension=boxextension)
         return vol
 
     def count2DGProbe(self, grid, numsnaps, probename=None, temp=300., correction=1.):
