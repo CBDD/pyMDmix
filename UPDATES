@@ -33,7 +33,7 @@ UPDATE HISTORY (ZIP)
 - Changed version to 0.2.0
 
 09/04/2015
-- Moved simulation volume functions from Energy.py to Checkers of each MD program. OpenMM function still missing.
+- Moved simulation volume functions from Energy.py to Checkers of each MD program.
 - Fixed bug in replica number of snapshots calculation (failing when npt_prod_steps != 1 ns).
 - Modified ratio-correction in Energy.py to allow pure solvent boxes (e.g. ETA 100%).
 - Modified version numbering control
