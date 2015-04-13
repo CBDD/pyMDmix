@@ -28,7 +28,7 @@
 
 __author__="dalvarez"
 __date__ ="$19-ene-2014 18:43:19$"
-__version__="v0.2-2-g9e6305e"
+__version__="v0.2-3-gc8cbaf0"
 import settings as S # A basic logger is initiated here
 import tools
 
