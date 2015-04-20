@@ -880,6 +880,8 @@ def similarity(gridList, percentile=0.02, hardcutoff=False, comparepositive=Fals
         else:
             raise AttributeError, "Wrong list element type: %s %s"%(el, type(el))
     
+    # Trim Grids if necessary
+    grids = trim(grids)
     ngrids = len(grids)
     
     # Mask out ignoreValues if needed
