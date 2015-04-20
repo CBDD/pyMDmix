@@ -837,7 +837,110 @@ def trim(*Glist):
         
     return trimmedList
 
+def similarity(gridList, percentile=0.02, hardcutoff=False, comparepositive=False, ignoreValue=False):
+    """
+    Compute similarity index between grids in gridList. First grids are discretized to 1 and 0. 1 for points
+    below certain cutoff (or above if comparepositive is True). The cutoff can be dynamic with a percentile
+    calculation or stablished by the user as a hard cutoff.
+    
+    Will use a modified Tanimoto Index to evaluate similarity. This version takes 
+    into acount neighbouring positions (expanded grid) to allow some flexibility 
+    and reduce noise introduced by the grid spacing.
+    
+    SimIndex = (Nab + Na'b + Nab' + Na'b') / (Na + Nb + Na'b' + (Na'b/2) + (Nab'/2) - Nab)
+    
+    a' = expanded a without original points. Thus only expansion.
+    b' = expanded b without 1s in b
+    Na = Ones in original A
+    Na'= Ones in expansion of A
+    Nab = Ones common in A and B        
+    Na'b = Ones in common in expansion of A and original B
+    etc...
+    
+    :arg list gridList: List of grid instances or path to files to be compared.
+    :arg float percentile: Percentile of points to convert to 1.
+    :arg float hardcutoff: Ignore percentile calculation and use this hard cutoff to assign 1 and 0.
+    :arg bool comparepositives: Compare negative or positive points? By default use negative tail.
+    :arg float ignoreValue: Value to ignore during cutoff and comparison calculation. E.g. 999 masking excluded volume.
+    
+    :return: Redundant similarity matrix.
+    """
+    import itertools
+    
+    if not isinstance(gridList): raise AttributeError, "Expected gridList of type list. Got %s instead."%(type(gridList))
+    
+    # Parse each list element to check if it is a Grid instance or a file to be loaded
+    grids = []
+    for el in gridList:
+        if isinstance(el, Grid): grids.append(el)
+        elif isinstance(el, str):
+            # Try to load as a file
+            if os.path.exists(el): grids.append(Grid(el))
+            else: raise AttributeError, "Element in list is not a valid file path or a Grid instance: %s"%el
+        else:
+            raise AttributeError, "Wrong list element type: %s %s"%(el, type(el))
+    
+    ngrids = len(grids)
+    
+    # Mask out ignoreValues if needed
+    if ignoreValue:
+        ignoreMasks = [g.data != ignoreValue for g in grids]
+        
+    # Invert data if comparepositive
+    if comparepositive:
+        if hardcutoff: hardcutoff *= -1
+        for g in grids: g.data *= -1
+    
+    # Compute cutoffs if needed
+    # Convert to zeros and ones
+    if not hardcutoff:         
+        cutoffs = [g.getPercentileCutValue(percentile, ignoreValue) for g in grids]
+    else:
+        cutoffs = [hardcutoff]*len(grids)
+        
+    for i,g in enumerate(grids):
+        m = g.data <= cutoffs[i]
+        g.data[m] = 1
+        g.data[~m] = 0
+        if ignoreValue: g.data[ignoreMasks[i]] = 0
 
+    # Save an expanded version of each grid
+    expanded_grids = []
+    for g in grids:
+        tmpg= g.copy()
+        tmpg.expand(2)
+        ones_idx = np.vstack(np.where(tmpg.data)).T
+        for i in ones_idx:
+            tmpg.cancelPoints(i, 0.5, 1.0)
+        tmpg.contract(2)
+        # Substract original ones to take only expansion
+        # and save
+        tmpg.data -= g.data
+        expanded_grids.append(tmpg)
+    
+    data = np.zeros((ngrids,ngrids))
+    # Compare 
+    for combi in itertools.combinations(np.range(ngrids), 2):
+        i, j = combi
+        gi, gj = grids[i].data, grids[j].data
+        gi_, gj_ = expanded_grids[i].data, expanded_grids[j].data
+        
+        A = gi.sum()
+        B = gj.sum()
+        A_ = gi_.sum()
+        B_ = gj_.sum()
+        AB = (gi*gj).sum() # Common ones
+        A_B = (gi_*gj).sum()
+        AB_ = (gi*gj_).sum()
+        A_B_ = (gi_*gj_).sum()
+        
+        data[i,j] = (AB + A_B + AB_ + A_B_)/float(A + B + A_B_ + (A_B/2.) + (AB_/2.) - AB)
+    
+    # Recompose full matrix
+    # and return
+    data += data.T
+    data += np.eye(ngrids) # Reconstruct diagonal with ones
+    return data
 
 if __name__ == "__main__":
     print "Testing GridSpace and Grid"

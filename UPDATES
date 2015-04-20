@@ -37,3 +37,6 @@ UPDATE HISTORY (ZIP)
 - Fixed bug in replica number of snapshots calculation (failing when npt_prod_steps != 1 ns).
 - Modified ratio-correction in Energy.py to allow pure solvent boxes (e.g. ETA 100%).
 - Modified version numbering control
+
+20/04/2015
+- Added function to compute similarity to GridsManager (cleaner and better documented than that in GridData).

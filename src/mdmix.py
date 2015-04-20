@@ -572,7 +572,7 @@ def main():
 
                 from pyMDMix.Energy import EnergyConversion
                 econv = EnergyConversion()
-                econv.convert(replicas, probelsit=probelist, average=avg, dg0correct=dg0,
+                econv.convert(replicas, probelist=probelist, average=avg, dg0correct=dg0,
                                     inprefix=inprefix, outprefix=outprefix, nsnaps=nsnaps, stepselection=nanosel)
 
         # HOTSPOTS SUBPARSER UNDER ANALYSIS
