@@ -40,3 +40,7 @@ UPDATE HISTORY (ZIP)
 
 20/04/2015
 - Added function to compute similarity to GridsManager (cleaner and better documented than that in GridData).
+
+07/07/2015
+- Fixed bug in PDB magicFit function causing maximum recursion error when too many water molecules are present. Added mask to the alignment. 
+- Fixed some bugs in grid comparison function.

@@ -867,7 +867,7 @@ def similarity(gridList, percentile=0.02, hardcutoff=False, comparepositive=Fals
     """
     import itertools
     
-    if not isinstance(gridList): raise AttributeError, "Expected gridList of type list. Got %s instead."%(type(gridList))
+    if not isinstance(gridList, list): raise AttributeError, "Expected gridList of type list. Got %s instead."%(type(gridList))
     
     # Parse each list element to check if it is a Grid instance or a file to be loaded
     grids = []
@@ -911,7 +911,7 @@ def similarity(gridList, percentile=0.02, hardcutoff=False, comparepositive=Fals
     for g in grids:
         tmpg= g.copy()
         tmpg.expand(2)
-        ones_idx = np.vstack(np.where(tmpg.data)).T
+        ones_idx = npy.vstack(npy.where(tmpg.data)).T
         for i in ones_idx:
             tmpg.cancelPoints(i, 0.5, 1.0)
         tmpg.contract(2)
@@ -920,9 +920,9 @@ def similarity(gridList, percentile=0.02, hardcutoff=False, comparepositive=Fals
         tmpg.data -= g.data
         expanded_grids.append(tmpg)
     
-    data = np.zeros((ngrids,ngrids))
+    data = npy.zeros((ngrids,ngrids))
     # Compare 
-    for combi in itertools.combinations(np.range(ngrids), 2):
+    for combi in itertools.combinations(npy.arange(ngrids), 2):
         i, j = combi
         gi, gj = grids[i].data, grids[j].data
         gi_, gj_ = expanded_grids[i].data, expanded_grids[j].data
@@ -941,7 +941,7 @@ def similarity(gridList, percentile=0.02, hardcutoff=False, comparepositive=Fals
     # Recompose full matrix
     # and return
     data += data.T
-    data += np.eye(ngrids) # Reconstruct diagonal with ones
+    data += npy.eye(ngrids) # Reconstruct diagonal with ones
     return data
 
 if __name__ == "__main__":
