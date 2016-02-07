@@ -65,7 +65,7 @@ def createParser():
     add_parser.add_argument("-sys", action="store", dest="sysname", help="REPLICAS action: When creating new replicas, specify the system name which should be prepared. System name should exist in the project. If not given, only one system should be present in the project.")
    
     #REMOVE
-    remove_parser = subparsers.add_parser('remove', help="Remove groups from project. To remove systems or replicas, simply remove the forlders or system files from the project folder.")
+    remove_parser = subparsers.add_parser('remove', help="Remove groups from project. To remove systems or replicas, simply remove the folders or system files from the project folder.")
     remove_parser.add_argument("action", choices=('group'), help="Remove group.")
     remove_parser.add_argument("-gn", action="store", dest="groupname", help="Name of the group to remove. Groupname must exists in project.", required=True)
    
