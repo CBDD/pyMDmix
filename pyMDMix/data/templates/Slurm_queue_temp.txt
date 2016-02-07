@@ -1,0 +1,26 @@
+#!/bin/bash -l
+######################################
+# pyMDMix Queue input template       #
+# http://mdmix.sourceforge.net       #
+# Usage: sbatch FILE_NAME.q          #
+######################################
+
+###########################################################
+# To use with Slurm                                       #
+# -p SGE queue name.                                      #
+# (default) Working in the current working directory.     #
+# -J Slurm job name.                                      #
+# -o Job standard output file.                            #
+# -e Job standard error file.                             #
+###########################################################
+#SBATCH -p {queuename}
+#SBATCH -J {jobname}
+#SBATCH -o {jobname}.out
+#SBATCH -e {jobname}.err
+###############################################################
+
+{precommands}
+{commands}
+{postcommands}
+
+sbatch {next}
