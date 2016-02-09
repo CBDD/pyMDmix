@@ -13,7 +13,6 @@
 # -o Job standard output file.                            #
 # -e Job standard error file.                             #
 ###########################################################
-#SBATCH -p {queuename}
 #SBATCH -J {jobname}
 #SBATCH -o {jobname}.out
 #SBATCH -e {jobname}.err
