@@ -2,7 +2,7 @@
 #   Set "restraintmask" & "restraint_wt" to the correct values for your system
 #
 &cntrl
-timlim=999999., imin=0,
+timlim=999999, imin=0,
 ntx=5, irest=1, iwrap=$iwrap,
 ntxo=1, ntpr=$freq, ntwx=$freq, ntwv=0, ntwe=0, ioutfm=$ioutfm,
 ntp=0, ntc=2,
