@@ -135,7 +135,7 @@ class QueueInputWriter(object):
         # EQUILIBRATION
         jobname = replica.name+'_eq'
         precommands = ''
-        if replica.mdProgram == ('AMBER' or 'OPENMM'): neqsteps = 5
+        if replica.mdProgram in {'AMBER', 'OPENMM'}: neqsteps = 5
         else: neqsteps = 2
         commands = '\n'.join([writer.getCommand('eq',i) for i in range(1,neqsteps+1)])
         postcommands = 'cd ..'+os.sep+replica.mdfolder
