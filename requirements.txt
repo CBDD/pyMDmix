@@ -1,0 +1,6 @@
+numpy==1.8.0
+scipy==0.18.1
+Matplotlib
+netCDF4
+Biskit
+mechanize
