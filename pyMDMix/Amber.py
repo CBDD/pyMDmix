@@ -59,6 +59,9 @@ class Leaper(object):
         self._in = self.tleap.stdin
         self._out = self.tleap.stdout
         self._err = self.tleap.stderr
+        self._setterminator = 'mdmix_terminator_command = "mdmix_terminator_command"'
+        self._terminator = 'desc mdmix_terminator_command'
+        self.command(self._setterminator)
         if objectFileName: self.command('loadOff %s'%(objectFileName))
 
         # Load default and required forcefields
@@ -66,6 +69,8 @@ class Leaper(object):
         for f in ff:
             if 'frcmod' in f: self.command('loadAmberParams %s'%f)
             else: self.command('source %s'%f)
+        self.initialized = True
+
 
     def command(self,  command):
         """
@@ -75,15 +80,52 @@ class Leaper(object):
         Thus we use a fake command to detect the last line before EOF.
         """
         self._in.write(command+'\n')
-        self._in.write('lastCommandOut\n')
+        logging.getLogger("AmberTleap").debug(command)
+        self._in.write(self._terminator+'\n')
+        return self.flush()
+        #self._in.write('lastCommandOut\n')
+        #out = []
+        #while self.tleap.returncode is None:
+            #line = self._out.readline().strip()
+            #if 'Fatal Error!' in line: break
+            #if 'ERROR: syntax error' in line: break
+            #if 'Error from the parser: syntax error' in line: break
+            #if 'Exiting LEaP' in line:
+            #    logging.getLogger("AmberTleap").debug(line)
+            #    break    
+
+    def flush(self):
         out = []
-        while 1:
+        done = False
+        while not done:
+        #for line in self._out.readline().splitlines():
+            #line = line.strip()
+            #if not line: break
             line = self._out.readline().strip()
-            if 'ERROR: syntax error' in line: break
-            if line: out.append(line)
+            if 'mdmix_terminator_command' in line:
+                logging.getLogger("AmberTleap").debug(line)    
+                done = True
+                break
+            if self.tleap.returncode is not None:
+                break
+            if 'Fatal Error!' in line:
+                break
+            if 'Exitting LEaP' in line:
+                break
+            if line:
+                out.append(line)
+                logging.getLogger("AmberTleap").debug(line)
+        if not done:
+            logging.getLogger("AmberTleap").warning("LEaP may have failed")
         return out
+    
+    def status(self):
+        return self.tleap.returncode
 
     def close(self):
+        #if self.tleap.returncode is None:
+        #    self.command("quit")
+        #return self.tleap.wait()
         self.tleap.terminate()
 
 
@@ -129,10 +171,11 @@ class AmberCreateSystem(object):
         self.leap = Leaper()
         self.log.debug("Initializing Leap...")
         for ff in self.FFlist:
+            self.log.debug(ff)
             if 'leaprc' in ff: self.leap.command("source %s"%ff)
             elif 'frcmod' in ff: self.leap.command("loadamberparams %s"%ff)
             self.log.debug("Added FF: %s"%ff)
-#        if self.project: self.loadOff(self.project.amberOFF)
+        self.log.debug("Leap initialized...")
 
     def checkFF(self, ffname):
         """
@@ -172,6 +215,7 @@ class AmberCreateSystem(object):
         if okffname:
             self.FFlist.append(okffname)
             self.log.info("Using Forcefield or FRCMOD file: %s"%okffname)
+            self.FFlist = list(set(self.FFlist))
             return True
         else:
             self.log.warn("%s forcefield or frcmod not found. Will not be loaded!"%ffname)
@@ -191,8 +235,11 @@ class AmberCreateSystem(object):
         self.log.info("Creating PDB file %s from top and crd files '%s' and '%s'"%(outpdb, top, crd))
         null = os.devnull
 #        null = osp.splitext(top)[0]+'_ambpdb.log'
-        ampdb = osp.join(S.AMBEREXE,S.AMBER_AMBPDB)
-        command = '(%s -p %s < %s > %s) 1> %s 2> %s'%(S.AMBER_AMBPDB, top, crd, outpdb,null,null)
+        #ampdb = osp.join(S.AMBEREXE,S.AMBER_AMBPDB)
+        # original line:
+        #command = '(%s -p %s < %s > %s) 1> %s 2> %s'%(S.AMBER_AMBPDB, top, crd, outpdb,null,null)
+        # debug line:
+        command = '(%s -p %s < %s > %s) '%(S.AMBER_AMBPDB, top, crd, outpdb)
         self.log.debug(command)
         proc = sub.Popen(command, shell=True)
         exit_code = proc.wait()
@@ -205,6 +252,7 @@ class AmberCreateSystem(object):
         if leapHandler: self.leap = leapHandler   # Useful when working on same unit to not init leap each time (like solvate and then save)
         elif not self.leap: self.initLeap()
         self.log.debug("Saving unit '%s' TOP and CRD files: '%s', '%s'..."%(unit,top,crd))
+        self.log.debug(self.leap.status())
         err = self.leap.command("saveAmberParm %s %s %s"%(unit, top, crd))
         time.sleep(1)
         if osp.exists(top) and osp.exists(crd) and os.stat(top).st_size and os.stat(crd).st_size:
@@ -222,6 +270,7 @@ class AmberCreateSystem(object):
         "return charge of object unit"
         if not self.leap: self.initLeap()
         out = self.leap.command("charge %s"%unit)
+        self.log.debug(out)
         return float(out[0].split()[-1])
         
     def neutralizeWNaCl(self, unit):
@@ -230,13 +279,14 @@ class AmberCreateSystem(object):
         self.log.debug("Neutralizing with NaCl unit %s"%unit)
         if self.replica: watmodel = Solvents.getSolvent(self.replica.solvent).watermodel
         else: watmodel = S.DEF_AMBER_WATBOX
-        if 'TIP3P' in watmodel: extraff = 'frcmod.ionsjc_tip3p'
-        elif 'TIP4P' in watmodel: extraff = 'frcmod.ionsjc_tip4pew'
-        elif 'SPC' in watmodel: extraff = 'frcmod.ionsjc_spce'
-        else: extraff = ''
-        if extraff: 
-            self.log.debug("Loading ions params: %s"%extraff)
-            self.leap.command("loadamberparams %s"%extraff)
+        waterff = {
+            'TIP3P': 'leaprc.water.tip3p',
+            'TIP4P': 'leaprc.water.tip3pew',
+            'SPC': 'leaprc.water.spce'
+        }
+        if waterff.has_key(watmodel):
+            self.log.debug("Loading ions params: %s"%waterff[watmodel])
+            self.leap.command("source %s"%waterff[watmodel])
         else:
             self.log.debug("No extra ions params loaded")
             
@@ -255,7 +305,6 @@ class AmberCreateSystem(object):
         if not self.leap: self.initLeap()
         charge = self.leapCharge(unit)
         desc = self.leap.command("desc %s"%unit)[5:]
-
         self.log.debug("Neutralize ionic box unit %s, negativeres: %s, positiveres:%s"%(unit, negativeres, positiveres))
 
         # Get first residue number
@@ -277,7 +326,6 @@ class AmberCreateSystem(object):
             for ion in range(abs(int(charge))):
                 idx = NEGids.pop()
                 self.leap.command("remove %s %s.%d"%(unit,unit,idx+first))
-
         finalcharge = self.leapCharge(unit)
         if finalcharge != 0:
             self.log.warn("Could not neutralize ionic box in Leap. Charge: %.2f. Will try adding NaCl..."%finalcharge)
@@ -337,7 +385,7 @@ class AmberCreateSystem(object):
 
         # add box of solvents
         # and neutralize charge
-        out = self.leap.command("%s %s %s %.2f iso 1"%(solvate_cmd, unit,solventBox,buffer))
+        self.leap.command("%s %s %s %.2f iso 1"%(solvate_cmd, unit,solventBox,buffer))
 
         if solvent.isIonic():        # Only in Ionic Box
             negative_res = [r.name for r in solvent.residues if r.charge < 0]
@@ -430,9 +478,8 @@ class AmberCreateSystem(object):
             
         # Init leap and save off
         if not self.leap: self.initLeap()
-        load = self.leap.command('%s = loadpdb %s'%(unitname,outprefix+'.pdb'))
+        self.leap.command('%s = loadpdb %s'%(unitname,outprefix+'.pdb'))
         err = self.leap.command('check %s'%unitname)
-        time.sleep(1)   # wait for loading to finish
         if not 'Unit is OK' in err[-1]:
             raise AmberCreateSystemError, "Errors encountered when loading pdb file into Leap. Please check leap.log file for more info. Cannot automatically create the OFF file"
 

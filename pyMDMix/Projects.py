@@ -512,6 +512,23 @@ def loadProject(projectfile=None):
         projectfile = files[0]
     return Project(fromfile=projectfile)
 
+def returnMDMixProject(parserargs):
+    if parserargs.debug: level='DEBUG'
+    else: level='INFO'
+    pyMDMix.setLogger(level=level)
+    try:
+        p = pyMDMix.loadProject()
+        return p
+    except:
+        return False
+
+def returnMDMixProjectOrFail(parserargs):
+    #When command is different to CREATE PROJECT or INFO, this program should be executed in project folder
+    #Let's try to load a project or exit
+    p = returnMDMixProject(parserargs)
+    if not p: raise MDMixError, 'No project file found in current folder. Make sure you are in a pyMDMix project folder.'
+    return p
+
 
 ###TESTING
 import Biskit.test as BT

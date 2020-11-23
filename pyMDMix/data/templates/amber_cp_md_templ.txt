@@ -1,6 +1,6 @@
 #  Constant Pressure MD
 &cntrl
-timlim=999999., imin=0,
+timlim=999999, imin=0,
 ntx=5, irest=1, iwrap=$iwrap, ntc=2, 
 ntxo=1, ntpr=$freq, ntwx=$freq, ntwv=0, ntwe=0, ioutfm=$ioutfm,
 ntp=1, taup=2.0, pres0=$pres0,

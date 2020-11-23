@@ -6,6 +6,8 @@ nbproject/
 pyMDMix-0.1.6.zip
 pyMDMix.egg-info/
 src/mdmixscore.py
+
+.vscode/**
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

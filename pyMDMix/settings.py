@@ -83,7 +83,9 @@ if not rootlog.handlers:
     rootlog.handlers[0].setFormatter(T.LogFormatter())
 
 # USER MDMIX HOME
-USER_MDMIX_HOME = osp.join(user.home, '.mdmix')
+# change this to mdmix package data folder
+#USER_MDMIX_HOME = osp.join(user.home, '.mdmix')
+USER_MDMIX_HOME = osp.join(osp.dirname(__file__), 'data')
 
 # Parse settings from package defaults and user defined
 __CFG_DEFAULT = osp.join(T.dataRoot('defaults'),'settings.cfg')
