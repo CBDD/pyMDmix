@@ -4,3 +4,4 @@ Matplotlib
 netCDF4
 Biskit
 mechanize
+biopython==1.76
