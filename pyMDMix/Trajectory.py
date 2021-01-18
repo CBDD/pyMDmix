@@ -63,7 +63,8 @@ class TrajFile(object):
             self.nextFunction = self.traj.nextFrame
         elif self.extension in ('nc','netcdf'):
             try:
-                import Scientific.IO.NetCDF as ncdf
+                #import Scientific.IO.NetCDF as ncdf
+                import scipy.io.netcdf as ncdf
                 self.traj = ncdf.NetCDFFile(self.fname,'r').variables['coordinates']
                 self.nextFunction = self.returnFrameFromNetcdf
             except ImportError:

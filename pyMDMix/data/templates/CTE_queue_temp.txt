@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH --job-name={jobname}
+#SBATCH -D .
+#SBATCH --output={jobname}.q.o
+#SBATCH --error={jobname}.q.e
+#SBATCH --ntasks=1
+#SBATCH --time=20:00:00
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=40
+
+export OMP_NUM_THREADS=1
+
+module load atlas boost/1.69.0 pnetcdf/1.11.2 python/3.6.5 cuda/10.2 amber/20
+
+{precommands}
+srun {commands}
+{postcommands}
+
+sbatch {next}

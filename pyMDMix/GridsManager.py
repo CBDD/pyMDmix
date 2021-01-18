@@ -66,6 +66,10 @@ class Grid(GridData.GridData):
         if fname: 
             self.getProbeFromHeader()
             self.getTypeFromHeader()
+            if self.probe == 'UNK':
+                self.getProbeFromName(fname)
+            if self.type == 'MDMIX_UNK':
+                self.getTypeFromPath(fname)
         if type: self.setType(type)
         if probe: self.setProbe(probe)
     
@@ -106,7 +110,15 @@ class Grid(GridData.GridData):
         self.type = 'MDMIX_UNK'
         self.setHeader()
         return self.type
-    
+    def getTypeFromPath(self, fname):
+        """Fetch the grid type from grid path. It should be determined by the last folder where the grid is.
+        Only called if getTypeFromHeader does not work.
+        """
+        partitioned_path = fname.split('/')
+        grid_directory = partitioned_path[-2]
+        path2type_map = {'dgrids': 'MDMIX_DENS', 'PROBE_AVG':'MDMIX_RAW_AVG', 'egrids':'MDMIX_RAW'} # modify if there is more
+        if grid_directory in path2type_map:
+            self.type = path2type_map[grid_directory]   
     def setProbe(self, probe):
         "Change probe name and adapt header info"
         self.probe = probe
@@ -120,7 +132,14 @@ class Grid(GridData.GridData):
 
         self.probe = self.header.split()[1]
         return self.probe
-    
+        
+    def getProbeFromName(self, fname):
+        """Fetch the probe from grid name. It should be the last two words before the file extension.
+        Only called if getProbeFromHeader does not work."""
+        elements_withoutextension = os.path.splitext(fname)[0].split('_')
+        self.probe = '_'.join(elements_withoutextension[-2:])
+        return self.probe
+
     def setHeader(self, info=False):
         if not info: info=self.headerinfo
         else: self.headerinfo = info

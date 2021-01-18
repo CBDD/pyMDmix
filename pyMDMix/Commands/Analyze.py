@@ -22,6 +22,17 @@ class Analyze(Command):
         density_parser.add_argument("--com", help="Include center of mass to list of probes probes in density calculation. Default: False",action="store_true", dest="com", default=False)
         density_parser.add_argument("--ref", help="Reference PDB file to build grid shape over which counts will be added. By default, replica reference PDB will be used. This option is useful to build density grids on a subregion of the space or when replica trajectory was also aligned using --ref option.", action="store", dest="ref")
 
+        # ANALYSIS: Cpptraj DENSITY
+        cpp_density_parser = self.subparseronreplica(anl_cmd, 'cpp_density', help="Calculate probe density grids from aligned trajectory")
+        cpp_density_parser.add_argument("--probes", "-P",nargs='+', dest="probelist", help="Selection of probenames to calculate density for. If not given, all probes for the solvent will be selected.")
+        cpp_density_parser.add_argument("-opref", action="store", dest="outprefix", help="Prefix for grids saved inside density folder for each replica. If this is given, automatic energy conversion will not work until you restablish expected names or explicitely give the prefix in energy command. Default: False")
+        cpp_density_parser.add_argument("--onlycom", help="Density calculations ONLY for center of masses of each co-solvent. Probe list is ignored. Default: False",action="store_true", dest="onlycom", default=False)
+        cpp_density_parser.add_argument("--com", help="Include center of mass to list of probes probes in density calculation. Default: False",action="store_true", dest="com", default=False)
+        cpp_density_parser.add_argument("--ref", help="Reference PDB file to build grid shape over which counts will be added. By default, replica reference PDB will be used. This option is useful to build density grids on a subregion of the space or when replica trajectory was also aligned using --ref option.", action="store", dest="ref")
+        cpp_density_parser.add_argument("--only-write", action="store_true", default=False, dest="onlywrite", help="Only write ptraj input scripts BUT don't execute them. Useful when manual editing is needed. (default: False)")
+        cpp_density_parser.add_argument("--only-exe", action="store_true", default=False, dest="onlyexe", help="Only execute existing ptra scripts, do not overwrite them. If scripts don't exist, this function will fail. (Default: False)")
+
+
         # ANALYSIS: RESIDENCE
         residence_parser = self.subparseronreplica(anl_cmd, 'residence', help="Calculate hotspot residence dens from aligned trajectory")
         residence_parser.add_argument("--hpfile", "-hf", action="store", dest="hpfile", help="HotspotSet pickled file from 'analyze hotspots create' action.")
@@ -95,6 +106,24 @@ class Analyze(Command):
                         p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask, run=True, reference=reference, write=False)
                 else:
                     p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, reference=reference, alignmask=mask)
+                print "DONE"
+
+        elif parserargs.anl_command == 'cpp_density':
+            replicas = self.fetchReplicaSelection(parserargs, p)
+            if replicas:
+                args = {
+                    "nanosel": self.parsenanos(parserargs),
+                    "ncpus": parserargs.ncpus,
+                    "steps": parserargs.step,
+                    "outprefix": parserargs.outprefix,
+                    "probelist": parserargs.probelist,
+                    "includeCOM": parserargs.com,
+                    "onlyCOM": parserargs.onlycom,
+                    "ref": parserargs.ref,
+                    "run": not parserargs.onlywrite,
+                    "write": not parserargs.onlyexe,
+                }
+                p.calc_cppdensityReplicas(replicas, **args)
                 print "DONE"
 
         elif parserargs.anl_command == 'density':

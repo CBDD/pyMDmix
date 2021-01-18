@@ -78,7 +78,7 @@ class GridData(object):
                 raise BadFile, "File %s not found."%fname   
 
         # Construct empty grid
-        elif origin != None:
+        elif origin is not None:
             self.source = "User created Grid"
             # Check and convert to correct types
             if len(origin)==3:
@@ -93,10 +93,10 @@ class GridData(object):
                     self.delta = npy.array(spacing)
 
                 # Build grid from shape information
-                if shape != None:
+                if shape is not None:
                     self.shape = npy.array(shape).astype(int)
 
-                elif geomExtent != None:
+                elif geomExtent is not None:
                     if isinstance(geomExtent,float) or isinstance(geomExtent, int):
                         # Equidistant in all directions
                         geomExtent = npy.array([geomExtent, geomExtent, geomExtent]).astype(float)
@@ -109,7 +109,7 @@ class GridData(object):
 
             else:
                 # No spacing, to create grid, origin+shape+geometricExtent are needed, spacing will be adapted
-                if shape != None and geomExtent != None:
+                if shape is not None and geomExtent is not None:
                     self.shape = npy.array(shape).astype(int)
                     if isinstance(geomExtent,float) or isinstance(geomExtent, int):
                         # Equidistant in all directions

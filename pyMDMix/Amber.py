@@ -1118,6 +1118,44 @@ class AmberWriter(object):
         return template.format(trajin=trajin, trajout=trajout, imaging=self.imaging,ref=ref, refres=refres,
                             allrefres=allrefres, protavg=avgpdbout, rmsdout=rmsdoutprefix)
 
+    def getPtrajDensityScript(self, trajin, outgrid, gridmask, dimensions, grid_c,  offstep = 1, spacing = '0.5', com=False):
+        """
+        Obtain a PTRAJ script for calculating the density grid from the selected trajectory files (trajin) 
+        and save the grid in output name (outgrid). All details if not given as argument will be taken
+        from the replica information.
+        
+        :arg list trajin: list of input trajectory file paths 
+        :arg str outgrid: Output file grid path.
+        :arg str gridmask: mask of the atoms to generate the density grid of
+        :arg tupple dimensions: integrers that define the dimensions of the grid
+        :arg tupple grid_c: floats that define the gridcenter (extracted from the grid origin)
+        :arg int offstep: offstep of the trajin in cpptraj
+        :arg float/str spacing: distance between gridpoints 
+        :arg boolean com: Flag to know if the script requires to obtain the center of mass of the mask   
+        """
+        def _get_trajin_cmd(traj):
+            return "trajin %s 1 last %s\n" % (traj, offstep)
+        def _get_dimensions_string():
+            return " ".join([
+                item for sublist in [[str(dimensions[i]), str(spacing)] for i in range(3)]
+                for item in sublist
+            ])
+        def _get_grid_center_string():
+            return " ".join([str(x) for x in grid_c[:3]])
+        def _get_grid_cmd():
+            format_string = "grid %s %s gridcenter %s %s :%s\n"
+            byres = "byres" if com else ""
+            return format_string % (
+                outgrid,
+                _get_dimensions_string(),
+                _get_grid_center_string(),
+                byres,
+                gridmask
+            )
+        template = [_get_trajin_cmd(traj_i) for traj_i in trajin]
+        template.append(_get_grid_cmd())
+        return "\n".join(template)
+
     def getPtrajImagingCommands(self, system=None, pdbFile=None, extraResidues=[]):
         "Usually, when more than one chain is present in the system, amber writes the trajectory splitting the system. \
         This command is useful to obtain the proper ptraj commands to fix this."

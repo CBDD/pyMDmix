@@ -26,7 +26,7 @@ def getRequirements():
     return requirements
 
 def getVersionFromInit():
-    return '0.2.6'
+    return '0.2.7'
 
 setup(
     name='pyMDMix',
