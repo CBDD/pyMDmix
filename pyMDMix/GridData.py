@@ -33,6 +33,7 @@ import re
 import copy
 
 import numpy as npy
+from gridData import Grid
 
 class GridDataError(Exception):
     pass
@@ -271,66 +272,27 @@ class GridData(object):
         self.source = binxplor
 
     def readDX(self, DX):
+        def _get_uncompressed_filename():
+            filename, extension = os.path.splitext(DX)
+            if extension == "gz":
+                import gzip, shutil
+                with gzip.open(DX, 'rb') as compressed, open(filename, 'wb') as uncompressed:
+                    shutil.copyfileobj(compressed, uncompressed)
+                return filename
+            return DX
+
         """
         Read grid data from a DX formated file.
         
         :parm str DX: Path to file to read.
         """
         # Unzip if zipped
-        if 'gz' in DX:
-            import gzip
-            op = lambda x: gzip.open(x, 'rb')
-        else:
-            op = lambda x: open(x, 'r')
-
-        f=op(DX)
-        #read the header if any
-        header=""
-        l = f.readline()
-        while l.startswith('#'):
-            header= header + l
-            l = f.readline()
-
-        #read the grid size
-        r=re.compile('\w+')
-        gsize=r.findall(l) # Read first non hashed line
-    #        print gsize
-        gsize=[int(gsize[-3]),int(gsize[-2]),int(gsize[-1])]
-
-        #read the origin of the system
-        line=f.readline().split()
-        origin=[float(line[-3]),float(line[-2]),float(line[-1])]
-
-        #read grid space
-        line=f.readline().split()
-        deltax=[float(line[-3]),float(line[-2]),float(line[-1])]
-        line=f.readline().split()
-        deltay=[float(line[-3]),float(line[-2]),float(line[-1])]
-        line=f.readline().split()
-        deltaz=[float(line[-3]),float(line[-2]),float(line[-1])]
-
-        #pay attention here, this assumes always orthogonal normalized space, but normally it should be ok
-        delta=[deltax[0],deltay[1],deltaz[2]]
-
-        #read the number of data
-        f.readline()
-        r=re.compile('\d+')
-        n_entries=int(r.findall(f.readline())[2])
-
-        #check correpondence with expected data points
-        if(n_entries!=gsize[0]*gsize[1]*gsize[2]) : sys.exit("Error reading the file. The number of expected data points does not correspond to the number of labeled data points in the header.")
-
-        #load data into numpy array
-        grid = npy.fromstring(f.read(), sep=' ', dtype=float).reshape(gsize) #reshaping to fit grid format (it keeps Z fast, Y medium, X slow data organization)
-
-        if grid.size != n_entries: sys.exit("Error reading the file. The number of expected data points does not correspond to the number of labeled data points in the header.")
-        f.close()
-
-        self.header = header
-        self.data= grid
+        grid = Grid()
+        grid.load(_get_uncompressed_filename())
+        self.data= grid.grid
         self.shape = npy.array(self.data.shape)
-        self.origin = origin
-        self.delta = delta
+        self.origin = grid.origin
+        self.delta = grid.delta
         self.source = DX
 
     def loadData(self, pick):

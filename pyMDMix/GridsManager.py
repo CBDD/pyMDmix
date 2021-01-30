@@ -102,7 +102,7 @@ class Grid(GridData.GridData):
     def getTypeFromHeader(self):
         "Look in grid file header to detect the type: MDMIX_DENS MDMIX_RAW MDMIX_CORR MDMIX_OTHER"       
         for gtype in S.GRIDTYPES:
-            if gtype in self.header: 
+            if self.header is not None and gtype in self.header:
                 self.type = gtype
                 return gtype
         # No type info found. Use unknown type MDMIX_UNK
@@ -126,7 +126,7 @@ class Grid(GridData.GridData):
     
     def getProbeFromHeader(self):
         "Fetch probe info in header. It should be the second word in the line."
-        if not self.header:
+        if self.header is None:
             self.probe = 'UNK'
             return "UNK"
 
