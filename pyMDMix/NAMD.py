@@ -486,7 +486,7 @@ class NAMDCheck(object):
                 if self.warn: self.log.warn("Production output file not found for step %i"%i)
                 return False
             else:
-                if not S.AMBER_MD_COMPLETE in out:
+                if not S.NAMD_FILE_COMPLETE in out:
                     if self.warn: self.log.warn("MD production step %i not completed or errors arised"%i)
                     return False
         return True
