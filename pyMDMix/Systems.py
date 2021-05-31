@@ -155,6 +155,8 @@ class System(object):
         if self.create:
             self.create.leap.close()
             self.create = None
+            #if self.amberOFF:
+            #    self.amberOFF.cleanTmp()
 
     def setAmberPDB(self, amberPDB, FF=[], **kwargs):
         """

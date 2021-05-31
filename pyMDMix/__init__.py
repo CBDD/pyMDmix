@@ -28,7 +28,7 @@
 
 __author__="dalvarez"
 __date__ ="$19-ene-2014 18:43:19$"
-__version__="v0.2-4-gc08a4da"
+__version__="0.2.8"
 import settings as S # A basic logger is initiated here
 import tools
 
@@ -50,3 +50,6 @@ atexit.register(tools.EXECUTOR.terminate)
 
 #from PDB import SolvatedSystem
 from settings import setLogger
+
+class MDMixError(Exception):
+    pass

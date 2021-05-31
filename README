@@ -40,49 +40,35 @@ INSTALLATION
 
 1- Dependencies
 ---------------
-Before installing the program, all dependencies must be fulfilled.
-As stated in the installation website, most of the dependencies
-will be automatically installed but these 2:
+This version of pyMDMix depends on:
+  - ambertools>=12
+  - python>=2.7
 
-1) Ambertools. Is the main workhorse where the program has been built upon.
-2) Biskit and ScientificPython. Biskit is a python module that manages PDBs very efficiently.
-  Its automatic installation fails and that's why the user has to install 
-  it beforehand. Scientific Python which is a dependency of pyMDMix is also
-  a dependency for Biskit. I recommend to install it with NetCDF support.
-3) ParmEd 1.1. when working with OpenMM.
-
-Once these 3 dependencies are installed, these other list will be automatically installed:
-
-- scipy
-- numpy
-- matplotlib
-
-If they are not, install them manually.
+make sure ambertools environment variables are set
 
 2 - Installation process
 ------------------------
-In main source code folder, type:
+it is advised to install pyMDMix in a virtual environment
 
-   > python setup.py install
+there are two recommended ways to install pyMDMix:
+1. from the repository by
+`python -m pip install [insert address here]`
 
-This might require admin privileges. You can 
-install a local copy without admin privileges with:
+2. from the project's local folder after cloning the repo by
+`python -m pip install .`
 
-   > python setup.py install --user
 
 3 - Testing
 -----------
-Test if the python module has been correctly installed:
-	Move to any folder in your system and init a python shell:
-		> python
-	Inside the python shell:
-		>>> import pyMDMix
-	If this loads correctly you should see no error message.
 
-Test if the executable user interface has been corectly installed:
-	In any folder type at the shell prompt:
-		> mdmix -h
-	This should print a help message.
+You can test the package has been successfuly installed by activating
+the environment and, from a folder other than the cloned repository, running
+`python -m pyMDMix`
+if everything went fine, you will see something like
+`Welcome to MDMix 2.6`
+
+The main script should have been installed correclty also. check it by running
+`mdmix -h`
 
 Test the program works correctly:
 	Move again to the package source directory and type:
