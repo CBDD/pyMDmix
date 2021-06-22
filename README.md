@@ -1,26 +1,4 @@
-##
 ## pyMDMix --- http://mdmix.sourceforge.net
-## Software for preparation, analysis and quality control
-## of solvent mixtures molecular dynamics
-##
-## This program is free software; you can redistribute it and/or
-## modify it under the terms of the GNU General Public License as
-## published by the Free Software Foundation; either version 3 of the
-## License, or any later version.
-##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-## General Public License for more details.
-##
-## You find a copy of the GNU General Public License in the file
-## license.txt along with this program; if not, write to the Free
-## Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-##
-## Please cite your use of pyMDMix in published work:
-##
-##    TOBEPUBLISHED
-##
 
 The program is distributed under GNU GPLv3 license. Find the license file
 under Licenses/ folder.
