@@ -1,0 +1,8 @@
+name: mdmix-env
+channels:
+  - conda-forge
+dependencies:
+  - pip=19.3.1=py27_0
+  - python=2.7.18=h15b4118_1
+  - pip:
+    - "--editable=git+https://github.com/CBDD/pyMDmix.git@master-legacy#egg=pymdmix"
