@@ -188,12 +188,12 @@ class Align(object):
             # For each step, generate alignment script and write file
             ext = exts[i]
             if not ext:
-                if self.warn: self.log.warn("Production trajectory file for step %i not found. Writting ptraj input anyway."%i)
+                if self.warn: self.log.warn("Production trajectory file for step %i not found. Writting ptraj input anyway using default NETCDF."%i)
 
 	    n = self.replica.mdoutfiletemplate.format(step=i, extension=ext)
             trajin = mdpath+os.sep+n
             trajout=n
-            if ext in ('nc','netcdf','ncdf'): trajout+=' netcdf'
+            if not ext or ext in ('nc','netcdf','ncdf'): trajout+=' netcdf'
             elif ext in ('dcd'): trajout+=' dcd'
 
             # Protavg and rmsdout names
