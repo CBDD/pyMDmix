@@ -868,11 +868,11 @@ Solvent: {solvent}
         else: return False
 
     def runAlignment(self, ncpus=1, steps=[], waitend=True, **kwargs):
-        if not self.isProductionFinished(steps): raise ReplicaError, "Cannot align replica because production stage is not completed."
+        if kwargs.get('run') and not self.isProductionFinished(steps): raise ReplicaError, "Cannot align replica because production stage is not completed."
         from Align import Align
         Align(self, steps=steps, nthreads=ncpus, waitend=waitend, **kwargs)     
     def runcppDensity(self, ncpus, waitend=True, **kwargs):
-        if not self.isAligned(): raise ReplicaError, "Cannot calculate density because alignment is not completed."
+        if kwargs.get('run') and not self.isAligned(): raise ReplicaError, "Cannot calculate density because alignment is not completed."
         from Actions.Density import DensityGrids, cppDensity
         samplegrid = DensityGrids(self, probeselection=kwargs['probelist'], outprefix=kwargs['outprefix'], includeCOM=kwargs['includeCOM'],
                             onlyCOM=kwargs['onlyCOM'], stepselection=kwargs['nanosel'], reference=kwargs['ref'])
