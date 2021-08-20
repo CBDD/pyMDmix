@@ -190,8 +190,8 @@ class Align(object):
             if not ext:
                 if self.warn: self.log.warn("Production trajectory file for step %i not found. Writting ptraj input anyway using default NETCDF."%i)
                 ext = 'nc'
-
-	        n = self.replica.mdoutfiletemplate.format(step=i, extension=ext)
+                
+            n = self.replica.mdoutfiletemplate.format(step=i, extension=ext)
             trajin = mdpath+os.sep+n
             trajout=n
             if ext in ('nc','netcdf','ncdf'): trajout+=' netcdf'
