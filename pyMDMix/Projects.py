@@ -422,7 +422,19 @@ class Project(object):
         self.log.info("Running alignment for replicas %s"%replicalist)
         self.applyReplicas('runAlignment',replicalist, steps=steps, ncpus=ncpus, **kwargs)
         if waitend: T.EXECUTOR.waitJobCompletion()
-
+        
+    def calc_cppdensityReplicas(self, replicalist, ncpus=1, waitend=True, **kwargs):
+        """
+        Run density calculation process on replicas in replicalist
+        
+        :arg list replicalist: List of replica instances
+        :arg int ncpus: Threads to start (normal will be 1)
+        :arg list steps: Steps to use for the density calculation. If emtpy: analyze all.
+        :arg bool waitend: Wait until all alignment process is done before exiting the method        
+        """
+        self.log.info("Running cpp density calculation for replicas %s"%replicalist)
+        self.applyReplicas('runcppDensity',replicalist, ncpus=ncpus, **kwargs)
+        if waitend: T.EXECUTOR.waitJobCompletion()
     
     def write(self):
         "Save object __dict__ to pickled file."
@@ -511,6 +523,25 @@ def loadProject(projectfile=None):
             raise ProjectError,"More than one project file in current folder. Please remove the invald one."
         projectfile = files[0]
     return Project(fromfile=projectfile)
+
+def returnMDMixProject(parserargs):
+    if parserargs.debug: level='DEBUG'
+    else: level='INFO'
+    import pyMDMix
+    pyMDMix.setLogger(level=level)
+    try:
+        p = pyMDMix.loadProject()
+        return p
+    except:
+        return False
+
+def returnMDMixProjectOrFail(parserargs):
+    #When command is different to CREATE PROJECT or INFO, this program should be executed in project folder
+    #Let's try to load a project or exit
+    p = returnMDMixProject(parserargs)
+    from pyMDMix import MDMixError
+    if not p: raise MDMixError, 'No project file found in current folder. Make sure you are in a pyMDMix project folder.'
+    return p
 
 
 ###TESTING

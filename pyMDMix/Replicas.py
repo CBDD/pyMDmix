@@ -373,7 +373,7 @@ Solvent: {solvent}
         p.fixNumbering()
         return p
     
-    def getGridsByType(self, type=None, **kwargs):
+    def getGridsByType(self, grid_type=None, **kwargs):
         """Return grids found in current replica.
         If *type* is given, will only return grids matching the type selected.
         If *type* is **None**, will return any grid found.
@@ -382,13 +382,13 @@ Solvent: {solvent}
         """
         if not self.grids: self.fetchGrids(**kwargs)
         d = {}
-        if type: d[type] = {}
+        grids_by_type = {g.type: [] for g in self.grids}
         for g in self.grids:
-            if type:
-                if g.type == type: d[type][g.probe] = g
-            else:
-                if not d.has_key(g.type): d[g.type] = {}
-                d[g.type][g.probe] = g
+            grids_by_type[g.type].append(g)
+        d = {
+            gtype: {g.probe: g for g in glist} if grid_type is None or grid_type == gtype else {}
+            for gtype, glist in grids_by_type.items()
+        }
         return d
 
     def getGridsByProbe(self, probelist, **kwargs):
@@ -868,10 +868,18 @@ Solvent: {solvent}
         else: return False
 
     def runAlignment(self, ncpus=1, steps=[], waitend=True, **kwargs):
-        if not self.isProductionFinished(steps): raise ReplicaError, "Cannot align replica because production stage is not completed."
+        if kwargs.get('run') and not self.isProductionFinished(steps): raise ReplicaError, "Cannot align replica because production stage is not completed."
         from Align import Align
         Align(self, steps=steps, nthreads=ncpus, waitend=waitend, **kwargs)     
-
+    def runcppDensity(self, ncpus, waitend=True, **kwargs):
+        if kwargs.get('run') and not self.isAligned(): raise ReplicaError, "Cannot calculate density because alignment is not completed."
+        from Actions.Density import DensityGrids, cppDensity
+        samplegrid = DensityGrids(self, probeselection=kwargs['probelist'], outprefix=kwargs['outprefix'], includeCOM=kwargs['includeCOM'],
+                            onlyCOM=kwargs['onlyCOM'], stepselection=kwargs['nanosel'], reference=kwargs['ref'])
+        samplegrid.prepareGrids()
+        origin = samplegrid.container.origin
+        dimensions = samplegrid.container.shape
+        cppDensity(self, nthreads=ncpus, waitend=waitend,  griddimensions = dimensions, gridorigin=origin,**kwargs)
     def calcEnergy(self, **kwargs):
         "Convert density to energies. Give in ``\*\*kwargs`` all parameters to :meth:`Energy.EnergyConversion.convert`."
         from Energy import EnergyConversion
