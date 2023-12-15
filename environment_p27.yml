@@ -2,12 +2,14 @@ name: mdmix-env
 channels:
   - conda-forge
 dependencies:
-  # - python=2.7.18=h15b4118_1
   - python=2.7
   - pip=19.3.1=py27_0
   - numpy=1.16
   - matplotlib
   - scipy
   - cftime
-  - pip:
-    - "--editable=git+https://github.com/CBDD/pyMDmix.git@master#egg=pymdmix"
+  - ambertools
+  - netCDF4==1.5.3
+  - mechanize
+  - biopython==1.76
+  - griddataformats

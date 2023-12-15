@@ -30,7 +30,16 @@ there are three recommended ways to install pyMDMix:
 2. from the project's local folder after cloning the repo by
 `python -m pip install .`
 
-3. Use conda or mamba: `conda env create -f environment_p27.yml` then activate it `conda activate mdmix-env`
+3. Use conda or mamba: we will first create the correct conda environment which will already contain ambertools. We will then set the AMBERHOME variable within the environment and finally proceed to install pymdmix from the local git cloned files. Make sure `$CONDA_PREFIX` points to the conda installation directory (it may happen when you activate the new environment this varaible is lost, in that case change the variable for the explicit path). 
+
+```bash
+git clone https://github.com/CBDD/pyMDmix.git
+cd pyMDMix
+conda env create -f environment_p27.yml
+conda activate mdmix-env
+conda env config vars set AMBERHOME=$CONDA_PREFIX/envs/mdmix-env
+pip install .
+```
 
 3 - Testing
 -----------
