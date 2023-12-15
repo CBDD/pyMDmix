@@ -23,13 +23,14 @@ make sure ambertools environment variables are set
 ------------------------
 it is advised to install pyMDMix in a virtual environment
 
-there are two recommended ways to install pyMDMix:
+there are three recommended ways to install pyMDMix:
 1. from the repository by
 `python -m pip install [insert address here]`
 
 2. from the project's local folder after cloning the repo by
 `python -m pip install .`
 
+3. Use conda or mamba: `conda env create -f environment_p27.yml` then activate it `conda activate mdmix-env`
 
 3 - Testing
 -----------
