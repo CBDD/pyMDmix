@@ -598,7 +598,7 @@ class AmberPDBCleaner(bi.AmberParmBuilder):
                 if m.chainBreaks():
                     end_broken = m.atom2chainIndices( m.chainBreaks() )
                     capC = MU.union( capC, end_broken ) or [0]
-                    capN = MU.union( capN, N.array( end_broken ) + 1 ) or [0]
+                    capN = MU.union( capN, npy.array( end_broken ) + 1 ) or [0]
 
             for i in capN:
                 if self.verbose:
