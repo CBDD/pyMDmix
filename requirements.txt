@@ -1,8 +1,7 @@
-numpy
-scipy==0.18.1
+numpy==1.16
+scipy>=0.18.1
 Matplotlib
 netCDF4==1.5.3
 Biskit
 mechanize
 biopython==1.76
-griddataformats
