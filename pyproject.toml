@@ -25,7 +25,7 @@ sdmodify = "rdock_utils.sdmodify:main"
 [tool.ruff]
 line-length = 119
 target-version = "py312"
-exclude = [".git","__pycache__","pyMDMix", "src", "createSolvents.py"]
+exclude = [".git","__pycache__","pyMDMix", "src", "createSolvents.py", "doc"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I"]
