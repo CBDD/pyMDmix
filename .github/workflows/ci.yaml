@@ -1,0 +1,68 @@
+name: Lint and Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "mdmix3-dev" ]
+
+  pull_request:
+    branches: [ "mdmix3-dev" ]
+
+jobs:
+  build-dev:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      REPOSITORY: ${{ steps.repository_lower.outputs.REPOSITORY }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log into registry ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: set repository lower case
+        id: repository_lower
+        run: |
+          echo REPOSITORY=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          tags: ghcr.io/${{ steps.repository_lower.outputs.REPOSITORY }}_dev
+          push: true
+          target: development
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  test:
+    needs: build-dev
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ needs.build-dev.outputs.REPOSITORY }}_dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run ruff
+        run: |
+          ruff check .
+
+      - name: Run mypy
+        run: |
+          mypy .
+
+      - name: Run pytest
+        run: |
+          pytest -v .
