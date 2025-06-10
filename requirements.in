@@ -1,0 +1,9 @@
+numpy
+scipy
+Matplotlib
+netCDF4
+griddataformats
+platformdirs
+pydantic-settings
+typer[all]
+semver
