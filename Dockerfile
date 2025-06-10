@@ -1,4 +1,4 @@
-FROM continuumio/miniconda3 as base
+FROM continuumio/miniconda3 AS base
 
 ARG PYTHON_VERSION=3.12
 
