@@ -1,7 +1,6 @@
 import logging
 from typing import Iterable
 
-from .exceptions import SolventNotFound
 from .models import CreateSolventRequest, CreateSolventResponse, DeleteSolventRequest, DeleteSolventResponse, Solvent
 from .repositories import DEFAULT_REPOSITORY, SolventRepository
 

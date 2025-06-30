@@ -5,6 +5,7 @@ from .exceptions import SolventException, SolventExists, SolventNotFound
 from .models import CreateSolventRequest, Solvent, SolventDefinition
 from .repositories import DEFAULT_REPOSITORY as SOLVENT_DEFAULT_REPOSITORY
 from .repositories import SolventInMemoryRepository, SolventRepository, get_repository
+from .service import SolventService
 
 
 def register(core_app: typer.Typer) -> None:
@@ -23,4 +24,5 @@ __all__ = [
     "SolventInMemoryRepository",
     "SolventRepository",
     "get_repository",
+    "SolventService",
 ]
