@@ -14,4 +14,4 @@ solvents:
       - name: C
         mask: ANT@C3
         types: [Hyd]
-    frcmod_paths: []
+    frcmods: []
