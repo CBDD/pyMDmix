@@ -5,6 +5,7 @@ netCDF4
 numpy
 platformdirs
 pydantic-settings
+pyyaml
 scipy
 semver
 typer[all]

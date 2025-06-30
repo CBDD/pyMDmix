@@ -64,6 +64,8 @@ python-dateutil==2.9.0.post0
     # via matplotlib
 python-dotenv==1.1.0
     # via pydantic-settings
+pyyaml==6.0.2
+    # via -r requirements.in
 rich==14.0.0
     # via typer
 scipy==1.15.3
