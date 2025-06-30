@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import yaml
 from pydantic import BaseModel
 
 DEFAULT_WATER_MODEL = "TIP3P"
@@ -61,12 +62,8 @@ class Solvent(BaseModel):
         return f"{self.name}({self.water_model}): {self.description}"
 
     def toRecord(self) -> str:
-        return "\n".join(
-            [
-                f"{self.name}:",
-                f"\t",
-            ]
-        )
+        data = {self.name: self.model_dump(exclude={"name", "data"})}
+        return yaml.dump(data)
 
     @staticmethod
     def from_solvent_definition(solvent_definition: SolventDefinition) -> "Solvent":
