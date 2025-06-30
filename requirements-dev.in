@@ -3,3 +3,4 @@ ruff
 mypy
 pip-tools
 pytest
+types-pyyaml

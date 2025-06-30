@@ -7,7 +7,7 @@ from .repositories import DEFAULT_REPOSITORY as SOLVENT_DEFAULT_REPOSITORY
 from .repositories import SolventInMemoryRepository, SolventRepository, get_repository
 
 
-def register(core_app: typer.Typer):
+def register(core_app: typer.Typer) -> None:
     core_app.add_typer(solvent_app, name="solvent")
 
 

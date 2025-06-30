@@ -6,4 +6,5 @@ import yaml
 
 def load_yaml(path: Path) -> dict[str, Any]:
     with open(path, "r") as f:
-        return yaml.load(f, yaml.FullLoader)
+        data: dict[str, Any] = yaml.full_load(f)
+        return data

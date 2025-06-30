@@ -5,7 +5,7 @@ from .plugin import load_plugin
 
 
 class MDMixApp:
-    def display_header(self):
+    def display_header(self) -> None:
         print("mdmix 0.3.0 - to be implemented")
 
     def __init__(self, config: AppConfig = AppConfig()):
@@ -15,7 +15,7 @@ class MDMixApp:
             plugin = load_plugin(module)
             plugin.register(self.typer_app)
 
-    def run(self):
+    def run(self) -> None:
         self.display_header()
         self.typer_app()
 

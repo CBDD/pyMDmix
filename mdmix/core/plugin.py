@@ -21,7 +21,7 @@ import typer
 
 @runtime_checkable
 class Plugin(Protocol):
-    def register(self, core_app: typer.Typer): ...
+    def register(self, core_app: typer.Typer) -> None: ...
 
 
 def load_plugin(module: str) -> Plugin:
