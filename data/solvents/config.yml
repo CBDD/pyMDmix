@@ -1,0 +1,151 @@
+solvents:
+
+  - name: ANT
+    description: Acetonitrile 20% mixture
+    off_file: data/solvents/ANTWAT20.off
+    box_unit: ANTWAT20
+    water_model: TIP3P
+    probes:
+      - name: WAT
+        mask: WAT@O
+        types: [Wat]
+      - name: N
+        mask: ANT@N1
+        types: [Acc]
+      - name: C
+        mask: ANT@C3
+        types: [Hyd]
+    frcmods: []
+
+  - name: ETA
+    description: Ethanol 20% mixture
+    off_file: data/solvents/ETAWAT20.off
+    box_unit: ETAWAT20
+    water_model: TIP3P
+    probes:
+      - name: WAT
+        mask: WAT@O
+        types: [Wat]
+      - name: CT
+        mask: ETA@C1
+        types: [Hyd]
+      - name: OH
+        mask: ETA@O1
+        types: [Don, Acc]
+    frcmods: []
+
+  - name: ION
+    description: Ammonium Acetate mixture (Charged mixture)
+    off_file: data/solvents/IONWAT20.off
+    box_unit: CN3COOWAT
+    water_model: TIP3P
+    probes:
+      - name: WAT
+        mask: WAT@O
+        types: [Wat]
+      - name: NEG
+        mask: COO@O1,O2
+        types: [Neg]
+      - name: POS
+        mask: CN3@N1
+        types: [Pos]
+    frcmods: []
+
+  - name: ISO
+    description: Isopropanol 20% mixture
+    off_file: data/solvents/ISOWAT20.off
+    box_unit: ISOWAT20
+    water_model: TIP3P
+    probes:
+      - name: WAT
+        mask: WAT@O
+        types: [Wat]
+      - name: OH
+        mask: ISO@O1
+        types: [Don, Acc]
+      - name: CT
+        mask: ISO@C1,C3
+        types: [Hyd]
+    frcmods: []
+
+  - name: ISO5
+    description: Isopropanol 5% mixture
+    off_file: data/solvents/ISOWAT5_ok.off
+    box_unit: ISOWAT5
+    water_model: TIP3P
+    probes:
+      - name: WAT
+        mask: WAT@O
+        types: [Wat]
+      - name: OH
+        mask: ISO@O1
+        types: [Don, Acc]
+      - name: CT
+        mask: ISO@C1,C3
+        types: [Hyd]
+    frcmods: []
+
+  - name: MAM
+    description: Acetamide 20% mixture
+    off_file: data/solvents/MAMWAT20.off
+    box_unit: MAMWAT20
+    water_model: TIP3P
+    probes:
+      - name: WAT
+        mask: WAT@O
+        types: [Wat]
+      - name: N
+        mask: MAM@N1
+        types: [Don]
+      - name: O
+        mask: MAM@O1
+        types: [Acc]
+      - name: CT
+        mask: MAM@C2
+        types: [Hyd]
+    frcmods: []
+
+  - name: MOH
+    description: Methanol 20% mixture
+    off_file: data/solvents/MOHWAT20.off
+    box_unit: MOHWAT20
+    water_model: TIP3P
+    probes:
+      - name: WAT
+        mask: WAT@O
+        types: [Wat]
+      - name: OH
+        mask: MOH@O1
+        types: [Don, Acc]
+      - name: CT
+        mask: MOH@C1
+        types: [Hyd]
+    frcmods: []
+
+  - name: PYR1
+    description: Pyridine mixture 1%
+    off_file: data/solvents/PYRWAT1.off
+    box_unit: PYRWAT1
+    water_model: TIP3P
+    probes:
+      - name: WAT
+        mask: WAT@O
+        types: [Wat]
+      - name: C
+        mask: PYR@C1,C2,C3,C4,C5
+        types: [Arom]
+      - name: N
+        mask: PYR@N1
+        types: [Acc]
+    frcmods: []
+
+  - name: WAT
+    description: Water box
+    off_file: data/solvents/WATBOX.off
+    box_unit: TIP3PBOX
+    water_model: TIP3P
+    probes:
+      - name: WAT
+        mask: WAT@O
+        types: [Wat]
+    frcmods: []

@@ -1,9 +1,10 @@
-numpy
-scipy
+click<8.2.0
+griddataformats
 Matplotlib
 netCDF4
-griddataformats
+numpy
 platformdirs
 pydantic-settings
-typer[all]
+scipy
 semver
+typer[all]

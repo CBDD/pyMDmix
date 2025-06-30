@@ -7,9 +7,7 @@ RUN conda config --add channels defaults && \
     conda config --add channels bioconda && \
     conda config --add channels conda-forge
 
-# RUN apt update && apt install libnetcdf-dev -y
-
-RUN conda install -y python=${PYTHON_VERSION} ambertools
+RUN conda install -y -q python=${PYTHON_VERSION} ambertools
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
