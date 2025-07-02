@@ -1,7 +1,14 @@
+from collections import defaultdict
+from functools import cached_property
+from io import StringIO
 from pathlib import Path
+from typing import Self
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
+
+from mdmix.amber.offparser import OFFFile
+from mdmix.core.models import Residue
 
 DEFAULT_WATER_MODEL = "TIP3P"
 
@@ -10,6 +17,16 @@ class Probe(BaseModel):
     name: str
     mask: str
     types: list[str]
+
+    @cached_property
+    def res_atom_mapping(self) -> dict[str, list[str]]:
+        "Split string of format RESNAME@ATOMNAME,ATOMNAME;RESNAME@ATOMNAMES and return a dictionary {RES:[ATOMNAME, ATOMNAME..], RES:[ATOMNAMES]}"
+        raw = self.mask[1:] if self.mask.startswith(":") else self.mask
+        out: dict[str, list[str]] = defaultdict(list)
+        for entry in raw.split(";"):
+            parts = entry.split("@")
+            out[parts[0]] += [atom.strip() for atom in parts[1].split(",")] if len(parts) == 2 else ["all"]
+        return out
 
 
 class SolventDefinition(BaseModel):
@@ -20,10 +37,6 @@ class SolventDefinition(BaseModel):
     water_model: str
     probes: list[Probe]
     frcmods: list[str]
-
-    def read_off(self) -> bytes:
-        with open(self.off_file, "br") as f:
-            return f.read()
 
 
 class CreateSolventRequest(BaseModel):
@@ -48,10 +61,11 @@ class DeleteSolventResponse(BaseModel):
 
 class Solvent(BaseModel):
     name: str
-    data: bytes
-    probes: list[Probe]
+    data: str
+    probes: dict[str, Probe]
     box_unit: str
-    frcmods: list[str] = []
+    # TODO: check how (or if) this is being used in the original mdmix implementation
+    frcmods: dict[str, str] = {}
     water_model: str = DEFAULT_WATER_MODEL
     description: str = ""
 
@@ -65,61 +79,52 @@ class Solvent(BaseModel):
         data = {self.name: self.model_dump(exclude={"name", "data"})}
         return yaml.dump(data)
 
-    @staticmethod
-    def from_solvent_definition(solvent_definition: SolventDefinition) -> "Solvent":
-        return Solvent(
-            name=solvent_definition.name,
-            data=solvent_definition.read_off(),
-            probes=solvent_definition.probes,
-            box_unit=solvent_definition.box_unit,
-            frcmods=solvent_definition.frcmods,
-            water_model=solvent_definition.water_model,
-            description=solvent_definition.description,
-        )
+    @cached_property
+    def off_file(self) -> OFFFile:
+        return OFFFile(StringIO(self.data))
+
+    @cached_property
+    def residues(self) -> dict[str, Residue]:
+        return {res_name: self.off_file.get_residue(res_name) for res_name in self.off_file.get_residues(self.box_unit)}
+
+    # TODO
+    # @cached_property
+    # def com_probes(self) -> dict[str, ???]:
+    #     pass
+
+    @cached_property
+    def types(self) -> set[str]:
+        return {probe_type for probe in self.probes.values() for probe_type in probe.types}
+
+    @cached_property
+    def volume(self) -> float:
+        return self.off_file.get_box_size(self.box_unit)
+
+    @model_validator(mode="after")
+    def validate_solvent(self) -> Self:
+        assert self.box_unit in self.off_file.units, f"Box unit {self.box_unit} not present in the off file"
+        missing_residues = set(self.residues) - set(self.off_file.units)
+        assert len(missing_residues) == 0, f"Residue definitions not present in the off file for {missing_residues}"
+        assert self.volume > 0
+        return self
 
 
-"""
-previously, a config file for a solvent would be an ini file like this:
-[GENERAL]
-# solvation name (ex: ION)
-name = ANT 
-info = Acetonitrile 20%% mixture
-# path to off file
-objectfile = ANTWAT20.off 
-# Name of the solvation box  unit in object file(ex: IONWAT20)
-boxunit = ANTWAT20
-watermodel = TIP3P
+def SolventFactory(definition: SolventDefinition) -> Solvent:
+    with open(definition.off_file, "r") as f:
+        data = f.read()
 
-[PROBES]
-# map probe names with residue@atoms (ie. NEG=COO@O1,O2)
-# probe names must be unique
-WAT=WAT@O
-N=ANT@N1
-C=ANT@C3
+    frcmods: dict[str, str] = {}
+    for filename in definition.frcmods:
+        with open(filename, "r") as f:
+            frcmods[filename] = f.read()
 
-[TYPES]
-WAT=Wat
-N=Acc
-C=Hyd
+    return Solvent(
+        name=definition.name,
+        data=data,
+        probes={probe.name: probe for probe in definition.probes},
+        box_unit=definition.box_unit,
+        frcmods=frcmods,
+        water_model=definition.water_model,
+        description=definition.description,
+    )
 
-
-now it's a yaml like that:
-
-solvents:
-  - name: ANT
-    description: Acetonitrile 20% mixture
-    objectfile: ANTWAT20.off
-    boxunit: ANTWAT20
-    watermodel: TIP3P
-    probes:
-      - name: WAT
-        mask: WAT@O
-        types: [Wat]
-      - name: N
-        mask: ANT@N1
-        types: [Acc]
-      - name: C
-        mask: ANT@C3
-        types: [Hyd]
-    frcmod_paths: []
-"""
