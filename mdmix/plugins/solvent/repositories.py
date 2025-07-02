@@ -3,7 +3,7 @@ from typing import Iterable, Protocol
 import yaml
 
 from .exceptions import SolventException, SolventExists, SolventNotFound
-from .models import CreateSolventRequest, Solvent, SolventDefinition
+from .models import CreateSolventRequest, Solvent, SolventDefinition, SolventFactory
 
 
 class SolventRepository(Protocol):
@@ -41,7 +41,7 @@ class SolventInMemoryRepository:
     def create(self, request: SolventDefinition, update_existing: bool = False) -> str:
         if not update_existing and request.name in self.data:
             raise SolventExists(request.name)
-        self.data[request.name] = Solvent.from_solvent_definition(request)
+        self.data[request.name] = SolventFactory(request)
         return request.name
 
     def delete(self, id: str, ignore_missing: bool = True) -> str | None:
