@@ -1,7 +1,7 @@
 solvents:
   - name: ANT
     description: Acetonitrile 20% mixture
-    off_file: ANTWAT20.off
+    off_file: tests/solvent/fixtures/ANTWAT20.off
     box_unit: ANTWAT20
     water_model: TIP3P
     probes:
