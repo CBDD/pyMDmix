@@ -1,18 +1,3 @@
-# from dataclasses import dataclass
-
-# from semver import VersionInfo
-
-
-# @dataclass
-# class Plugin:
-#     name: str
-#     version: VersionInfo = VersionInfo(0, 1, 1)
-#     description: str = ""
-
-
-#     def register(self):
-#         raise NotImplementedError("Plugin must implement an override for register()")
-
 import importlib
 from typing import Protocol, runtime_checkable
 
