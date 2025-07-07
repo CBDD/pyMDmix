@@ -21,7 +21,8 @@ class Atom(BaseModel):
     def __repr__(self) -> str:
         return self.name
 
-    def __eq__(self, other: Any) -> bool:
+    # originally the __eq__ operator
+    def eq(self, other: Any) -> bool:
         return other.name == self.name if isinstance(other, Atom) else other == self.name
 
 
@@ -73,7 +74,8 @@ class Probe(BaseModel):
 
     @cached_property
     def mask(self) -> NDArray[numpy.bool]:
-        return numpy.array([at.name in self.atoms for at in self.residue.atoms])
+        atom_names = [atom.name for atom in self.atoms]
+        return numpy.array([atom.name in atom_names for atom in self.residue.atoms])
 
     def istype(self, type: str) -> bool:
         return type in self.types
