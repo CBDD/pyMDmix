@@ -2,4 +2,6 @@
 ruff
 mypy
 pip-tools
+pre-commit
 pytest
+types-pyyaml
