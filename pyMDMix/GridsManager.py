@@ -348,8 +348,8 @@ class GridSpace(object):
                 for i in d:
                     if not map_dict.has_key(i):
                         if isinstance(n, list):
-                        	map_dict[i] = n
-			else: map_dict[i] = [n]
+                                map_dict[i] = n
+                        else: map_dict[i] = [n]
                     else:
                         if isinstance(n, list): [map_dict[i].append(e) for e in n]
                         else: map_dict[i].append(n)
@@ -357,9 +357,9 @@ class GridSpace(object):
                 i = d
                 if not map_dict.has_key(i):
                     if isinstance(n, list):
-                    	map_dict[i] = n
-		    else: 
-			map_dict[i] = [n]
+                        map_dict[i] = n
+                    else: 
+                        map_dict[i] = [n]
                 else:
                     if isinstance(n, list): [map_dict[i].append(e) for e in n]
                     else: map_dict[i].append(n)

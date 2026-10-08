@@ -848,7 +848,7 @@ class GridFromPDB(GridData):
         elif os.path.exists(PDB):
             pdb_model = Biskit.PDBModel(PDB)                    #Open pdb as Biskit PDBModel
             if takeProtein: prot = pdb_model.compress(pdb_model.maskProtein())  #Read only protein from PDBModel
-	    else: prot = pdb_model
+            else: prot = pdb_model
         else: 
             print "Couldn't locate PDB file: ",PDB
             return False        

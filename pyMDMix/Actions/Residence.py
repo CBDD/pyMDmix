@@ -150,7 +150,7 @@ class Residence(object):
         self.tolerance = tolerance
         self.trackResNames = trackResNames
         self.outfilename = outfilename
-	self.hotspot_coords = []
+        self.hotspot_coords = []
         self.workerList = []
         self.results = {}
         self.mapIndexToResID = {}
