@@ -1319,8 +1319,8 @@ class Test(BT.BiskitTest):
         """Load DX grid"""
         g = GridData(self.dxf)
         self.assertAlmostEqual(g.data.mean(), 4.215793, 4)
-        self.assertEqual(g.delta, [0.5,0.5,0.5])
-        self.assertEqual(g.origin, [-33., -33., -33.])
+        npy.testing.assert_allclose(g.delta, [0.5,0.5,0.5])         # DX grids hold numpy arrays
+        npy.testing.assert_allclose(g.origin, [-33., -33., -33.])
 
     def test_GridData_writeDX(self):
         """Read XPLOR, write DX"""
@@ -1330,7 +1330,7 @@ class Test(BT.BiskitTest):
         gxplor.writeDX('test.dx')
         gread = GridData('test.dx')
         self.assertAlmostEqual(gread.data[10,10,10], gdx.data[10,10,10])
-        self.assertEqual(gdx.origin, gread.origin)
+        npy.testing.assert_allclose(gdx.origin, gread.origin)
 
     def test_GridData_writeXPLOR(self):
         """Read DX, write XPLOR"""

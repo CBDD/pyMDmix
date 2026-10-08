@@ -87,6 +87,26 @@ def load(filename, gzip=0, encoding='latin1'):
     except (ValueError, pickle.UnpicklingError, UnicodeDecodeError, ImportError, AttributeError) as why:
         raise PickleError('Python pickle %s is corrupted or unreadable (%s).' % (filename, why))
 
+_PRIVATE_TEMPDIR = None
+
+def tempDir():
+    """
+    Private temporary folder of this process. It is created on demand and removed at exit.
+
+    Replaces ``biskit.tools.tempDir``, which returns the *shared* system temporary folder (for
+    example ``/tmp``). Code and tests that clean up with ``tryRemove(tempDir(), tree=1)`` would then
+    delete everything inside it, also files belonging to other programs.
+
+    :return: path to an existing private folder
+    :rtype: str
+    """
+    global _PRIVATE_TEMPDIR
+    if _PRIVATE_TEMPDIR is None or not osp.isdir(_PRIVATE_TEMPDIR):
+        import tempfile, atexit, shutil
+        _PRIVATE_TEMPDIR = tempfile.mkdtemp(prefix='pymdmix_')
+        atexit.register(shutil.rmtree, _PRIVATE_TEMPDIR, ignore_errors=True)
+    return _PRIVATE_TEMPDIR
+
 class InvalidPath( ToolsError ):
     pass
 

@@ -238,7 +238,7 @@ class OFFManager(object):
         for line in section:
             resnamelist.append(line.split()[0].replace('"',''))
         if unique:
-            return list(set(resnamelist))
+            return list(dict.fromkeys(resnamelist))     # unique, in order of appearance (set order is not reproducible in Python 3)
         else:
             return resnamelist
 
@@ -340,7 +340,7 @@ class Test(BT.BiskitTest):
         
         self.m = OFFManager(offFile=f_in)
         self.assertEqual(self.m.getUnits(), ['ETA','ETAWAT20','WAT'])
-        self.assertEqual(self.m.getResidueList('ETAWAT20',unique=True), ['WAT','ETA'])
+        self.assertEqual(self.m.getResidueList('ETAWAT20',unique=True), ['ETA','WAT'])
         self.assertAlmostEqual(self.m.getVolume('ETAWAT20'), 7988.43038, 4)
         self.assertFalse(self.m.getVolume('ETA'))
         self.assertFalse(self.m.isParameter('ETA'))

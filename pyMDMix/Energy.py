@@ -236,7 +236,7 @@ class EnergyConversion(object):
         # Check probes
         if probelist and not set(probelist) < set(probes):
             raise EnergyConversionError("Some selected probes are not found in replica list: %s"%list((set(probelist) - set(probes))))
-        if not probelist: probelist = list(set(probes))
+        if not probelist: probelist = list(dict.fromkeys(probes))
 
         # set empty outprefix if not given
         if not outprefix: outprefix = ''

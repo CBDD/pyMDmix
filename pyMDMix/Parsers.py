@@ -34,7 +34,7 @@ import configparser
 from . import settings as S
 from .Solvents import SolventManager
 from . import Systems
-from . import MDSettings
+from .MDSettings import MDSettings
 
 class ParserError(Exception):
     pass
@@ -348,7 +348,7 @@ class MDSettingsConfigFileParser(object):
                     replicaRestrForce = splitedForce[solv][i]
                     replicaNanos = splitednanos[solv][i]
                     replicaTemp = splitedTemp[solv][i]
-                    settingsInstances.append(MDSettings.MDSettings(solvent=solv, nanos=replicaNanos, restrMode=replicaRestrMode,
+                    settingsInstances.append(MDSettings(solvent=solv, nanos=replicaNanos, restrMode=replicaRestrMode,
                                     restrForce=replicaRestrForce, temp=replicaTemp, restrMask=restrMask, alignMask=alignMask, **extracfg))
 
         return settingsInstances
@@ -415,7 +415,7 @@ class MDSettingsConfigFileParser(object):
                     extracfg.update({setting.name:setting.vtype(v)})
                 else: raise MDSettingsParserError("Attribute %s not present in md-settings. Make sure the spelling is correct"%k)
 
-            return MDSettings.MDSettings(nanos=nanos, restrMode=restr,
+            return MDSettings(nanos=nanos, restrMode=restr,
                             restrForce=force, temp=temp, restrMask=restrMask, 
                             alignMask=alignMask, **extracfg)
 

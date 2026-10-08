@@ -216,7 +216,7 @@ class AmberCreateSystem(object):
         if okffname:
             self.FFlist.append(okffname)
             self.log.info("Using Forcefield or FRCMOD file: %s"%okffname)
-            self.FFlist = list(set(self.FFlist))
+            self.FFlist = list(dict.fromkeys(self.FFlist))     # drop duplicates but keep the load order: it sets parameter precedence in tleap
             return True
         else:
             self.log.warn("%s forcefield or frcmod not found. Will not be loaded!"%ffname)

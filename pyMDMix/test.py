@@ -30,6 +30,7 @@ All rights to Raik.
 """
 
 from biskit.test import *
+from biskit import StdLog, LogFile
 import pyMDMix.tools as T
 import os.path as osp
 
@@ -120,7 +121,7 @@ def _convertOptions( o ):
     if o['log']:
         o['log'] = LogFile( o['log'] )
     else:
-        o['log'] = StdLog()
+        o['log'] = sys.stdout   # Biskit 3 test runner needs a stream with flush()
     o['p'] = T.toList( o['p'] )
 
 
