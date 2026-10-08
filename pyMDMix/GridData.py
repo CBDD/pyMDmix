@@ -33,6 +33,12 @@ import re
 import copy
 
 import numpy as npy
+
+def _notempty(value):
+    """True unless *value* is the empty-string marker. Arrays are always considered set
+    (comparing an array with '' is elementwise in modern numpy and has no single truth value)."""
+    return isinstance(value, npy.ndarray) or value != ''
+
 from gridData import Grid
 
 class GridDataError(Exception):
@@ -150,7 +156,7 @@ class GridData(object):
     
     def __call__(self):
         """Returns information about the grid if already defined"""
-        if (self.data !='' and self.origin !='' and self.delta !=''):
+        if (_notempty(self.data) and _notempty(self.origin) and _notempty(self.delta)):
             print("Grid instance source:",self.source)
             print("Data shape: ",self.data.shape," number of entries: ",self.data.size)
             print("Grid Origin: ",self.origin)
@@ -324,7 +330,7 @@ class GridData(object):
         :parm str header: Custom string (one line without breaks) to be introduced at the top of the file for identification. If false a predefined string will be writen.
         :parm bool gzip: Write file in gzipped form.
         """
-        if (self.data !='' and self.origin !='' and self.delta !=''):
+        if (_notempty(self.data) and _notempty(self.origin) and _notempty(self.delta)):
             grid = self.data
             origin = self.origin
             delta = self.delta
@@ -363,7 +369,7 @@ class GridData(object):
         """
         DEPRECATED. This method uses by default the source name of self to generate the dumped file's names. For a specific name, it must be provided when calling the method.
         """
-        if (self.data !='' and self.origin !='' and self.delta !=''):
+        if (_notempty(self.data) and _notempty(self.origin) and _notempty(self.delta)):
 
           if not self.source:
               raise BadAttribute("Must provide a name for the dumped files. Source attribute not defined.")      
