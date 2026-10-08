@@ -27,7 +27,7 @@ from operator import itemgetter
 from itertools import groupby
 import numpy as npy
 
-import Biskit as bi
+import biskit as bi
 
 
 # Amber residue names sometimes not well identified by PDBModel

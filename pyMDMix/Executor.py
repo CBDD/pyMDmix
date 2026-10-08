@@ -69,7 +69,10 @@ class Executor(object):
         self.log.debug("Init executor nthreads: %d"%nthreads)
     
     def __del__(self):
-        [self.queue.put(None) for _ in range(self.nthreads)]
+        try:
+            [self.queue.put(None) for _ in range(self.nthreads)]
+        except Exception:   # i.e. interpreter shutting down: Python >= 3.13 does not allow starting threads then
+            pass
     
     def start(self):
         self.ncalls.value += 1

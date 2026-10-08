@@ -547,7 +547,7 @@ class NAMDCheck(object):
             vol *= 0.77
         return vol
 
-import Biskit.test as BT
+import biskit.test as BT
 
 class Test(BT.BiskitTest):
     """Test"""

@@ -69,7 +69,7 @@ class WriteCfgError(SettingsError):
     pass
 
 
-class CaseSensitiveConfigParser( configparser.SafeConfigParser ):
+class CaseSensitiveConfigParser( configparser.ConfigParser ):
     """
     Change ConfigParser so that it doesn't convert option names to lower case.
     """
@@ -437,7 +437,9 @@ class SettingsManager(object):
 
             next = cfg_user.get( name, default )
 
-            if next.error > default.error:
+            # Python 2 ordered None below any string: reset only if the user setting has an error
+            # that the default does not have (or a greater one)
+            if next.error is not None and (default.error is None or next.error > default.error):
 
                 if self.verbose: self.log.warning(\
                     'User setting %s is reset to default (%r),\n\treason: %s'\
@@ -560,7 +562,7 @@ class SettingsManager(object):
         else: ns.update(d)
 
 
-import Biskit.test as BT
+import biskit.test as BT
 
 class Test(BT.BiskitTest):
     """Test"""

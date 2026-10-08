@@ -46,10 +46,11 @@ import os.path as osp
 
 import numpy as npy
 
-import Biskit as bi
-import Biskit.mathUtils as MU
-from Biskit.PDBParser import PDBParserError
-from Biskit.PDBParseFile import PDBParseFile
+import biskit as bi
+import biskit.md
+import biskit.mathUtils as MU
+from biskit.core.pdbparser import PDBParserError
+from biskit.core.pdbparseFile import PDBParseFile
 
 from . import tools as T
 from . import settings as S
@@ -436,10 +437,10 @@ class PQRParseFile( PDBParseFile ):
 
         return aProfs, npy.array( xyz, npy.float64 ), info
 
-class AmberPDBCleaner(bi.AmberParmBuilder):
+class AmberPDBCleaner(biskit.md.AmberParmBuilder):
     "Modification of AmberParmBuilder to save an objectfile. Use AmberParmBuilder cleaning capabilities."
     def __init__(self, pdb, *args, **kwargs):
-        bi.AmberParmBuilder.__init__(self, model=pdb, *args, **kwargs)
+        biskit.md.AmberParmBuilder.__init__(self, model=pdb, *args, **kwargs)
         #self.log = logging.getLogger("AmberPDBCleaner")
 
     def capACE( self, model, chain ):

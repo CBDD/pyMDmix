@@ -580,7 +580,7 @@ class OpenMMCheck(object):
         return vol
 
     
-import Biskit.test as BT
+import biskit.test as BT
 
 class Test(BT.BiskitTest):
     """Test"""
