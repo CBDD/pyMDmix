@@ -33,8 +33,8 @@ import logging
 import os
 import os.path as osp
 
-import settings as S
-import tools as T
+from . import settings as S
+from . import tools as T
 
 class AlignError(Exception):
     pass
@@ -63,7 +63,7 @@ class Align(object):
         """
         self.replica = replica
         self.log = logging.getLogger('Align')
-        self.steps = steps or range(1, replica.ntrajfiles+1)
+        self.steps = steps or list(range(1, replica.ntrajfiles+1))
         self.nthreads = nthreads
         self.warn = warn
         self.waitend=waitend
@@ -115,7 +115,7 @@ class Align(object):
         number of atoms to the topology file. So we need to take the replica pdb and align it to the
         reference structure and use this full-atom pdb as reference in ptraj commands.
         """
-        from PDB import SolvatedPDB
+        from .PDB import SolvatedPDB
         self.replica.go()
         self.log.info("Fitting all atoms PDB to reference PDB for cpptraj use")
         newref = self.replica.ref.replace('.pdb','_allatoms.pdb')
@@ -137,7 +137,7 @@ class Align(object):
         path = osp.join(self.replica.path, self.replica.alignfolder)
         # Check input file exists
         if not osp.exists(osp.join(path,inf)):
-            raise AlignError, "File %s does not exists in alignment folder of replica %s"%(inf, self.replica.name)
+            raise AlignError("File %s does not exists in alignment folder of replica %s"%(inf, self.replica.name))
         
         outf= inf.replace('.ptraj','_ptraj.log')
         top = os.pardir+os.sep+self.replica.top
@@ -162,7 +162,7 @@ class Align(object):
 
         :arg list steps: list of steps to write input for. Should be a list of integers.
         """
-        from Amber import AmberWriter
+        from .Amber import AmberWriter
         outrmsd = False
         outpdbavg = False
         
@@ -219,4 +219,4 @@ class Align(object):
 
 
 if __name__ == "__main__":
-    print "Hello World"
+    print("Hello World")

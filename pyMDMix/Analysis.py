@@ -36,8 +36,8 @@ import logging
 import os
 
 #from Solvents import SolventManager
-from Replicas import Replica
-from Actions import *
+from .Replicas import Replica
+from .Actions import *
 import multiprocessing as multi
 #from GridsManager import Grid, GridSpace
 
@@ -62,7 +62,7 @@ class ActionsManager(object):
         # Check al memebers are replicas
         for i in replicas:
             if not isinstance(i, Replica):
-                raise ActionsManagerError, "Expected type Replica but got %s instead"%(type(i))
+                raise ActionsManagerError("Expected type Replica but got %s instead"%(type(i)))
 
         # Add to current
         self.replicas.extend(replicas)
@@ -80,9 +80,9 @@ class ActionsManager(object):
                 # Assume its an action class
                 a = act
             else:
-                raise ActionsManagerError, "Unrecognized Action type: %s, %s"%(act,type(act))
+                raise ActionsManagerError("Unrecognized Action type: %s, %s"%(act,type(act)))
             if a: actions.append(a)
-            else: raise ActionsManagerError, "Action %s not found"%act
+            else: raise ActionsManagerError("Action %s not found"%act)
         self.actions.extend(actions)
 
     def prepareRun(self, **kwargs):
@@ -137,9 +137,9 @@ class ActionsManager(object):
             self.log.info('-'*50)
 
     def processResults(self, **kwargs):
-        for repl, results in self.results.iteritems():
+        for repl, results in self.results.items():
             self.log.info("Processing results for replica %s"%repl.name)
-            for actname, actres in results.iteritems():
+            for actname, actres in results.items():
                 self.log.info("Action %s..."%actname)
                 process = globals().get(actname+'_postprocess')
                 process(results=actres, replica=repl, **kwargs)
@@ -148,7 +148,7 @@ class ActionsManager(object):
 
 
 if __name__ == "__main__":
-    print """
+    print("""
 import pyMDMix
 import pyMDMix.Analysis as A
 p=pyMDMix.loadProject()
@@ -158,4 +158,4 @@ anal.addReplicas(p.replicas.values())
 anal.prepareRun(spherecenter=[10,6,8])
 anal.run()
 anal.processResults()
-"""
+""")

@@ -106,7 +106,7 @@ class Analyze(Command):
                         p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask, run=True, reference=reference, write=False)
                 else:
                     p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, reference=reference, alignmask=mask)
-                print "DONE"
+                print("DONE")
 
         elif parserargs.anl_command == 'cpp_density':
             replicas = self.fetchReplicaSelection(parserargs, p)
@@ -124,7 +124,7 @@ class Analyze(Command):
                     "write": not parserargs.onlyexe,
                 }
                 p.calc_cppdensityReplicas(replicas, **args)
-                print "DONE"
+                print("DONE")
 
         elif parserargs.anl_command == 'density':
             replicas = self.fetchReplicaSelection(parserargs, p)
@@ -146,7 +146,7 @@ class Analyze(Command):
                                 reference=ref)
                 anal.run(stepselection=nanosel, framestep=step)
             
-            print "DONE"
+            print("DONE")
 
         elif parserargs.anl_command == 'residence':
             replicas = self.fetchReplicaSelection(parserargs, p)
@@ -161,17 +161,17 @@ class Analyze(Command):
 
             if hotspotfile and hselection:
                 # Read hotspots from pickle file and
-                import cPickle
-                inhset = cPickle.load(open(hotspotfile,'rb'))
+                import pickle
+                inhset = pickle.load(open(hotspotfile,'rb'))
                 hotspot = inhset.getHSbyID(hselection)
-                if not hotspot: raise MDMixError, "No hotspot selected."
+                if not hotspot: raise MDMixError("No hotspot selected.")
                 
             elif center:
                 # Study residence at a hotspot defined by sphere and radius
                 center = numpy.array(center,dtype=float)
             else:
-                raise MDMixError, "To do a residence analysis, the spot to study must be defined either with a sphere giving a center+tolerance \
-                                    or by giving a hotspot pickled file and an ID identifying the hotspot to use."
+                raise MDMixError("To do a residence analysis, the spot to study must be defined either with a sphere giving a center+tolerance \
+                                    or by giving a hotspot pickled file and an ID identifying the hotspot to use.")
                 
             if replicas:
                 anal = pyMDMix.Analysis.ActionsManager(ncpus=ncpus)
@@ -180,7 +180,7 @@ class Analyze(Command):
                 anal.prepareRun(hotspot=hotspot, spherecenter=center, tolerance=tolerance, stepselection=nanosel)
                 anal.run(stepselection=nanosel, framestep=step)
                 anal.processResults()
-            print "DONE"
+            print("DONE")
 
         elif parserargs.anl_command == 'energy':
             replicas = self.fetchReplicaSelection(parserargs, p)
@@ -209,7 +209,7 @@ class Analyze(Command):
                 maskcutvalue = parserargs.ignore
                 
                 for g in ingrids:
-                    if not os.path.exists(g): raise MDMixError, "File %s not found."%g
+                    if not os.path.exists(g): raise MDMixError("File %s not found."%g)
                 
                 import pyMDMix.HotSpotsManager as HM
                 if centroid: centroid = 'avg'
@@ -226,7 +226,7 @@ class Analyze(Command):
                 cutoff = parserargs.cutoff
                 
                 for g in ingrids:
-                    if not os.path.exists(g): raise MDMixError, "File %s not found."%g
+                    if not os.path.exists(g): raise MDMixError("File %s not found."%g)
                 
                 import pyMDMix.HotSpotsManager as HM
                 HM.createHotSpotsByMinSearch(ingrids, cutoff, outprefix=outprefix, meanradius=meanradius, 

@@ -30,7 +30,7 @@ __author__="dalvarez"
 __date__ ="$16-ene-2014 17:09:33$"
 
 import os.path as osp
-import settings as S
+from . import settings as S
 import Biskit as bi
 
 
@@ -50,7 +50,7 @@ class TrajFile(object):
         self.frameselection = frameselection
         self.extension = osp.splitext(self.fname)[1].lstrip('.')
         if not self.extension in S.avail_trajext:
-            raise TrajFileError, "Wrong extension %s. Expected extensions: %s"%(self.extension, ','.join(S.avail_trajext))
+            raise TrajFileError("Wrong extension %s. Expected extensions: %s"%(self.extension, ','.join(S.avail_trajext)))
         self.loadFile()
 
     def __iter__(self):
@@ -67,16 +67,16 @@ class TrajFile(object):
                 self.traj = ncdf.NetCDFFile(self.fname,'r').variables['coordinates']
                 self.nextFunction = self.returnFrameFromNetcdf
             except ImportError:
-                raise TrajFileError, "Can't read NetCDF trajectory"
+                raise TrajFileError("Can't read NetCDF trajectory")
         elif self.extension in ('dcd',):
-            from NamdDCDParser import NamdDCDParser
+            from .NamdDCDParser import NamdDCDParser
             self.traj = NamdDCDParser(self.fname, self.pdb, box=1)
             self.nextFunction = self.traj.read_dcdstep
 
     def returnFrameFromNetcdf(self):
         return self.traj[self.nframes,:,:]
 
-    def next(self):
+    def __next__(self):
         try:
             frame = self.nextFunction()
             self.nframes += 1
@@ -120,7 +120,7 @@ class Trajectory(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         "i is the index of the file in the files list"
         if self.file_i < self.nfiles:
             self.file = TrajFile(self.files[self.file_i], self.pdb, step=self.step, frameselection=self.frameselection)
@@ -132,7 +132,7 @@ class Trajectory(object):
 
 
 import Biskit.test as BT
-import tools as T
+from . import tools as T
 
 class Test(BT.BiskitTest):
     """Test"""

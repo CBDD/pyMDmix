@@ -98,8 +98,8 @@ __date__ ="$16-mar-2014 21:03:48$"
 
 import sys
 import difflib
-import SettingsParser as P
-import settings as S
+from . import SettingsParser as P
+from . import settings as S
 
 class MDSettingsError(Exception):
     pass
@@ -132,8 +132,8 @@ class MDSettings(object):
         # FINALY GET DEFAULT ATTRIBUTES FROM SETTINGS
         # ONLY ADOPT NOT DEFINED IN KWARGS
         m = self.__getSettings()
-        settingKeys = m.settings2dict().keys()
-        for k,v in kwargs.iteritems():
+        settingKeys = list(m.settings2dict().keys())
+        for k,v in kwargs.items():
             if v is None: continue
             if k in settingKeys: setattr(self, k, v)
             else:
@@ -141,7 +141,7 @@ class MDSettings(object):
                 # to give some flexibility to the user (specially for case matching
                 bestmatch = difflib.get_close_matches(k, settingKeys, 1, 0.8)
                 if bestmatch: setattr(self, bestmatch[0], v)
-                else: print >> sys.stderr, "Attribute %s not in md-settings. skipping..."%k
+                else: print("Attribute %s not in md-settings. skipping..."%k, file=sys.stderr)
         m.updateNamespace(self.__dict__, keepdefined=True)
 
         # Set name (automatic name if not given)
@@ -174,7 +174,7 @@ class MDSettings(object):
         "Print all settings"
         s = "MD settings {0}:\n-------------------------------\n".format(self.name)
         m = self.__getSettings()
-        sdict = m.settings2dict().keys()
+        sdict = list(m.settings2dict().keys())
         for k in sdict:
             s+="{0}: {1}\n".format(k, getattr(self, k))
         return s
@@ -207,9 +207,9 @@ def parseSettingsConfigFile(settingsConfigFile, noSolvent=False):
     :return: List of :class:`~Replicas.Replica` objects constructed with all parameters in the RCF
     """
     import os.path as osp
-    from Parsers import MDSettingsConfigFileParser
+    from .Parsers import MDSettingsConfigFileParser
     
-    if not osp.exists(settingsConfigFile): raise BadFile, "File %s not found."%settingsConfigFile
+    if not osp.exists(settingsConfigFile): raise BadFile("File %s not found."%settingsConfigFile)
     if noSolvent: sets = MDSettingsConfigFileParser().parseNoSolvent(settingsConfigFile)
     else: sets = MDSettingsConfigFileParser().parse(settingsConfigFile)
     return sets

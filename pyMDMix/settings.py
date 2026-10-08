@@ -67,8 +67,8 @@ import sys
 import logging
 import user
 import os.path as osp
-import tools as T
-import SettingsParser as P
+from . import tools as T
+from . import SettingsParser as P
 
 VERSION="0.1"
 
@@ -93,8 +93,8 @@ __CFG_USER    = osp.join(USER_MDMIX_HOME,'settings.cfg')
 try:
     m = P.SettingsManager(__CFG_DEFAULT, __CFG_USER, createmissing=True  )
     m.updateNamespace( locals() )
-except Exception, why:
-    raise P.SettingsError, 'Error importing pyMDMix settings: %s'%why
+except Exception as why:
+    raise P.SettingsError('Error importing pyMDMix settings: %s'%why)
 
 ## REPLICA DEFAULTS PATHS
 CFG_MD_DEFAULT = osp.join(T.dataRoot('defaults'),'md-settings.cfg')
@@ -102,8 +102,8 @@ CFG_MD_USER    = osp.join(USER_MDMIX_HOME,'md-settings.cfg')
 try:
     m = P.SettingsManager(CFG_MD_DEFAULT, CFG_MD_USER, createmissing=True  )
     m.updateNamespace( {} )
-except Exception, why:
-    raise P.SettingsError, 'Error importing pyMDMix MD default settings: %s'%why
+except Exception as why:
+    raise P.SettingsError('Error importing pyMDMix MD default settings: %s'%why)
 
 
 ##
@@ -178,7 +178,7 @@ except ImportError:
 
 
 ## CREATE A GLOBAL BROWSER ALL CLASSES CAN ACCESS
-from Browser import Browser
+from .Browser import Browser
 global BROWSER
 BROWSER = Browser()
 
@@ -192,11 +192,11 @@ def setLogger(level=None, logFile=None):
     "Build root logger"
     import sys
     import logging
-    from tools import LogFormatter
+    from .tools import LogFormatter
 
     if not level: level = 'INFO'
-    if level.upper() not in LOGLEVEL.keys():
-        raise KeyError, "%s level not valid. Valid names: %s"%(level.upper(),LOGLEVEL.keys())
+    if level.upper() not in list(LOGLEVEL.keys()):
+        raise KeyError("%s level not valid. Valid names: %s"%(level.upper(),list(LOGLEVEL.keys())))
 
     rootlog = logging.getLogger()
     rootlog.setLevel(level.upper())
@@ -223,5 +223,5 @@ del __defff, __ffok, root, dirs, files
 del rootlog, os, osp, logging, testparam, Browser
 
 if __name__ == '__main__':
-    for k, v in locals().iteritems():
-        print k, v
+    for k, v in locals().items():
+        print(k, v)

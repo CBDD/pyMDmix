@@ -44,7 +44,7 @@ class PyMDMixTestLoader( BiskitTestLoader ):
         import glob
         module_folder = module.replace('.', os.path.sep)
         files = glob.glob( os.path.join( path, module_folder,'*.py' ) )
-        files = map( T.stripFilename, files )
+        files = list(map( T.stripFilename, files ))
         files = [ f for f in files if f[0] != '_' ]
         r = []
         for f in files:
@@ -64,7 +64,7 @@ class PyMDMixTestLoader( BiskitTestLoader ):
 ############################################
 
 def _use( defaults ):
-    print """
+    print("""
 Run unittest tests for pyMDMix.
 
     test.py [-i |include tag1 tag2..| -e |exclude tag1 tag2..|
@@ -93,9 +93,9 @@ Examples:
 
 
 Default options:
-"""
-    for key, value in defaults.items():
-        print "\t-",key, "\t",value
+""")
+    for key, value in list(defaults.items()):
+        print("\t-",key, "\t",value)
 
     sys.exit(0)
 
@@ -151,10 +151,10 @@ if __name__ == '__main__':
 
 
     for package in o['p']:
-        print 'collecting ', repr( package )
+        print('collecting ', repr( package ))
         l.collectTests( module=package )
 
     l.run( dry=o['dry'] )
     l.report()
 
-    print "DONE"
+    print("DONE")

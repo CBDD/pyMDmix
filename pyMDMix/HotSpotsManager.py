@@ -36,8 +36,8 @@ import numpy as npy
 from scipy.cluster import hierarchy
 from scipy.spatial import distance
 
-from GridsManager import Grid
-import tools as T
+from .GridsManager import Grid
+from . import tools as T
 
 class HotSpot(object):
     "Contain a set of points defining a hotspot and its properties: volume, chemical type, etc..."
@@ -86,7 +86,7 @@ class HotSpot(object):
         if energymethod in valmethods:
             self.energymethod = energymethod
         else:
-            raise AttributeError, "Wrong energy averaging method. Valid methods are: %s"%valmethods
+            raise AttributeError("Wrong energy averaging method. Valid methods are: %s"%valmethods)
         
         # Calculate volume element from spacing
         self.spacing = spacing
@@ -462,7 +462,7 @@ class HotSpotSet(object):
         """
         import Biskit as bi
         if not isinstance(pdb, bi.PDBModel):
-            raise AttributeError, "pdb argument should be a Biskit.PDBModel instance"
+            raise AttributeError("pdb argument should be a Biskit.PDBModel instance")
 
         mask = pdb['serial_number'] == atomnumber
         atomcoord = pdb.xyz[mask][0]
@@ -600,7 +600,7 @@ class HotSpotMultipleSet(HotSpotSet):
         :arg bool onlycenter: Write only the hotspot minimum energy point. Write all hotspot points if False (default).
         """
         combinedHset = combinedHset or self.combinedhset
-        if not combinedHset: raise HotSpotMultipleSetError, "No combined HSet saved or given as argument"
+        if not combinedHset: raise HotSpotMultipleSetError("No combined HSet saved or given as argument")
         self.sortCombinedHSet(combinedHset)
         
          # Write a PDB for each point found
@@ -690,7 +690,7 @@ class CreateHotSpotSet(object):
         elif isinstance(grid, Grid):
             self.grid = grid
         else:
-            raise AttributeError, "grid argument should be an existing filename or a Grid instance"
+            raise AttributeError("grid argument should be an existing filename or a Grid instance")
 
         self.hotspotset = None
         self.info = info
@@ -895,7 +895,7 @@ class HotSpotsManager(object):
             info    (str)       Optional. Extra info to attach to the hotspotset
             
 
-        """%HS_CREATE_METHODS.keys()
+        """%list(HS_CREATE_METHODS.keys())
         createhotspots = HS_CREATE_METHODS.get(method)(grid, info=info, name=name, **kwargs)
         self.log.info("Creating hotspot from grid %s. Method: %s."%(grid, method))
         createhotspots.calculate()
@@ -904,23 +904,23 @@ class HotSpotsManager(object):
 
     def saveHotSpot(self, picklefileout, hotspot):
         "Save into pickle the hotspot"
-        import cPickle
-        cPickle.dump(hotspot, open(picklefileout, 'wb'))
+        import pickle
+        pickle.dump(hotspot, open(picklefileout, 'wb'))
 
     def saveHotSpotSet(self, picklefileout, hset=False):
         "Save into pickle the hotspotset found"
-        import cPickle
+        import pickle
         if hset:
-            cPickle.dump(hset, open(picklefileout, 'wb'))
+            pickle.dump(hset, open(picklefileout, 'wb'))
         elif not hset and self.hotspotSet:
-            cPickle.dump(self.hotspotSet, open(picklefileout, 'wb'))
+            pickle.dump(self.hotspotSet, open(picklefileout, 'wb'))
         else:
             self.log.error("No hotspotSet stored in HotSpotsManager and no HSet given. Cannot save anything.")
         
     def loadHotSpotSet(self, picklefilein):
         "Load previously saved hotspots from pickle file"
-        import cPickle
-        self.hotspotSet = cPickle.load(open(picklefilein, 'rb'))
+        import pickle
+        self.hotspotSet = pickle.load(open(picklefilein, 'rb'))
 
     def writeHotSpotSetPDB(self, outpdbfile, hset=False, **kwargs):
         # Write a PDB for each point found

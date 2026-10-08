@@ -51,7 +51,7 @@ class ExecutorThread(multiprocessing.Process):
                 # Shell comands
                 cmd, path = exe
                 exit = sub.Popen(cmd, shell=True, cwd=path).wait()
-                if exit: print >> sys.stderr, "cmd exited with non-zero code: %s"%cmd
+                if exit: print("cmd exited with non-zero code: %s"%cmd, file=sys.stderr)
             else:
                 # Methods and functions
                 fx, args, kwargs = exe
@@ -120,4 +120,4 @@ class Executor(object):
     
 
 if __name__ == "__main__":
-    print "Hello World"
+    print("Hello World")

@@ -17,16 +17,16 @@ class Queue(Command):
         if parserargs.action == 'list':
             q = pyMDMix.Queue.listQueueSystems()
             if q:
-                print '\nInstalled queue system templates: %s\n'%(', '.join(q))
+                print('\nInstalled queue system templates: %s\n'%(', '.join(q)))
             else:
-                print "\nNo queue templates found!\n"
+                print("\nNo queue templates found!\n")
         elif parserargs.action == 'write':
             qname = parserargs.queuename
             qlist = pyMDMix.Queue.listQueueSystems()
             if not qname:
-                raise MDMixError, "Queue name is needed: give it with option (-n). Avilable queues: %s"%qlist
+                raise MDMixError("Queue name is needed: give it with option (-n). Avilable queues: %s"%qlist)
             if qname not in qlist:
-                raise MDMixError, "Wrong queue name. Available queues: %s"%qlist
+                raise MDMixError("Wrong queue name. Available queues: %s"%qlist)
             p = returnMDMixProject(parserargs)
             if p: p.createQueueInputs(qname)
             else:
@@ -35,5 +35,5 @@ class Queue(Command):
                     r = pyMDMix.loadReplica()
                     r.createQueueInput(qname)
                 except:
-                    raise MDMixError, "Could not find any project file or replica file in current folder."
+                    raise MDMixError("Could not find any project file or replica file in current folder.")
 
