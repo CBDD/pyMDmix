@@ -226,12 +226,15 @@ class HotSpot(object):
             else:
                 self.energy = None
                 
-    def __cmp__(self, other):
-        if self.energy < other.energy:  # compare name value (should be unique)
-            return -1
-        elif self.energy > other.energy:
-            return 1
-        else: return 0              # should mean it's the same instance
+    # Rich comparisons (replace Python 2 __cmp__): hot spots are ordered/compared by energy.
+    def __lt__(self, other): return self.energy < other.energy
+    def __gt__(self, other): return self.energy > other.energy
+    def __le__(self, other): return not self.energy > other.energy
+    def __ge__(self, other): return not self.energy < other.energy
+    def __eq__(self, other):
+        if not hasattr(other, 'energy'): return NotImplemented
+        return not (self.energy < other.energy or self.energy > other.energy)
+    __hash__ = object.__hash__      # keep identity hash (Python 2 behaviour)
 
     def __sub__(self, other):
         "Overloads substraction method. Will return distance between the two hotspots compared OR to coordinates in tuple, list or npy.array format"

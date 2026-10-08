@@ -165,7 +165,7 @@ class GridData(object):
         # Unzip if zipped
         if 'gz' in CNS:
             import gzip
-            op = lambda x: gzip.open(x, 'rb')
+            op = lambda x: gzip.open(x, 'rt')
         else:
             op = lambda x: open(x, 'r')
 
@@ -200,7 +200,7 @@ class GridData(object):
         def readconsecutivenxny(f):
             nxy = ny*nx # bits per number
             # Calulate bits due to linebreaks
-            lbreaks = nxy/6  # 6 columns
+            lbreaks = nxy//6  # 6 columns
             if nxy%6: lbreaks+=1   # remainder
             size = nxy*12+lbreaks
             chunkstring = lambda b: [b[i:i+12] for i in range(0,len(b),12)]
@@ -209,7 +209,7 @@ class GridData(object):
         def readsplittednxny(f):
             nxy = ny*nx # bits per number
             # Calulate bits due to linebreaks
-            lbreaks = (nx/6)*ny  # 6 columns
+            lbreaks = (nx//6)*ny  # 6 columns
             if nx%6: lbreaks+=nx   # remainder
             size = nxy*12+lbreaks
             chunkstring = lambda b: [b[i:i+12] for i in range(0,len(b),12)]
@@ -249,7 +249,7 @@ class GridData(object):
         struct.unpack('s',of.read(1))
         hlen, =struct.unpack('i',of.read(4))
         header=struct.unpack('s'*hlen, of.read(hlen))
-        print(''.join(header))
+        print(b''.join(header).decode('latin-1'))
 
         # Write grid specifications
         maxd = [0,0,0]
@@ -331,7 +331,7 @@ class GridData(object):
 
             if gzip:
                 import gzip
-                op = lambda x: gzip.open(x, 'wb')
+                op = lambda x: gzip.open(x, 'wt')
             else:
                 op = lambda x: open(x, 'w')
 
@@ -417,15 +417,15 @@ class GridData(object):
             of = open(xplorname, 'wb')
 
             # Write header
-            of.write(struct.pack('s',header[0]))
+            of.write(struct.pack('s',header[0].encode('latin-1')))
             hlen=len(header[2])
             of.write(struct.pack('i',hlen))
-            of.write(struct.pack('s'*hlen, *tuple(header[2])))
+            of.write(struct.pack('%ds'%hlen, header[2].encode('latin-1')))
 
             # Write grid specifications
-            of.write(struct.pack('i'*9,*(nx, mind[0], maxd[0],
+            of.write(struct.pack('i'*9,*map(int, (nx, mind[0], maxd[0],
                                         ny, mind[1], maxd[1],
-                                        nz, mind[2], maxd[2])))
+                                        nz, mind[2], maxd[2]))))
             of.write(struct.pack('f'*6, space[0], space[1], space[2],deltax, deltay, deltaz))
 
             # Write data without floritures
@@ -441,7 +441,7 @@ class GridData(object):
 
             if gzip:
                 import gzip
-                op = lambda x: gzip.open(x, 'wb')
+                op = lambda x: gzip.open(x, 'wt')
             else:
                 op = lambda x: open(x, 'w')
 

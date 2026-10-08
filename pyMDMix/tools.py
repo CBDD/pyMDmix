@@ -41,7 +41,7 @@ import logging
 DISABLE_BISKIT_LOADING_WARNS = True
 if DISABLE_BISKIT_LOADING_WARNS:
     olderr = sys.stderr
-    sys.stderr = open(os.devnull, 'wb')
+    sys.stderr = open(os.devnull, 'w')
     import Biskit.tools
     sys.stderr.close()
     sys.stderr = olderr

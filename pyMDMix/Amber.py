@@ -55,7 +55,7 @@ class AmberCreateSystemError(Exception):
 class Leaper(object):
     """Class to handle tLeap I/O"""
     def __init__(self,  objectFileName=None, extraff=[], cwd=None):
-        self.tleap = sub.Popen(S.AMBEREXE+os.sep+"tleap -f - ",  shell=True,   stdin = sub.PIPE,  stdout=sub.PIPE,  stderr=sub.PIPE, cwd=cwd)
+        self.tleap = sub.Popen(S.AMBEREXE+os.sep+"tleap -f - ",  shell=True,   stdin = sub.PIPE,  stdout=sub.PIPE,  stderr=sub.PIPE, cwd=cwd, universal_newlines=True, bufsize=1)
         self._in = self.tleap.stdin
         self._out = self.tleap.stdout
         self._err = self.tleap.stderr
@@ -82,6 +82,7 @@ class Leaper(object):
         self._in.write(command+'\n')
         logging.getLogger("AmberTleap").debug(command)
         self._in.write(self._terminator+'\n')
+        self._in.flush()
         return self.flush()
         #self._in.write('lastCommandOut\n')
         #out = []

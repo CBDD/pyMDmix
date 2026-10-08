@@ -105,7 +105,7 @@ class Setting(object):
         try:
             if not self.value is None:
                 if vtype == list and isinstance(self.value, str):
-                    self.value = list(map(string.strip, self.value.split(',')))
+                    self.value = list(map(str.strip, self.value.split(',')))
                 else:
                     self.value = vtype( self.value )
             self.vtype = vtype
@@ -127,16 +127,29 @@ class Setting(object):
     def __str__( self ):
         return self.__repr__( tab='\t' )
 
-    def __cmp__( self, other ):
-        """
-        Compare Setting instances by their name.
-        @return: 1,0,-1
-        @rtype: int
-        """
-        if isinstance( other, self.__class__ ):
-            return cmp( self.name, other.name )
+    # Rich comparisons (replace Python 2 __cmp__): Setting instances are compared by their name.
+    def __eq__( self, other ):
+        if isinstance( other, self.__class__ ): return self.name == other.name
+        return NotImplemented
 
-        return cmp( self, other )
+    def __lt__( self, other ):
+        if isinstance( other, self.__class__ ): return self.name < other.name
+        return NotImplemented
+
+    def __gt__( self, other ):
+        if isinstance( other, self.__class__ ): return self.name > other.name
+        return NotImplemented
+
+    def __le__( self, other ):
+        if isinstance( other, self.__class__ ): return self.name <= other.name
+        return NotImplemented
+
+    def __ge__( self, other ):
+        if isinstance( other, self.__class__ ): return self.name >= other.name
+        return NotImplemented
+
+    def __hash__( self ):
+        return hash( self.name )
 
 
     def formatted( self ):
@@ -212,7 +225,7 @@ class SettingsParser(object):
 
             except Exception as e:
                 raise TypeError('Cannot extract type from %s: %r'\
-                      % option).with_traceback(e)
+                      % option) from e
 
         return t, o
 
