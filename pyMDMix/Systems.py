@@ -259,7 +259,7 @@ class System(object):
         """
         Create reference pdb and store it in self.ref
         """
-        import Biskit as bi
+        import biskit as bi
         # Initiate AmberCreateSystem with loaded AmberOFF
         self.__initCreate()
         self.create.saveAmberParm(self.unitName, 'tmp.top', 'tmp.crd')
@@ -478,7 +478,7 @@ def parseSystemConfigFile(projectConfigFile):
     return sys
 
 
-import Biskit.test as BT
+import biskit.test as BT
 
 class Test(BT.BiskitTest):
     """Test"""

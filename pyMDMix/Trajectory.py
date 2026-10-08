@@ -30,8 +30,9 @@ __author__="dalvarez"
 __date__ ="$16-ene-2014 17:09:33$"
 
 import os.path as osp
+import numpy as npy
 from . import settings as S
-import Biskit as bi
+import biskit as bi
 
 
 class TrajFileError(Exception):
@@ -39,6 +40,43 @@ class TrajFileError(Exception):
 
 class TrajectoryError(Exception):
     pass
+
+class AmberCrdParser(object):
+    """
+    Minimal streaming reader for Amber ASCII coordinate files (mdcrd, FORTRAN format 10F8.3).
+
+    Replaces the Biskit 2 ``AmberCrdParser`` that Biskit 3 no longer provides: Biskit 3 parses a
+    whole trajectory at once, while :class:`TrajFile` needs to read one frame at a time.
+
+    :arg str fcrd: Path to the coordinates file (plain text or ``.gz``).
+    :arg fref: Reference structure (:class:`biskit.PDBModel` or file path). Gives the number of atoms.
+    :arg bool box: True if each frame is followed by a line with box dimensions.
+    """
+    def __init__(self, fcrd, fref, box=0):
+        self.fcrd = osp.abspath(fcrd)
+        if self.fcrd.endswith('.gz'):
+            import gzip
+            self.crd = gzip.open(self.fcrd, 'rt')
+        else:
+            self.crd = open(self.fcrd, 'r')
+        self.ref = bi.PDBModel(fref) if isinstance(fref, str) else fref
+        self.box = box
+        self.n = self.ref.lenAtoms()
+
+    def nextFrame(self):
+        """Read the coordinates of the next frame. Raise EOFError at the end of the file."""
+        nvalues = self.n*3
+        values = []
+        while len(values) < nvalues:
+            line = self.crd.readline()
+            if not line: raise EOFError("End of coordinates file")
+            line = line.rstrip('\r\n')
+            values.extend(float(line[i:i+8]) for i in range(0, len(line), 8) if line[i:i+8].strip())
+        if self.box: self.crd.readline()     # skip box dimensions line
+        return npy.array(values, dtype=float).reshape(-1, 3)
+
+    def close(self):
+        self.crd.close()
 
 class TrajFile(object):
     def __init__(self, file, pdb, step=1, frameselection=[]):
@@ -58,13 +96,15 @@ class TrajFile(object):
 
     def loadFile(self):
         if self.extension in ('x','x.gz'):
-            self.traj = bi.AmberCrdParser(self.fname, self.pdb, 1)
+            self.traj = AmberCrdParser(self.fname, self.pdb, 1)
             self.traj.crd.readline()    #skip first line
             self.nextFunction = self.traj.nextFrame
         elif self.extension in ('nc','netcdf'):
             try:
-                import scipy.io.netcdf as ncdf
-                self.traj = ncdf.NetCDFFile(self.fname,'r').variables['coordinates']
+                import netCDF4
+                self._ncfile = netCDF4.Dataset(self.fname, 'r')
+                self._ncfile.set_auto_mask(False)       # plain numpy arrays instead of masked arrays
+                self.traj = self._ncfile.variables['coordinates']
                 self.nextFunction = self.returnFrameFromNetcdf
             except ImportError:
                 raise TrajFileError("Can't read NetCDF trajectory")
@@ -131,7 +171,7 @@ class Trajectory(object):
             raise StopIteration()
 
 
-import Biskit.test as BT
+import biskit.test as BT
 from . import tools as T
 
 class Test(BT.BiskitTest):

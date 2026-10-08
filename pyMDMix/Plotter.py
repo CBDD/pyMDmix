@@ -328,7 +328,7 @@ class Plot(object):
         return fig
 
 
-import Biskit.test as BT
+import biskit.test as BT
 from . import tools as T
 
 class Test(BT.BiskitTest):

@@ -759,7 +759,7 @@ def getEnergyFromPDBCoords(grid, pdbfile, forceradius=0, temp=300.):
     the point energy. If *forceradius* is defined diferent than zero, this value will override b-factor column.
 
     """
-    import Biskit as bi
+    import biskit as bi
     if osp.exists(pdbfile): pdb = bi.PDBModel(pdbfile)
     else: raise BadFile("File name %s not found."%pdbfile)
 

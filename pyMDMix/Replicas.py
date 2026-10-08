@@ -940,7 +940,7 @@ def loadReplica(replicafile=None):
     return Replica(fromfile=replicafile)
 
 
-import Biskit.test as BT
+import biskit.test as BT
 
 class Test(BT.BiskitTest):
     """Test"""

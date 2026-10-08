@@ -42,11 +42,11 @@ DISABLE_BISKIT_LOADING_WARNS = True
 if DISABLE_BISKIT_LOADING_WARNS:
     olderr = sys.stderr
     sys.stderr = open(os.devnull, 'w')
-    import Biskit.tools
+    import biskit.tools
     sys.stderr.close()
     sys.stderr = olderr
 
-from Biskit.tools import *
+from biskit.tools import *
 
 class InvalidPath( ToolsError ):
     pass

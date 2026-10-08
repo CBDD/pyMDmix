@@ -33,7 +33,7 @@ import os.path as osp
 import logging
 import tempfile
 import numpy as npy
-import Biskit as bi
+import biskit as bi
 
 import multiprocessing
 
