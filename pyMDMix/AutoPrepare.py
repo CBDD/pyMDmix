@@ -117,7 +117,7 @@ class PDB2PQRInterface(object):
         # Check that html website is similar to the content when this module was written
         import difflib
         checkhtml = open(T.testRoot('pdb2pqr_html.txt'),'r').read()
-        webhtml = self._html.read()
+        webhtml = self._html.read().decode('utf-8', 'replace')
         ratio = difflib.SequenceMatcher(lambda x: x == " ", checkhtml, webhtml).ratio()        
         if ratio < 0.9:
             self.log.warn('Website seems different since this module was coded. Similarity: %3f'%ratio)
@@ -130,7 +130,7 @@ class PDB2PQRInterface(object):
             self.log.warning("Changes in webserver form.")
             if PDB2PQRInterface.MANDATORYCONTROLS < controls: return True
             else:
-                raise FormChange("Missing controls in form: ").with_traceback(PDB2PQRInterface.MANDATORYCONTROLS - controls)            
+                raise FormChange("Missing controls in form: %s" % (PDB2PQRInterface.MANDATORYCONTROLS - controls))            
         else:
             return True
 
@@ -373,8 +373,8 @@ class PQRParseFile( PDBParseFile ):
                         a = {'serial_number': int(line[1]),
                                  'name': line[2],
                                  'alternate': '',
-                                 'residue_name': string.strip(line[3]),
-                                 'chain_id': string.strip(line[4]),
+                                 'residue_name': line[3].strip(),
+                                 'chain_id': line[4].strip(),
                                  'residue_number': int(line[5]),
                                  'insertion_code': '',
                                  'position': list(map(float,line[6:9])),
@@ -387,7 +387,7 @@ class PQRParseFile( PDBParseFile ):
                         a = {'serial_number': int(line[1]),
                                  'name': line[2],
                                  'alternate': '',
-                                 'residue_name': string.strip(line[3]),
+                                 'residue_name': line[3].strip(),
                                  'chain_id': '',
                                  'residue_number': int(line[4]),
                                  'insertion_code': '',

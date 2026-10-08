@@ -99,7 +99,7 @@ class ActionsManager(object):
         # Start workers and queues (one queue for each action
         # Start nworkers accordint to self.ncpus and trying to be
         # equitative between number of actions
-        nworkers = [self.ncpus/len(actions) for _ in actions]
+        nworkers = [self.ncpus//len(actions) for _ in actions]
         for i in range(self.ncpus%len(actions)): nworkers[i] += 1 # add one more for each remaning cpu
         queues = [multi.Queue(n*5) for n in nworkers] # Maximum queue size is the number of workers times 5, to not overload and still keep them busy
         processes = []

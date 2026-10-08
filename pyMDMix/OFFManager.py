@@ -173,7 +173,7 @@ class OFFManager(object):
         next(off)
         units = []
         while 1:
-          line = off.next().strip()
+          line = next(off).strip()
           if "!" in line: break
           units.append(line.split("\"")[1])
         del off

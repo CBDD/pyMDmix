@@ -164,6 +164,8 @@ class MDSettings(object):
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
+    __hash__ = object.__hash__      # defining __eq__ removes the default hash in Python 3
+
     def __getSettings(self):
         "Get default settings"
         m = P.SettingsManager(S.CFG_MD_DEFAULT, S.CFG_MD_USER, createmissing=True)

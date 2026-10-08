@@ -55,7 +55,7 @@ class NamdDCDParser:
         @type  verbose: int
         """
         self.fdcd = T.absfile( fdcd )
-        self.dcd = open(self.fdcd, "r", 0)
+        self.dcd = open(self.fdcd, "rb")
         
         if isinstance(fref, str) :
             self.ref=PDBModel(T.absfile(fref), pdbCode=pdbCode)
@@ -86,7 +86,7 @@ class NamdDCDParser:
         
         # First read header information and check correct file format
         header = struct.unpack(">I 4s 9I f 11I", f.read(92))
-        if header[0] == 84 and header[1] == 'CORD' and header[-1] == 84 and header[-2] != 0:
+        if header[0] == 84 and header[1] == b'CORD' and header[-1] == 84 and header[-2] != 0:
             #print "recognized 32 bit DCD file of opposite endianness"
             #Store the number of sets of coordinates (NSET). Frames
             self.nset = header[2]
@@ -156,7 +156,7 @@ class NamdDCDParser:
         
         # This block contains the box information
         if unpack('>I', f.read(4))[0] == 48:
-            self.unitcell = npy.fromstring( f.read(48), dtype=">d")
+            self.unitcell = npy.frombuffer(f.read(48), dtype=">d").copy()
             f.read(4)
         else:
             f.close()
@@ -176,11 +176,11 @@ class NamdDCDParser:
         # that we will skip all the times
         xyz = npy.zeros([self.natoms, 3], dtype=">f4")
         f.read(4)
-        xyz[:,0] = npy.fromstring(f.read(size('f')*self.natoms), dtype=">f4")
+        xyz[:,0] = npy.frombuffer(f.read(size('f')*self.natoms), dtype=">f4")
         f.read(8)
-        xyz[:,1] = npy.fromstring(f.read(size('f')*self.natoms), dtype=">f4")
+        xyz[:,1] = npy.frombuffer(f.read(size('f')*self.natoms), dtype=">f4")
         f.read(8)
-        xyz[:,2] = npy.fromstring(f.read(size('f')*self.natoms), dtype=">f4")
+        xyz[:,2] = npy.frombuffer(f.read(size('f')*self.natoms), dtype=">f4")
         f.read(4)
         
         return xyz

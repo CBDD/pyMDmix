@@ -57,6 +57,9 @@ class Atom(object):
         if isinstance(other, Atom): other=other.name
         return self.name == other
 
+    def __hash__(self):
+        return hash(self.name)
+
 class Residue(object):
     """
     Simple container for whole residue unit information gathered in the OFF file.
@@ -91,6 +94,9 @@ class Residue(object):
         "Compare this to other by name"
         if isinstance(other, Residue): other=other.name
         return self.name == other
+
+    def __hash__(self):
+        return hash(self.name)
     
     def center(self):
         return self.xyz.mean(axis=0)
@@ -119,6 +125,9 @@ class Probe(object):
         "Compare this to other by name"
         if isinstance(other, Probe): other=other.name
         return self.name == other
+
+    def __hash__(self):
+        return hash(self.name)
     
     def __repr__(self):
         return self.name
