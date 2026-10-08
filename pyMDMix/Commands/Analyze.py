@@ -162,7 +162,7 @@ class Analyze(Command):
             if hotspotfile and hselection:
                 # Read hotspots from pickle file and
                 import pickle
-                inhset = pickle.load(open(hotspotfile,'rb'))
+                inhset = pyMDMix.tools.load(hotspotfile)
                 hotspot = inhset.getHSbyID(hselection)
                 if not hotspot: raise MDMixError("No hotspot selected.")
                 

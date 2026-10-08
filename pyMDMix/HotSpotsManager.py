@@ -923,7 +923,7 @@ class HotSpotsManager(object):
     def loadHotSpotSet(self, picklefilein):
         "Load previously saved hotspots from pickle file"
         import pickle
-        self.hotspotSet = pickle.load(open(picklefilein, 'rb'))
+        self.hotspotSet = T.load(picklefilein)
 
     def writeHotSpotSetPDB(self, outpdbfile, hset=False, **kwargs):
         # Write a PDB for each point found

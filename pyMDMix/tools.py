@@ -48,6 +48,45 @@ if DISABLE_BISKIT_LOADING_WARNS:
 
 from biskit.tools import *
 
+def load(filename, gzip=0, encoding='latin1'):
+    """
+    Load an object (or several, as a tuple) dumped with :func:`dump`.
+
+    Replaces ``biskit.tools.load``, which ignores its *encoding* argument and therefore cannot read
+    pickles written by Python 2. This function reads them with ``latin1`` (the encoding recommended
+    for Python 2 pickles holding numpy data) and translates the old ``Biskit.*`` module names into
+    their Biskit 3 equivalents. Existing projects, replicas, systems, hot spot sets and the solvent
+    database can thus still be opened.
+
+    :arg str filename: Path to the pickled file.
+    :arg bool gzip: True if the file is gzip compressed.
+    :arg str encoding: Encoding used to decode Python 2 ``str`` objects.
+    :raise PickleError: If the file is not a readable pickle.
+    """
+    import pickle, importlib
+    import gzip as _gzip
+
+    class _Unpickler(pickle.Unpickler):
+        def find_class(self, module, name):
+            if module == 'Biskit' or module.startswith('Biskit.'):
+                try: return getattr(importlib.import_module('biskit'), name)
+                except AttributeError: pass
+            return super().find_class(module, name)
+
+    filename = osp.expanduser(filename)
+    try:
+        f = _gzip.open(filename, 'rb') if gzip else open(filename, 'rb')
+        objects = []
+        try:
+            while True:
+                try: objects.append(_Unpickler(f, encoding=encoding).load())
+                except EOFError: break
+        finally:
+            f.close()
+        return objects[0] if len(objects) == 1 else tuple(objects)
+    except (ValueError, pickle.UnpicklingError, UnicodeDecodeError, ImportError, AttributeError) as why:
+        raise PickleError('Python pickle %s is corrupted or unreadable (%s).' % (filename, why))
+
 class InvalidPath( ToolsError ):
     pass
 

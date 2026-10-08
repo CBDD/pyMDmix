@@ -247,7 +247,8 @@ class GridSpace(object):
     def load(self, filename):
         self.log.debug("Loading GridSpace from pickle file: %s"%filename)
         import pickle
-        self = pickle.load(open(filename, 'rb'))
+        from . import tools as T
+        self = T.load(filename)
         self.log.debug("DONE")
 
     def addDegeneracy(self, probeDegeneracyDict):
