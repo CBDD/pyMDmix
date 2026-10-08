@@ -122,7 +122,7 @@ class Align(object):
         if not osp.exists(newref): 
             pdb = self.replica.getPDB()
             ref = SolvatedPDB(self.replica.ref)
-	    mask = pdb.maskProtein()
+            mask = pdb.maskProtein()
             alpdb = pdb.magicFit(ref, mask=mask.astype(int))
             alpdb.writePdb(newref)
         
