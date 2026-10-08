@@ -172,7 +172,7 @@ def listQueueSystems():
     [qsys.append(m.groups()[0]) for m in usermatches if m]
     packagemathes = [qname.match(osp.basename(f)) for f in packagetemplates]
     [qsys.append(m.groups()[0]) for m in packagemathes if m]
-    return list(set(qsys))
+    return list(dict.fromkeys(qsys))
 
 if __name__ == "__main__":
     print("Hello World")

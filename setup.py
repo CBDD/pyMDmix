@@ -5,8 +5,8 @@ from setuptools import setup, Extension
 from setuptools.command.install import install
 
 # Make sure I have the right Python version.
-if sys.version_info[:2] < (2, 5):
-    print("pyMDMix requires Python 2.5 or later. Python %d.%d detected" % \
+if sys.version_info[:2] < (3, 9):
+    print("pyMDMix requires Python 3.9 or later. Python %d.%d detected" % \
         sys.version_info[:2])
     print("Please upgrade your version of Python.")
     sys.exit(1)
@@ -40,6 +40,7 @@ setup(
     include_package_data=True,
     package_data={'pyMDMix.data':['pyMDMix/data/*']},
     scripts=script_list,
-    dependency_links=['https://sourcesup.renater.fr/frs/?group_id=180&release_id=2467#stable-releases-_2.8.1-title-content'],
+    python_requires='>=3.9',
+    classifiers=['Programming Language :: Python :: 3', 'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'],
     install_requires=getRequirements()
 )
