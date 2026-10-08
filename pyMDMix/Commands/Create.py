@@ -23,25 +23,25 @@ class Create(Command):
             if parserargs.file:
                 if os.path.exists(parserargs.file):
                     ######### ALL correct! Proceed with MDMix Project Creation
-                    print "Creating PROJECT %s from config file: %s"%(parserargs.projname, parserargs.file)
+                    print("Creating PROJECT %s from config file: %s"%(parserargs.projname, parserargs.file))
                     p = pyMDMix.createProject(parserargs.file, parserargs.projname)
-                    print "DONE"
+                    print("DONE")
                     #########
                 else:
-                    raise MDMixError, "File %s not found. Cannot create the project."%parserargs.file
+                    raise MDMixError("File %s not found. Cannot create the project."%parserargs.file)
             else:
                 # CREATE empty project
                 p = pyMDMix.Project(name=parserargs.projname)
                 p.createProjectFolder()
-                print "DONE"
+                print("DONE")
                 
         elif parserargs.action == 'replica':
             name = parserargs.projname
             file = parserargs.file
             top = parserargs.top
             crd = parserargs.crd
-            if not file: raise MDMixError, "Input config file is needed with valid MDSETTINGS section for new replica creation from TOP and CRD files."
-            if not top or not crd: raise MDMixError, "Amber Topology (-top) and Amber Crd files (-crd) are needed to create a solvated replica."
+            if not file: raise MDMixError("Input config file is needed with valid MDSETTINGS section for new replica creation from TOP and CRD files.")
+            if not top or not crd: raise MDMixError("Amber Topology (-top) and Amber Crd files (-crd) are needed to create a solvated replica.")
             sysname = os.path.splitext(os.path.basename(top))[0]
             solvatedsys = pyMDMix.SolvatedSystem(name=sysname,top=top, crd=crd)
             sets = pyMDMix.parseSettingsConfigFile(file, noSolvent=True) # Parse MDSETTINGS ignoring solvent info
@@ -52,13 +52,13 @@ class Create(Command):
         elif parserargs.action == 'solvents':
             # CREATE NEW SOLVENT IN THE DATABASE
             #Checking mandatory file option is given and exists
-            if not parserargs.file:raise MDMixError, "Missing file in solvents create action. -f FILE is mandatory in this option."
+            if not parserargs.file:raise MDMixError("Missing file in solvents create action. -f FILE is mandatory in this option.")
             file = parserargs.file
-            if not os.path.exists(file): raise MDMixError, "File not found: %s"%file
+            if not os.path.exists(file): raise MDMixError("File not found: %s"%file)
             man = pyMDMix.Solvents.SolventManager()
             solv = man.createSolvent(file)
             man.saveSolvent(solv)
-            print "DONE"
+            print("DONE")
 
         elif parserargs.action == 'template':
             import os
@@ -67,4 +67,4 @@ class Create(Command):
             f = pyMDMix.tools.templatesRoot('complete.cfg')
             file = parserargs.file or 'complete.cfg'
             shutil.copy(f,file)
-            print "DONE. Project template saved: %s"%file
+            print("DONE. Project template saved: %s"%file)

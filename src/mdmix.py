@@ -78,7 +78,7 @@ class MDMixClient(object):
         pyMDMix.setLogger(level, logFile)
 
     def run(self):
-        print self.header()
+        print((self.header()))
         import time
         import sys
         t0 = time.time()
@@ -89,7 +89,7 @@ class MDMixClient(object):
         if parserargs.logfile:
             sys.stderr = open(parserargs.logfile, 'w+')
             sys.stdout = sys.stderr
-            print ' '.join(sys.argv)
+            print((' '.join(sys.argv)))
 
         if parserargs.debug: level = 'DEBUG'
         else: level = 'INFO'
@@ -99,7 +99,7 @@ class MDMixClient(object):
         self.actions[command].action(parserargs)
 
         sys.stdout.flush()
-        print "Total execution time: %.3fs"%(time.time()-t0)
+        print(("Total execution time: %.3fs"%(time.time()-t0)))
 
 def main():
     client = MDMixClient()
@@ -108,5 +108,5 @@ def main():
 if __name__ == "__main__":
     try: 
         main()
-    except KeyboardInterrupt: print "Forcing MDMix UI exit!"
+    except KeyboardInterrupt: print("Forcing MDMix UI exit!")
     sys.exit(0)

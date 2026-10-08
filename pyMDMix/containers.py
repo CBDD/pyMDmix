@@ -32,6 +32,7 @@ __date__ ="$06-feb-2014 15:36:29$"
 """
 This module contains several classes for information storage and cross linking information.
 """
+from functools import reduce
 
 class Atom(object):
     "Simple container for atomic information gathered in the OFF file: name, type, element, charge"
@@ -46,10 +47,10 @@ class Atom(object):
         return self.name
 
     def __str__(self):
-        s = "ID: {id}\nATOM NAME: {name}\nATOM TYPE: {type}\nELEMENT: {element}\NCHARGE: {chargestr}"
+        s = "ID: {id}\nATOM NAME: {name}\nATOM TYPE: {type}\nELEMENT: {element}\nCHARGE: {chargestr}"
         d = self.__dict__
         d.update({'chargestr':'%.4f'%self.charge})
-        return s.format(d)
+        return s.format(**d)
 
     def __eq__(self, other):
         "Compare this to other by name"
@@ -138,4 +139,4 @@ class Probe(object):
 
 
 if __name__ == "__main__":
-    print "Hello World"
+    print("Hello World")

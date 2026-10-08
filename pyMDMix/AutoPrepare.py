@@ -51,8 +51,8 @@ import Biskit.mathUtils as MU
 from Biskit.PDBParser import PDBParserError
 from Biskit.PDBParseFile import PDBParseFile
 
-import tools as T
-import settings as S
+from . import tools as T
+from . import settings as S
 
 try:
     import mechanize
@@ -106,8 +106,8 @@ class PDB2PQRInterface(object):
         """
         try:
             self._html = self.br.open(PDB2PQRInterface.PDB2PQRWEBSITE)
-        except Exception, err:
-            raise ConnectionError, err
+        except Exception as err:
+            raise ConnectionError(err)
         
         # If correct, select first form
         self.br.select_form(nr=0)
@@ -130,7 +130,7 @@ class PDB2PQRInterface(object):
             self.log.warning("Changes in webserver form.")
             if PDB2PQRInterface.MANDATORYCONTROLS < controls: return True
             else:
-                raise FormChange, "Missing controls in form: ", PDB2PQRInterface.MANDATORYCONTROLS - controls            
+                raise FormChange("Missing controls in form: ").with_traceback(PDB2PQRInterface.MANDATORYCONTROLS - controls)            
         else:
             return True
 
@@ -180,7 +180,7 @@ class PDB2PQRInterface(object):
         "Download PQR file from results url"
         self.br.open(url)
         # Loop until 'complete' Message appears
-        match = re.compile('Message: (\w+)')
+        match = re.compile(r'Message: (\w+)')
         while tries:
             response = self.br.reload()
             
@@ -188,23 +188,23 @@ class PDB2PQRInterface(object):
             status = match.search(response.read())
             if status: status = status.groups()[0]
             else:
-                raise PDB2PQRError, "Error scraping reuslts website. Check website: %s."%self.br.geturl()
+                raise PDB2PQRError("Error scraping reuslts website. Check website: %s."%self.br.geturl())
             
             if status == 'complete':
-                print "Done"
+                print("Done")
                 done = True
                 break
             elif status == 'running':
                 tries -= 1
                 done = False
-                print "Running... %d\r"%tries,
+                print("Running... %d\r"%tries, end=' ')
             else:
-                raise PDB2PQRError, "Error in job execution. Check website: %s."%self.br.geturl()
+                raise PDB2PQRError("Error in job execution. Check website: %s."%self.br.geturl())
         
-        print
+        print()
         
         if not done:
-            raise PDB2PQRError, "Job execution timed out. Check later website for results: %s."%self.br.geturl()
+            raise PDB2PQRError("Job execution timed out. Check later website for results: %s."%self.br.geturl())
             
         # If link was found download pqr file
         pqrout = None
@@ -214,7 +214,7 @@ class PDB2PQRInterface(object):
                 pqrout = tempfile.mktemp()
                 self.br.retrieve(l.url, pqrout)
 
-        if not pqrout: raise PDB2PQRError, "Unable to download PQR result file."
+        if not pqrout: raise PDB2PQRError("Unable to download PQR result file.")
         #Return pqr as a pdbmodel
         return PQRParseFile(pqrout).getModel()
 
@@ -265,7 +265,7 @@ class PQRParseFile( PDBParseFile ):
 #                print atoms["serial_number"]
 #                for atom in atoms:
 #                    print atom
-                keys = MU.union( atoms.keys(),  self.DEFAULTS.keys() )
+                keys = MU.union( list(atoms.keys()),  list(self.DEFAULTS.keys()) )
 
                 for k in keys:
 
@@ -292,7 +292,7 @@ class PQRParseFile( PDBParseFile ):
         except:
             msg = self._PDBParseFile__xplorAtomIndicesTest( source ) or ' '
             raise PDBParserError('Cannot read ' + str(source) + ' as PQR\n'\
-                           '\ERROR: ' + T.lastError() + msg)
+                           '\\ERROR: ' + T.lastError() + msg)
 
         model.setSource( source )
         
@@ -339,12 +339,12 @@ class PQRParseFile( PDBParseFile ):
         try:
             line, i = ('',''), 0
 
-            while line[0] <> 'END' and line[0] <> 'ENDMDL':
+            while line[0] != 'END' and line[0] != 'ENDMDL':
 
                 i += 1
                 try:
                     line = f.readline().split()
-                except ValueError, what:
+                except ValueError as what:
                     self.log.add('Warning: Error parsing line %i of %s' %
                                  (i, T.stripFilename( fname )) )
                     self.log.add('\tError: '+str(what) )
@@ -377,7 +377,7 @@ class PQRParseFile( PDBParseFile ):
                                  'chain_id': string.strip(line[4]),
                                  'residue_number': int(line[5]),
                                  'insertion_code': '',
-                                 'position': map(float,line[6:9]),
+                                 'position': list(map(float,line[6:9])),
                                  'occupancy': 1.0,
                                  'temperature_factor': 0.0,
                                  'segment_id': '',
@@ -391,7 +391,7 @@ class PQRParseFile( PDBParseFile ):
                                  'chain_id': '',
                                  'residue_number': int(line[4]),
                                  'insertion_code': '',
-                                 'position': map(float,line[5:8]),
+                                 'position': list(map(float,line[5:8])),
                                  'occupancy': 1.0,
                                  'temperature_factor': 0.0,
                                  'segment_id': '',
@@ -419,7 +419,7 @@ class PQRParseFile( PDBParseFile ):
                     xyz.append( a['position'] )
                     del( a['position'])
                     
-                    for k, v in a.items():
+                    for k, v in list(a.items()):
                         aProfs[k].append( v )
 
         except:
@@ -456,8 +456,8 @@ class AmberPDBCleaner(bi.AmberParmBuilder):
 
         chains_before = None
         chains_after = None
-        if chain > 0 : chains_before = model.takeChains( range(chain), breaks=1 )
-        if chain < model.lenChains(1) - 1: chains_after  = model.takeChains( range(chain+1, model.lenChains(1)),
+        if chain > 0 : chains_before = model.takeChains( list(range(chain)), breaks=1 )
+        if chain < model.lenChains(1) - 1: chains_after  = model.takeChains( list(range(chain+1, model.lenChains(1))),
                                           breaks=1 )
         m_chain       = model.takeChains( [chain], breaks=1 )
 
@@ -512,8 +512,8 @@ class AmberPDBCleaner(bi.AmberParmBuilder):
 
         chains_before = None
         chains_after = None
-        if chain > 0 : chains_before = model.takeChains( range(chain), breaks=1 )
-        if chain < model.lenChains(1) - 1: chains_after  = model.takeChains( range(chain+1, model.lenChains(1)),
+        if chain > 0 : chains_before = model.takeChains( list(range(chain)), breaks=1 )
+        if chain < model.lenChains(1) - 1: chains_after  = model.takeChains( list(range(chain+1, model.lenChains(1))),
                                           breaks=1 )
         m_chain       = model.takeChains( [chain], breaks=1 )
 
@@ -638,8 +638,8 @@ class AmberPDBCleaner(bi.AmberParmBuilder):
             
             return m
 
-        except IOError, why:
-            raise IOError, why
+        except IOError as why:
+            raise IOError(why)
 
 class AutoPrepareError(Exception):
     pass
@@ -693,7 +693,7 @@ class AutoPrepare(object):
             # Take only chains specified
             pdb = pdb.takeChains(chains)
         cleaner = AmberPDBCleaner(pdb, verbose=True)
-        if chains and not capC: capC=range(len(chains))
+        if chains and not capC: capC=list(range(len(chains)))
         if chains and not capN: capN=capC
         self.pdb = cleaner.cleanPDB(hetatm=hetatm, keepwaters=keepwaters, cap=cap, capC=capC, capN=capN, **kwargs)
                
@@ -710,14 +710,14 @@ class AutoPrepare(object):
             elif isinstance(pdb, str):
                 file = pdb
             else:
-                raise AutoPrepareError, 'pdb argument must be a filepath or a PDBModel with valid source files.'
+                raise AutoPrepareError('pdb argument must be a filepath or a PDBModel with valid source files.')
             
-            if not osp.exists(file): raise AutoPrepareError, 'pdbfile %s not found.'%fi
+            if not osp.exists(file): raise AutoPrepareError('pdbfile %s not found.'%fi)
         elif self.pdb:
             file = self.pdb.source.original()
-            if not osp.exists(file): raise AutoPrepareError, 'pdbfile %s not found.'%fi
+            if not osp.exists(file): raise AutoPrepareError('pdbfile %s not found.'%fi)
         else:
-            raise AutoPrepareError, 'protonatePDB needs a pdb. Set a PDB with setPdb() or give as argument.'
+            raise AutoPrepareError('protonatePDB needs a pdb. Set a PDB with setPdb() or give as argument.')
         
         self.b = PDB2PQRInterface()
         self.pdb = self.b.protonatePDB(pdbfile=file,twait=twait,tries=tries, **kwargs)
@@ -736,7 +736,7 @@ class AutoPrepare(object):
         """
         if isinstance(pdb, str) and osp.exists(pdb): self.pdb = bi.PDBModel(pdb)
         elif isinstance(pdb, bi.PDBModel): self.pdb = pdb
-        else: raise AutoPrepareError, "setPdb argument should be a pdb filepath or a PDBModel"
+        else: raise AutoPrepareError("setPdb argument should be a pdb filepath or a PDBModel")
 
     def getPdb(self):
         return self.pdb
@@ -747,10 +747,10 @@ class AutoPrepare(object):
     
     def saveOFF(self, outname, inpdb=None, unitname='sys', extraff=[]):
         "From a PDBModel or File, load into tLeap and save as ObjectFile."
-        from Amber import AmberCreateSystem
+        from .Amber import AmberCreateSystem
                
         if not inpdb and self.pdb: inpdb = self.pdb
-        else: raise AutoPrepareError, "Input needed."
+        else: raise AutoPrepareError("Input needed.")
 
         prepare = AmberCreateSystem()
         prepare.createOFF(outname, inpdb, extraff=extraff, **kwargs)
@@ -769,7 +769,7 @@ def prepareOFF(pdbinput, outfname, ff=[]):
           
           
 # TESTING
-import test as BT
+from . import test as BT
 
 class Test(BT.BiskitTest):
     """Test"""

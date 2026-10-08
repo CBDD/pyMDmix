@@ -6,14 +6,14 @@ from setuptools.command.install import install
 
 # Make sure I have the right Python version.
 if sys.version_info[:2] < (2, 5):
-    print "pyMDMix requires Python 2.5 or later. Python %d.%d detected" % \
-        sys.version_info[:2]
-    print "Please upgrade your version of Python."
+    print("pyMDMix requires Python 2.5 or later. Python %d.%d detected" % \
+        sys.version_info[:2])
+    print("Please upgrade your version of Python.")
     sys.exit(1)
 
 # Make sure AMBERHOME environ variable is set
 if not os.environ.get('AMBERHOME'):
-    print "AMBERHOME env variable not set! Please set this variable pointing to AMBER package installation directory."
+    print("AMBERHOME env variable not set! Please set this variable pointing to AMBER package installation directory.")
     sys.exit(1)
 
 script_list = ['src/mdmix']
