@@ -56,3 +56,4 @@ UPDATE HISTORY (ZIP)
 14/10/2026
 - System and replica topology/coordinate files are now saved as .parm7 and .rst7 (previously .prmtop and .prmcrd). Test data renamed accordingly.
 - check_com: cpptraj PDB output now uses include_ep so virtual sites (e.g. EPW of OPC water) are kept in the stripped PDB.
+- Neutralization with NaCl loads leaprc.water.opc / leaprc.water.opc3 when the solvent water model is OPC / OPC3.

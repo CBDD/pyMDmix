@@ -283,7 +283,9 @@ class AmberCreateSystem(object):
         waterff = {
             'TIP3P': 'leaprc.water.tip3p',
             'TIP4P': 'leaprc.water.tip3pew',
-            'SPC': 'leaprc.water.spce'
+            'SPC': 'leaprc.water.spce',
+            'OPC': 'leaprc.water.opc',
+            'OPC3': 'leaprc.water.opc3'
         }
         if watmodel in waterff:
             self.log.debug("Loading ions params: %s"%waterff[watmodel])
