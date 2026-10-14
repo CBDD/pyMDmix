@@ -126,11 +126,11 @@ class Replica(object):
                 if not isinstance(system, Systems.SolvatedSystem):  raise ReplicaError("system should be SolvatedSystem instance. Got %s instead."%(type(system)))
                 self.system = system                #: SolvatedSystem. System with solvent box already created.
             elif top and crd:
-                # Input as PRMTOP and PRMCRD, create solvated system from them
+                # Input as parm7 and rst7, create solvated system from them
                 self.system = Systems.SolvatedSystem(top=top, crd=crd)
-            self.top = None                      #: Amber PRMTOP file with solvated system. To be set from input system.
-            self.pdb = None                      #: PDB file generated from PRMTOP and PRMCRD. To be set from input system.
-            self.crd = None                      #: Amber PRMCRD file with solvated system
+            self.top = None                      #: Amber parm7 file with solvated system. To be set from input system.
+            self.pdb = None                      #: PDB file generated from parm7 and rst7. To be set from input system.
+            self.crd = None                      #: Amber rst7 file with solvated system
             self.ref = None
             self.path = None                    #: Path to replica folder
             self.replFilePath = None            #: path to replica pickled file, should be placed inside replica directory
@@ -226,18 +226,18 @@ Solvent: {solvent}
         # Finally divide num of steps needed by num of steps per file
         self.ntrajfiles=int((self.nanos*1e6/self.md_timestep)/self.prod_steps)
 
-    def __fixTopology(self, prmtop):
+    def __fixTopology(self, parm7):
         """
-        Fix prmtop by removing SCEE and SCNB sections, they will take default values.
+        Fix parm7 by removing SCEE and SCNB sections, they will take default values.
         File will be copied with same name and suffix ``_back`` to prevent file loss.
         Fixed topology will overwrite old filename.
         
-        :arg str prmtop: File path to amber parm7 topology file.
+        :arg str parm7: File path to amber parm7 topology file.
         """
         import shutil
-        shutil.copy(prmtop, prmtop+'_back')
-        top = open(prmtop+'_back','r')
-        out = open(prmtop,'w')
+        shutil.copy(parm7, parm7+'_back')
+        top = open(parm7+'_back','r')
+        out = open(parm7,'w')
         line=top.readline()
         while line:
                 if not '%FLAG SCEE_SCALE_FACTOR' in line:
@@ -683,8 +683,8 @@ Solvent: {solvent}
             pdbok = self.system.savePDB(osp.join(self.name, basenames+'.pdb'))
 
             if topcrdok and pdbok:
-                self.top = basenames+'.prmtop'
-                self.crd = basenames+'.prmcrd'
+                self.top = basenames+'.parm7'
+                self.crd = basenames+'.rst7'
                 self.pdb = basenames+'.pdb'
             else:
                 raise ReplicaError("Error saving system top, crd or pdb files")

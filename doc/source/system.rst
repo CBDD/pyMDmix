@@ -23,7 +23,7 @@ Initialization using Amber Object Files
 An Amber Object File -OFF- (usually found with ``off`` or ``lib`` extensions) are used by Amber to store parameterized molecules.
 The user should prepare the system to simulate following standard procedures and store the system inside this sort of files
 that will allow the program to solvate the macromolecule in a diversity of solvents. This file is treated with tLeap to
-add periodic boundary conditions, neutralize the charges and generate PRMTOP and PRMCRD files (amber topology and coordinate files).
+add periodic boundary conditions, neutralize the charges and generate parm7 and rst7 files (amber topology and coordinate files).
 
 >>> import pyMDMix
 >>> import pyMDMix.tools as T
@@ -76,12 +76,12 @@ using :parm:`extraResList` and :parm:`FF` parameters:
 SolvatedSystem class
 ^^^^^^^^^^^^^^^^^^^^    
 This object is a subclass of :class:`System`. This class is designed to contain a solvated system
-PRMTOP and PRMCRD files. Thus its the end point before preparing all MD inputs.
+parm7 and rst7 files. Thus its the end point before preparing all MD inputs.
 As in the case of System, extraResidueList should be used to tell the program about non-standard residues.
 
 >>> import pyMDMix
 >>> import pyMDMix.tools as T
->>> top = T.testRoot('pep','pep.prmtop') # Test prmtop, actually does not contain solvent but will make thids work
->>> crd = T.testRoot('pep','pep.prmcrd')
+>>> top = T.testRoot('pep','pep.parm7') # Test parm7, actually does not contain solvent but will make thids work
+>>> crd = T.testRoot('pep','pep.rst7')
 >>> solv_sys = pyMDMix.SolvatedSystem(name='pep_solv', top=top, crd=crd, solvent='WAT')
 

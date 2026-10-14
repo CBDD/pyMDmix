@@ -411,7 +411,7 @@ class AmberCreateSystem(object):
         Take unit and solvate in tip3pbox water box.
         
         :arg str unit: tLeap unit name to be solvated.
-        :arg str outPrefix: Prefix to output prmtop and prmcrd files.
+        :arg str outPrefix: Prefix to output parm7 and rst7 files.
         :arg str watbox: Water model to use. Default will be taken from settings.DEF_AMBER_WATBOX.
         :arg float buffer: Buffer distance to add in solvate command. By default will take settings.DEF_AMBER_BUFFER.
         :arg bool cubicBox: Use a cubic box (TRUE) instead of an orthorombic box (FALSE). Default: Take from settings.DEF_AMBER_CUBICBOX.
@@ -422,8 +422,8 @@ class AmberCreateSystem(object):
         self.log.debug("SolvateWater unit %s watbox %s buffer %s cubicBox %s"%(unit, watbox, buffer, cubicBox))
 
         # output names
-        top = outPrefix+'.top'
-        crd = outPrefix+'.crd'
+        top = outPrefix+'.parm7'
+        crd = outPrefix+'.rst7'
 
         # Solvate command depends on cubic or orthorombic box choice
         if cubicBox: solvate_cmd = 'solvateBox'
@@ -840,7 +840,7 @@ class AmberWriter(object):
         if not replica: raise AmberWriterError("Replica not assigned.")
 
         if not (replica.top and replica.crd):
-            raise AmberWriterError("Replica %s does not have PRMTOP and PRMCRD files set."%replica.name)
+            raise AmberWriterError("Replica %s does not have parm7 and rst7 files set."%replica.name)
 
 #        S.gotoReplica(replica)
 #        self.log.info("Writing shell commands to run the MD for replica %s. Adapt it to your queue needs.\
@@ -1202,8 +1202,8 @@ class Test(BT.BiskitTest):
         """Create new replica and write MDinput"""
         from .Replicas import Replica
         
-        top = osp.join(T.testRoot(), 'pep','pep.prmtop')
-        crd = osp.join(T.testRoot(), 'pep','pep.prmcrd')
+        top = osp.join(T.testRoot(), 'pep','pep.parm7')
+        crd = osp.join(T.testRoot(), 'pep','pep.rst7')
 #        checkCommands = [l.strip() for l in open(osp.join(T.testRoot(),
 #                                'pep','COMMANDS_test.sh'),'r').readlines()]
         
