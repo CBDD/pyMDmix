@@ -58,8 +58,8 @@ any of the options given as parameter, the attibutes from the settings file are 
     Solvent: MAM
     ------- Amber files:
             -----------
-            Amber PRMTOP: None
-            Amber PRMCRD: None
+            Amber parm7: None
+            Amber rst7: None
             PDB file: None
     (...)
     ------- SIMULATION:

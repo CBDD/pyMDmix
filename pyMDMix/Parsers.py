@@ -102,7 +102,7 @@ class SystemConfigFileParser(object):
             parms.update({'amberPDB':osp.abspath(pdb)})
         elif top and crd:
             # Directly create Solvated system
-            if not osp.exists(top) or not osp.exists(crd): raise BadFile("PRMTOP file %s or PRMCRD file %s not found."%(top,crd))
+            if not osp.exists(top) or not osp.exists(crd): raise BadFile("parm7 file %s or rst7 file %s not found."%(top,crd))
             parms.update({'top':top, 'crd':crd})
 
         # Optional: specify extra residue names to keep in reference structure (useful for modified residues)

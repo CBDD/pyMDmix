@@ -223,7 +223,7 @@ class NAMDWriter(object):
         if replica.hasRestraints:
             if not replica.minimizationAsRef: restr = self.restr
             else: 
-                self.log.warn('Use of Minimized structure as restraint reference is still not possible with NAMD. Will use starting PRMCRD.')
+                self.log.warn('Use of Minimized structure as restraint reference is still not possible with NAMD. Will use starting rst7.')
                 restr = self.restr
         
         formatdict = {'top':replica.top, 'crd':replica.crd, 'restraints':restr, 
@@ -557,8 +557,8 @@ class Test(BT.BiskitTest):
         from .MDSettings import MDSettings
         from .Systems import SolvatedSystem
         
-        top = osp.join(T.testRoot('pep', 'pep.prmtop'))
-        crd = osp.join(T.testRoot('pep', 'pep.prmcrd'))
+        top = osp.join(T.testRoot('pep', 'pep.parm7'))
+        crd = osp.join(T.testRoot('pep', 'pep.rst7'))
         sys = SolvatedSystem(name='pep',top=top, crd=crd)
         settings = MDSettings(solvent='WAT',mdProgram='NAMD',restrMode='HA', restrForce=0.1)
         

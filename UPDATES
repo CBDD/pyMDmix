@@ -52,3 +52,6 @@ UPDATE HISTORY (ZIP)
 - DCD reader detects the byte order automatically (NAMD on x86 writes little-endian files).
 - Integer divisions, text/bytes handling, set-ordering and numpy>=1.25 comparisons reviewed.
 - tools.tempDir() now returns a private folder: the tests removed the shared system temporary folder.
+
+14/10/2026
+- System and replica topology/coordinate files are now saved as .parm7 and .rst7 (previously .prmtop and .prmcrd). Test data renamed accordingly.
