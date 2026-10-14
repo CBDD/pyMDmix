@@ -57,3 +57,4 @@ UPDATE HISTORY (ZIP)
 - System and replica topology/coordinate files are now saved as .parm7 and .rst7 (previously .prmtop and .prmcrd). Test data renamed accordingly.
 - check_com: cpptraj PDB output now uses include_ep so virtual sites (e.g. EPW of OPC water) are kept in the stripped PDB.
 - Neutralization with NaCl loads leaprc.water.opc / leaprc.water.opc3 when the solvent water model is OPC / OPC3.
+- Amber.ambpdb writes the system PDB with cpptraj (trajout ... pdb include_ep) so virtual sites (EPW of OPC) are kept and the PDB has the same atoms as the topology and trajectories; it falls back to ambpdb, which skips extra points.

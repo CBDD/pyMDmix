@@ -232,21 +232,31 @@ class AmberCreateSystem(object):
         return True
     
     def ambpdb(self, top, crd, outpdb):
-        # Save pdb from top and crd
+        """
+        Save a PDB file from topology and coordinates. cpptraj is used with *include_ep* so extra points
+        (e.g. EPW virtual sites of OPC/TIP4P waters) are written: ambpdb silently skips them, which leaves the PDB
+        with fewer atoms than the topology and trajectories and shifts every atom index after the first virtual site.
+        If cpptraj fails, falls back to ambpdb.
+        """
         self.log.info("Creating PDB file %s from top and crd files '%s' and '%s'"%(outpdb, top, crd))
-        null = os.devnull
-#        null = osp.splitext(top)[0]+'_ambpdb.log'
-        #ampdb = osp.join(S.AMBEREXE,S.AMBER_AMBPDB)
-        # original line:
-        #command = '(%s -p %s < %s > %s) 1> %s 2> %s'%(S.AMBER_AMBPDB, top, crd, outpdb,null,null)
-        # debug line:
-        command = '(%s -p %s < %s > %s) '%(S.AMBER_AMBPDB, top, crd, outpdb)
-        self.log.debug(command)
-        proc = sub.Popen(command, shell=True)
-        exit_code = proc.wait()
-        if exit_code: # Exit different to zero means error
-            self.log.error("Could not save PDB from TOP and CRD. Check %s file in project folder for the reason."%null)
-            raise AmberCreateSystemError("Could not save PDB from TOP and CRD. Check leap.log file in project folder.")
+        script = 'parm %s\ntrajin %s\ntrajout %s pdb include_ep\nrun\nquit\n'%(top, crd, outpdb)
+        ok = False
+        try:
+            proc = sub.Popen([S.AMBER_PTRAJ, ], stdin=sub.PIPE, stdout=sub.PIPE, stderr=sub.STDOUT, universal_newlines=True)
+            out, _ = proc.communicate(script)
+            self.log.debug(out)
+            ok = proc.returncode == 0 and osp.exists(outpdb) and os.stat(outpdb).st_size > 0
+        except OSError as e:
+            self.log.warn("Could not run %s to write PDB (%s). Trying ambpdb."%(S.AMBER_PTRAJ, e))
+        if not ok:
+            self.log.warn("cpptraj could not write the PDB. Falling back to ambpdb (virtual sites will be missing).")
+            command = '(%s -p %s < %s > %s) '%(S.AMBER_AMBPDB, top, crd, outpdb)
+            self.log.debug(command)
+            proc = sub.Popen(command, shell=True)
+            exit_code = proc.wait()
+            if exit_code: # Exit different to zero means error
+                self.log.error("Could not save PDB from TOP and CRD.")
+                raise AmberCreateSystemError("Could not save PDB from TOP and CRD. Check leap.log file in project folder.")
         self.fixPDBNumbering(outpdb)
         return True
 
