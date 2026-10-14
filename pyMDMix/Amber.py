@@ -247,6 +247,38 @@ class AmberCreateSystem(object):
         if exit_code: # Exit different to zero means error
             self.log.error("Could not save PDB from TOP and CRD. Check %s file in project folder for the reason."%null)
             raise AmberCreateSystemError("Could not save PDB from TOP and CRD. Check leap.log file in project folder.")
+        self.fixPDBNumbering(outpdb)
+        return True
+
+    @staticmethod
+    def fixPDBNumbering(pdbfile):
+        """
+        Recent ambpdb versions write residue numbers above 9999 (and atom serials above 99999) in
+        hybrid-36 notation (e.g. 'A4DJ'), which Biskit cannot parse. If any is found, atoms and residues
+        are renumbered sequentially (wrapping at 99999 and 9999 respectively). Standard files are left untouched.
+        """
+        lines = open(pdbfile).read().split('\n')
+        def hybrid(l):
+            return (l[:6] in ('ATOM  ', 'HETATM', 'TER   ') and
+                    (not l[6:11].strip().isdigit() and l[6:11].strip() != '' or
+                     (l[:6] != 'TER   ' and not l[22:26].strip().lstrip('-').isdigit())))
+        if not any(hybrid(l) for l in lines):
+            return False
+        out, serial, resn, lastkey = [], 0, 0, None
+        for l in lines:
+            rec = l[:6]
+            if rec in ('ATOM  ', 'HETATM'):
+                key = (l[17:22], l[22:27])
+                if key != lastkey:
+                    resn += 1
+                    lastkey = key
+                serial += 1
+                l = l[:6] + '%5d' % (((serial - 1) % 99999) + 1) + l[11:22] + '%4d' % (((resn - 1) % 9999) + 1) + l[26:]
+            elif rec == 'TER   ':
+                serial += 1
+                l = l[:6] + '%5d' % (((serial - 1) % 99999) + 1) + l[11:22] + '%4d' % (((resn - 1) % 9999) + 1) + l[26:]
+            out.append(l)
+        open(pdbfile, 'w').write('\n'.join(out))
         return True
 
     def saveAmberParm(self, unit, top, crd, leapHandler=None):
