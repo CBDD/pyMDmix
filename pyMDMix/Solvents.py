@@ -482,7 +482,7 @@ class SolventManager(object):
         if not osp.exists(off):
             # Trye to search it in configfile directory
             off = osp.join(osp.dirname(file), off)
-            if not osp.exists(off): raise P.InvalidPath
+            if not osp.exists(off): raise P.InvalidPath("objectfile not found: %s"%off)
 
         # This one is optional. If present, will be loaded along the off file in tleap
         # Usually parameters will be saved inside the off file.
@@ -497,7 +497,7 @@ class SolventManager(object):
                 if not osp.exists(f):
                     # Trye to search it in configfile directory
                     f = osp.join(osp.dirname(file), f)
-                    if not osp.exists(f): raise P.InvalidPath("%f frcmod file not found"%f)
+                    if not osp.exists(f): raise P.InvalidPath("%s frcmod file not found"%f)
                     frcmodlist.append(f)
                 else:
                     frcmodlist.append(f)
