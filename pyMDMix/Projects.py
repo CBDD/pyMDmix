@@ -528,10 +528,14 @@ def returnMDMixProject(parserargs):
     else: level='INFO'
     import pyMDMix
     pyMDMix.setLogger(level=level)
+    from .Structures import FileLockException
     try:
         p = pyMDMix.loadProject()
         return p
-    except:
+    except FileLockException:
+        # A lock problem is not a missing project: report the real cause
+        raise
+    except Exception:
         return False
 
 def returnMDMixProjectOrFail(parserargs):
