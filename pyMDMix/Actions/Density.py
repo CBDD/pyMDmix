@@ -42,6 +42,21 @@ import pyMDMix.tools as T
 from pyMDMix.GridsManager import NewGrid
 from pyMDMix import settings as S
 
+def _count_coords(countgrid, coords, fx):
+    """
+    Add one count to *countgrid* for each coordinate in *coords* (n x 3 array) that falls inside the grid.
+    Vectorized replacement of the per-coordinate Python loop; *fx* is the index function built in setup()
+    and carries the grid parameters in fx.params = (origin, spacing, shape). Indices are truncated with
+    astype(int), exactly as in Grid.getIndexFunction, so results are identical to the loop version.
+    """
+    if len(coords) == 0: return
+    origin, spacing, shape = fx.params
+    ind = ((npy.asarray(coords) - origin) / spacing).astype(int)
+    ind = ind[npy.all((ind >= 0) & (ind < shape), axis=1)]
+    if len(ind):
+        # add.at handles repeated indices correctly (several probes in the same voxel)
+        npy.add.at(countgrid, (ind[:, 0], ind[:, 1], ind[:, 2]), 1)
+
 class DensityError(Exception):
     pass
 
@@ -113,6 +128,7 @@ class DensityGrids(object):
             r = f(x)
             if not r: return [-1,-1,-1]
             else: return r
+        fx.params = (npy.array(self.container.origin), npy.array(self.container.delta), npy.array(self.container.shape))
         self.indexFunction = fx
 
         # Set subregion function?
@@ -244,10 +260,7 @@ class DensityGrids(object):
             if self.subregionfx: 
                 coords = self.subregionfx(coords)
                 if not npy.any(coords): continue
-            idx = npy.apply_along_axis(self.indexFunction, 1, coords)
-            for idx in idx:
-                if npy.all(idx == [-1,-1,-1]): continue
-                self.countGrids[probe][tuple(idx)] += 1
+            _count_coords(self.countGrids[probe], coords, self.indexFunction)
 
 class CountGridsWorker(multiprocessing.Process):
     def __init__(self, snapQueue, probelist, solvatedPdb, outCountGrids, indexFunction, subregionfx):
@@ -274,13 +287,7 @@ class CountGridsWorker(multiprocessing.Process):
                 if self.subregionfx: 
                     coords = self.subregionfx(coords)
                     if not npy.any(coords): continue
-                idx = npy.apply_along_axis(self.toIndex, 1, coords)
-                for idx in idx:
-                    if npy.all(idx == [-1,-1,-1]): continue
-                    try:
-                        self.outCountGrids[probe][tuple(idx)] += 1
-                    except IndexError:
-                        raise IndexError("{} {} {} grid shape: {}".format(idx, tuple(idx), probe, self.outCountGrids[probe].shape))
+                _count_coords(self.outCountGrids[probe], coords, self.toIndex)
 
 class CountProteinWorker(multiprocessing.Process):
     def __init__(self, snapQueue, lock, mask, solvatedPdb, outCountGrids, indexFunction, subregionfx):
@@ -354,6 +361,7 @@ class DensityProtein(object):
             r = f(x)
             if not r: return [-1,-1,-1]
             else: return r
+        fx.params = (npy.array(self.container.origin), npy.array(self.container.delta), npy.array(self.container.shape))
         self.indexFunction = fx
 
         # Set protein mask
@@ -510,6 +518,7 @@ class DensityGridsAllHA(object):
             r = f(x)
             if not r: return [-1,-1,-1]
             else: return r
+        fx.params = (npy.array(self.container.origin), npy.array(self.container.delta), npy.array(self.container.shape))
         self.indexFunction = fx
 
         # Set subregion function?
@@ -627,12 +636,9 @@ class DensityGridsAllHA(object):
                 # get all coords for HA name
                 res, atname = probe.split('_')
                 ati = self.hainfo[res][atname] -1
-                coords = npy.array([rxyz[ati] for rxyz in self.pdb.iterResidues(res)])
+                coords = self.pdb.getResidueCoords(res)[:, ati]
             if self.subregionfx: coords = self.subregionfx(coords)
-            idx = npy.apply_along_axis(self.indexFunction, 1, coords)
-            for ix in idx:
-                if npy.all(ix == [-1,-1,-1]): continue
-                self.countGrids[probe][tuple(ix)] += 1
+            _count_coords(self.countGrids[probe], coords, self.indexFunction)
 
 class CountGridsWorkerHA(multiprocessing.Process):
     def __init__(self, snapQueue, probelist, solvatedPdb, hainfo, outCountGrids, indexFunction, subregionfx):
@@ -661,15 +667,9 @@ class CountGridsWorkerHA(multiprocessing.Process):
                     # get all coords for HA name
                     res, atname = probe.split('_')
                     ati = self.hainfo[res][atname] -1
-                    coords = npy.array([rxyz[ati] for rxyz in self.pdb.iterResidues(res)])
+                    coords = self.pdb.getResidueCoords(res)[:, ati]
                 if self.subregionfx: coords = self.subregionfx(coords)
-                idx = npy.apply_along_axis(self.toIndex, 1, coords)
-                for ix in idx:
-                    if npy.all(ix == [-1,-1,-1]): continue
-                    try:
-                        self.outCountGrids[probe][tuple(ix)] += 1
-                    except IndexError:
-                        raise IndexError("{} {} {} grid shape: {}".format(ix, tuple(idx), probe, self.outCountGrids[probe].shape))
+                _count_coords(self.outCountGrids[probe], coords, self.toIndex)
 
 
 def DensityGrids_postprocess(results, replica, **kwargs):

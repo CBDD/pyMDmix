@@ -139,11 +139,27 @@ class SolvatedPDB(bi.PDBModel):
             self['serial_number'] = npy.arange(len(self)) + 1
     
     def __prepareSolventResMasks(self):
-        "Prepare mask for each solvent residue name"
+        """
+        Prepare, for each solvent residue name, the atom indices of every residue.
+        If all residues of a name have the same number of atoms (always true for solvent molecules) the
+        result is an integer array (n_residues x n_atoms). This replaces one boolean mask of length
+        n_atoms per residue, which needed several GB (and one full scan of the PDB per residue) for the
+        ~14000 waters of a typical system.
+        """
+        resmap = self.resMap()
+        names = npy.asarray(self['residue_name'])
         for res in self.solvent.residues:
-            self.resMasks[res.name] = []
-            resids = npy.unique(self['residue_number'][self.maskFrom('residue_name', res.name)])
-            [self.resMasks[res.name].append(self.maskFrom('residue_number', rn)) for rn in resids]
+            atoms = npy.where(names == res.name)[0]
+            if len(atoms) == 0:
+                self.resMasks[res.name] = None
+                continue
+            rid = resmap[atoms]
+            starts = npy.flatnonzero(npy.r_[True, rid[1:] != rid[:-1]])
+            sizes = npy.diff(npy.r_[starts, len(atoms)])
+            if npy.all(sizes == sizes[0]):
+                self.resMasks[res.name] = atoms.reshape(len(starts), int(sizes[0]))
+            else:
+                self.resMasks[res.name] = [atoms[s:s + n] for s, n in zip(starts, sizes)]
 
     def __prepareSolventProbeMasks(self):
         "Get mask of atoms of interest per probe"
@@ -151,13 +167,24 @@ class SolvatedPDB(bi.PDBModel):
             self.probeMasks[probe.name] = self.maskFrom('residue_name', probe.residue.name) * self.maskFrom('name', probe.atoms)
         return True
     
+    def __residueIndices(self, residuename):
+        "Return the atom indices of each residue of name *residuename* (see __prepareSolventResMasks)."
+        if not self.resMasks: self.__prepareSolventResMasks()
+        idx = self.resMasks.get(residuename)
+        if idx is None or len(idx) == 0:
+            raise SolvatedPDBError("Invalid residue name %s. Residue not in solvent %s."%(residuename,self.solvent.name))
+        return idx
+
     def iterResidues(self, residuename):
         "Iterate over requested residues coordinates"
-        if not self.resMasks: self.__prepareSolventResMasks()
-        masks = self.resMasks.get(residuename)
-        if not npy.any(masks): raise SolvatedPDBError("Invalid residue name %s. Residue not in solvent %s."%(residuename,self.solvent.name))
-        for m in masks:
-                yield self.xyz[m]
+        for row in self.__residueIndices(residuename):
+            yield self.xyz[row]
+
+    def getResidueCoords(self, residuename):
+        "Coordinates of all residues of name *residuename* as an array (n_residues x n_atoms x 3)."
+        idx = self.__residueIndices(residuename)
+        if isinstance(idx, list): return npy.array([self.xyz[row] for row in idx])
+        return self.xyz[idx]
 
     def getProbeCoords(self, probename):
         "Obtain all coordinates for probe *probename*"
@@ -172,7 +199,9 @@ class SolvatedPDB(bi.PDBModel):
                 # Its a com probe, determine residue and 
                 # Fetch COM coordinates
                 res = self.solvent.comprobes[probename].name
-                return npy.array([coord.mean(axis=0) for coord in self.iterResidues(res)])
+                idx = self.__residueIndices(res)
+                if isinstance(idx, list): return npy.array([self.xyz[row].mean(axis=0) for row in idx])
+                return self.xyz[idx].mean(axis=1)
     
 #    def checkAll(self):
 ##        if self.checkMissingResidues():
