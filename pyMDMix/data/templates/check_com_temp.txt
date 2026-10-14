@@ -14,7 +14,7 @@ $$exeptraj ../$$top << EOF
 trajin ../$$crd
 strip '@H*'
 strip '!(:$${mask})'
-trajout tmp0.pdb pdb nobox
+trajout tmp0.pdb pdb nobox include_ep
 EOF
 
 # calculate Center Of Mass
@@ -24,7 +24,7 @@ $$exeptraj ../$$top << EOF
 trajin $$rst
 strip '@H*'
 strip '!(:$${mask})'
-trajout tmp.pdb pdb nobox
+trajout tmp.pdb pdb nobox include_ep
 EOF
 
 
