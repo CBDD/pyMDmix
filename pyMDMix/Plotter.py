@@ -223,10 +223,10 @@ class Plot(object):
         
         # Decorate
         axes[0].set_title("BB RMSD plot")
-        axes[0].set_ylabel(r'RMSD ($\AA^2$)')
+        axes[0].set_ylabel(r'RMSD ($\AA$)')
         axes[1].set_title("HA RMSD plot")
         axes[1].set_xlabel('Time (ns)')
-        axes[1].set_ylabel(r'RMSD ($\AA^2$)')
+        axes[1].set_ylabel(r'RMSD ($\AA$)')
                 
         plt.legend(prop={'size':'small'}, loc="upper center", ncol=min(len(list(replicarmsd.keys())), 3))
         if outfilename: 
