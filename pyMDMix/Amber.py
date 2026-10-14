@@ -673,14 +673,14 @@ class AmberCheck(object):
         
         :arg Replica replica: Replica to study. If false, will take replica loaded in initalization.
         :arg int step: Step to fetch volume for. If False, will identify last completed production step and use that one.
-        :arg str boxextension: Extension for the output file containing the restart information. DEFAULT: rst.
+        :arg str boxextension: Extension for the output file containing the restart information. DEFAULT: rst7.
         
         :return float Volume: Simulation volume.
         """
         replica = replica or self.replica
         if not replica: raise AmberCheckError("Replica not assigned.")
         
-        boxextension = boxextension or 'rst'
+        boxextension = boxextension or 'rst7'
         
         # Work on step. If not given, fetch last completed production step.
         step = step or replica.lastCompletedProductionStep()
@@ -765,7 +765,7 @@ class AmberWriter(object):
 
         # Set reference file if restrained simulation
         if replica.hasRestraints:
-            if replica.minimizationAsRef: ref = prevsep+replica.minfolder+os.sep+'min.rst'
+            if replica.minimizationAsRef: ref = prevsep+replica.minfolder+os.sep+'min.rst7'
             else: ref = prevsep+crd
         else:
             ref = False
@@ -776,7 +776,7 @@ class AmberWriter(object):
         iwrap = replica.iwrap == '1'
             
         if process == 'min':
-            command = S.AMBER_MIN_EXE+' -O -i min.in -o min.out -p %s -c %s -r min.rst'%(prevsep+top, prevsep+crd)
+            command = S.AMBER_MIN_EXE+' -O -i min.in -o min.out -p %s -c %s -r min.rst7'%(prevsep+top, prevsep+crd)
             if ref and not replica.minimizationAsRef: command += ' -ref %s'%ref
             return command
 
@@ -785,18 +785,18 @@ class AmberWriter(object):
             if step == 1:
                 #First step
                 eqfname = replica.eqoutfiletemplate.format(step=step,extension='')
-                command = S.AMBER_PROD_EXE+' -O -i eq1.in -o %sout -p %s -c %smin.rst -r %srst -x %s%s'%(eqfname, prevsep+top,
+                command = S.AMBER_PROD_EXE+' -O -i eq1.in -o %sout -p %s -c %smin.rst7 -r %srst7 -x %s%s'%(eqfname, prevsep+top,
                                                 prevsep+replica.minfolder+os.sep, eqfname, eqfname, extension)
 
             elif step > 1:
                 eqfname = replica.eqoutfiletemplate.format(step=step,extension='')
                 preveqfname = replica.eqoutfiletemplate.format(step=step-1,extension='')
-                command =  S.AMBER_PROD_EXE+' -O -i eq%i.in -o %sout -p %s -c %srst -r %srst -x %s%s'% \
+                command =  S.AMBER_PROD_EXE+' -O -i eq%i.in -o %sout -p %s -c %srst7 -r %srst7 -x %s%s'% \
                                                             (step, eqfname, prevsep+top, preveqfname, eqfname, eqfname, extension)
             if ref:
                 # Add reference flag and trajectory imaging of restart file
                 command += ' -ref %s\n'%(ref)
-                if iwrap: command += 'sh %scheck_com.sh %srst &> %simage.log'%(prevsep, eqfname, eqfname)
+                if iwrap: command += 'sh %scheck_com.sh %srst7 &> %simage.log'%(prevsep, eqfname, eqfname)
 
             return command
             
@@ -806,21 +806,21 @@ class AmberWriter(object):
             mdouttemplate=replica.mdoutfiletemplate.replace('.{extension}','')
             if step == 1:
                 fname = mdouttemplate.format(step=1)
-                command = S.AMBER_PROD_EXE+' -O -i md.in -o {fname}.out -p %s -c %seq5.rst -r {fname}.rst -x {fname}.%s'%(prevsep+top, prevsep+replica.eqfolder+os.sep, extension)
+                command = S.AMBER_PROD_EXE+' -O -i md.in -o {fname}.out -p %s -c %seq5.rst7 -r {fname}.rst7 -x {fname}.%s'%(prevsep+top, prevsep+replica.eqfolder+os.sep, extension)
                 if ref:
                     command += ' -ref %s\n'%(ref)
-                    if iwrap: command += 'sh %scheck_com.sh %s.rst &> %s.image.log'%(prevsep, fname, fname)
+                    if iwrap: command += 'sh %scheck_com.sh %s.rst7 &> %s.image.log'%(prevsep, fname, fname)
 
                 command = command.format(fname=fname)
 
             elif step > 1:
                 prevfname=mdouttemplate.format(step=step-1)
                 nextfname=mdouttemplate.format(step=step)
-                command = S.AMBER_PROD_EXE+' -O -i md.in -o {nextfname}.out -p %s -c {prevfname}.rst -r {nextfname}.rst -x {nextfname}.%s'%(prevsep+top, extension)
+                command = S.AMBER_PROD_EXE+' -O -i md.in -o {nextfname}.out -p %s -c {prevfname}.rst7 -r {nextfname}.rst7 -x {nextfname}.%s'%(prevsep+top, extension)
                 fname = nextfname
                 if ref:
                     command += ' -ref %s\n'%(ref)
-                    if iwrap: command += 'sh %scheck_com.sh %s.rst &> %s.image.log'%(prevsep, fname, fname)
+                    if iwrap: command += 'sh %scheck_com.sh %s.rst7 &> %s.image.log'%(prevsep, fname, fname)
 
                 command = command.format(nextfname=nextfname, prevfname=prevfname)
 
