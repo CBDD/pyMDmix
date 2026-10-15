@@ -343,11 +343,10 @@ class Project(object):
 
     def createProjectFolder(self):
         "Create folder structure for current project name and update paths"
-        import distutils.dir_util as du
         if not self.__folderscreated:
             self.log.info("Creating project folder")
             self.__folderscreated= True
-            du.create_tree(self.projName,[self.replPaths+os.sep], verbose=True)
+            T.create_tree(self.projName,[self.replPaths+os.sep], verbose=True)
             T.BROWSER.chdir(self.projName)
             self.projFilePath = self.projFileName
             self.write()

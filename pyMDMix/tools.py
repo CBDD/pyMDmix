@@ -48,6 +48,18 @@ if DISABLE_BISKIT_LOADING_WARNS:
 
 from biskit.tools import *
 
+def create_tree(base, files, verbose=False):
+    """
+    Create the folder *base* and the folders needed to hold each path in *files* (relative to *base*).
+    Replacement for distutils.dir_util.create_tree, removed in Python 3.12.
+    """
+    dirs = {osp.join(base, osp.dirname(f)) if osp.dirname(f) else base for f in files}
+    dirs.add(base)
+    for d in sorted(dirs):
+        if not osp.isdir(d):
+            if verbose: print("creating %s" % d)
+            os.makedirs(d, exist_ok=True)
+
 def load(filename, gzip=0, encoding='latin1'):
     """
     Load an object (or several, as a tuple) dumped with :func:`dump`.

@@ -596,7 +596,7 @@ class AmberPDBCleaner(biskit.md.AmberParmBuilder):
             m.xplor2amber()
 
             if cap:
-                if m.chainBreaks():
+                if len(m.chainBreaks()) > 0:
                     end_broken = m.atom2chainIndices( m.chainBreaks() )
                     capC = MU.union( capC, end_broken ) or [0]
                     capN = MU.union( capN, npy.array( end_broken ) + 1 ) or [0]

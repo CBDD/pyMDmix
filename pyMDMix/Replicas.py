@@ -663,7 +663,6 @@ Solvent: {solvent}
             raise ReplicaError("Unnamed replica folder can not be created.")
         
         if self.system and self.eqfolder and self.mdfolder:
-            import distutils.dir_util as du
             import shutil
 
             self.log.info("Creating folder structure for replica %s"%self.name)
@@ -674,7 +673,7 @@ Solvent: {solvent}
             else: where = T.BROWSER.getcwd()
             T.BROWSER.chdir(where)
 
-            du.create_tree(self.name, [self.minfolder+os.sep, self.eqfolder+os.sep,
+            T.create_tree(self.name, [self.minfolder+os.sep, self.eqfolder+os.sep,
                                         self.mdfolder+os.sep],verbose=True)
 
 
