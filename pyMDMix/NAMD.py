@@ -151,13 +151,13 @@ class NAMDWriter(object):
         if not replica: raise NAMDWriterError("Replica not assigned.")
 
         if process == 'min':
-            command = S.NAMD_EXE+' min.in &> min.out'
+            command = S.NAMD_EXE+' min.in > min.out 2>&1'
             return command
 
         elif process == 'eq':
             if not step: return False
             outname = replica.eqoutfiletemplate.format(step=step, extension='out')
-            command = S.NAMD_EXE+' eq%i.in &> %s'%(step, outname)
+            command = S.NAMD_EXE+' eq%i.in > %s 2>&1'%(step, outname)
             return command
 
         elif process == 'md':
@@ -165,7 +165,7 @@ class NAMDWriter(object):
 
             mdouttemplate=replica.mdoutfiletemplate.replace('.{extension}','')
             outname = mdouttemplate.format(step=step)
-            command = S.NAMD_EXE+' %s.in &> %s.out'%(outname, outname)
+            command = S.NAMD_EXE+' %s.in > %s.out 2>&1'%(outname, outname)
             return command
 
         else: pass

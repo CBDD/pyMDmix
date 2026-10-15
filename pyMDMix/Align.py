@@ -141,7 +141,8 @@ class Align(object):
         
         outf= inf.replace('.ptraj','_ptraj.log')
         top = os.pardir+os.sep+self.replica.top
-        cmd = S.AMBER_PTRAJ+' {top} < {inf} &> {outf}'.format(top=top, inf=inf, outf=outf)
+        # POSIX redirection: '&>' is a bashism; under /bin/sh (dash) it sends the command to the background
+        cmd = S.AMBER_PTRAJ+' {top} < {inf} > {outf} 2>&1'.format(top=top, inf=inf, outf=outf)
         
         return cmd, path
         
