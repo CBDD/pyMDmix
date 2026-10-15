@@ -71,6 +71,29 @@ def create_tree(base, files, verbose=False):
             if verbose: print("creating %s" % d)
             os.makedirs(d, exist_ok=True)
 
+_BISKIT3_MODULES = None
+
+def _findBiskit3Class(module, name):
+    """
+    Translate a Biskit 2 pickle reference (module *Biskit.PDBModel*, class *PDBModel*) to the class in
+    Biskit 3, where modules were renamed (biskit.pdbModel) and some moved into subpackages
+    (biskit.core.localpath). Returns None if the class cannot be found.
+    """
+    global _BISKIT3_MODULES
+    import importlib, pkgutil
+    import biskit
+    if _BISKIT3_MODULES is None:
+        _BISKIT3_MODULES = {}
+        for m in pkgutil.walk_packages(biskit.__path__, 'biskit.'):
+            _BISKIT3_MODULES.setdefault(m.name.rsplit('.', 1)[-1].lower(), m.name)
+    candidates = []
+    base = module.split('.', 1)[1] if '.' in module else ''
+    if base and base.lower() in _BISKIT3_MODULES: candidates.append(_BISKIT3_MODULES[base.lower()])
+    for modname in candidates + ['biskit']:
+        try: return getattr(importlib.import_module(modname), name)
+        except (ImportError, AttributeError): continue
+    return None
+
 def load(filename, gzip=0, encoding='latin1'):
     """
     Load an object (or several, as a tuple) dumped with :func:`dump`.
@@ -92,8 +115,8 @@ def load(filename, gzip=0, encoding='latin1'):
     class _Unpickler(pickle.Unpickler):
         def find_class(self, module, name):
             if module == 'Biskit' or module.startswith('Biskit.'):
-                try: return getattr(importlib.import_module('biskit'), name)
-                except AttributeError: pass
+                cls = _findBiskit3Class(module, name)
+                if cls is not None: return cls
             return super().find_class(module, name)
 
     filename = osp.expanduser(filename)
