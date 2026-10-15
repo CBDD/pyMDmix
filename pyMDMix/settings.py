@@ -69,7 +69,7 @@ import os.path as osp
 from . import tools as T
 from . import SettingsParser as P
 
-VERSION="0.1"
+VERSION="0.3.1"
 
 # First of all check if logging is activated or activate it!
 # Check if a root logger has been created or run one with basic configuration

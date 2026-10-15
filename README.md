@@ -35,11 +35,12 @@ there are three recommended ways to install pyMDMix:
 
 ```bash
 git clone https://github.com/CBDD/pyMDmix.git
-cd pyMDMix
+cd pyMDmix
 conda env create -f environment.yml
-conda activate mdmix-env
-conda env config vars set AMBERHOME=$CONDA_PREFIX/envs/mdmix-env
-pip install .
+conda activate pymdmix3
+conda env config vars set AMBERHOME=$CONDA_PREFIX
+conda deactivate && conda activate pymdmix3
+pip install -e .
 ```
 
 3 - Testing
@@ -60,6 +61,12 @@ Test the program works correctly:
 	This will run a series of source code checks.
 	Some tests need a working AMBER installation (tleap, cpptraj, ambpdb) and
 	internet access (PDB2PQR web server), so they will fail without them.
+
+Tutorial
+--------
+A short Spanish tutorial (cajas de solvente OPC, creacion de proyectos, analisis) is in TUTORIAL.md. The step-by-step guide to build mixed-solvent boxes with OPC water (build_box.sh, boxcalc.py) is in TUTORIAL_CAJAS.md.
+A complete project configuration template is in pyMDMix/data/templates/complete.cfg
+(`mdmix create template -f proyecto.cfg` copies it to the current folder).
 
 Python 3 notes
 --------------

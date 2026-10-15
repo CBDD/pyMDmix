@@ -26,7 +26,10 @@ def getRequirements():
     return requirements
 
 def getVersionFromInit():
-    return '0.2.8'
+    # Single source of truth: __version__ in pyMDMix/__init__.py
+    import re
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pyMDMix', '__init__.py')) as f:
+        return re.search(r'__version__\s*=\s*[\'"]([^\'"]+)[\'"]', f.read()).group(1)
 
 setup(
     name='pyMDMix',
