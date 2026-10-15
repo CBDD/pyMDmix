@@ -102,12 +102,15 @@ class Leaper(object):
         #for line in self._out.readline().splitlines():
             #line = line.strip()
             #if not line: break
-            line = self._out.readline().strip()
+            raw = self._out.readline()
+            if raw == '':
+                # EOF: tleap exited. Without this check the loop never ends (readline keeps returning '').
+                self.tleap.poll()
+                break
+            line = raw.strip()
             if 'mdmix_terminator_command' in line:
                 logging.getLogger("AmberTleap").debug(line)    
                 done = True
-                break
-            if self.tleap.returncode is not None:
                 break
             if 'Fatal Error!' in line:
                 break
@@ -1236,7 +1239,7 @@ class Test(BT.BiskitTest):
     """Test"""
     def test_tleap(self):
         """Test correct operation of tLeap"""
-        leap = Leaper(extraff='leaprc.ff99SB')
+        leap = Leaper(extraff=['leaprc.protein.ff19SB'])
         leap.command("savepdb LEU tmpleu.pdb")
         leap.close()
         self.testdir = 'tmpleu.pdb'
