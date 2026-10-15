@@ -483,6 +483,10 @@ import biskit.test as BT
 class Test(BT.BiskitTest):
     """Test"""
 
+    def prepare(self):
+        self._cwd0 = os.getcwd()
+        self.f_out = None
+
     def test_SystemOFF(self):
         """Create System from OFF"""
         off = T.testRoot('pep','pep.off')
@@ -511,6 +515,7 @@ class Test(BT.BiskitTest):
         pdb = solvatedsys.getSolvatedPDB()
 
     def cleanUp(self):
+        os.chdir(self._cwd0)   # tests chdir into f_out; do not leave the process in a deleted folder
         if self.f_out: T.tryRemove( self.f_out, tree=1 )
 
 

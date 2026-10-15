@@ -1301,11 +1301,13 @@ from . import tools as T
 class Test(BT.BiskitTest):
     """Test"""
     def prepare(self):
+        self._cwd0 = os.getcwd()
         self.f_out = T.tempfile.mkdtemp()
         self.dxf = T.testRoot('grids','ETA_CT.dx')
         self.xplorf = T.testRoot('grids','ETA_CT.xplor')
 
     def cleanUp(self):
+        os.chdir(self._cwd0)   # tests chdir into f_out; do not leave the process in a deleted folder
         T.tryRemove(self.f_out, tree=1)
 
     def test_GridData_XPLOR(self):
