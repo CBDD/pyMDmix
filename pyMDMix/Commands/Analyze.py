@@ -29,6 +29,7 @@ class Analyze(Command):
         cpp_density_parser.add_argument("--onlycom", help="Density calculations ONLY for center of masses of each co-solvent. Probe list is ignored. Default: False",action="store_true", dest="onlycom", default=False)
         cpp_density_parser.add_argument("--com", help="Include center of mass to list of probes probes in density calculation. Default: False",action="store_true", dest="com", default=False)
         cpp_density_parser.add_argument("--ref", help="Reference PDB file to build grid shape over which counts will be added. By default, replica reference PDB will be used. This option is useful to build density grids on a subregion of the space or when replica trajectory was also aligned using --ref option.", action="store", dest="ref")
+        cpp_density_parser.add_argument("--parallel-replicas", action="store_true", default=False, dest="parallel_replicas", help="Process all selected replicas at the same time. By default replicas are processed one after the other.")
         cpp_density_parser.add_argument("--only-write", action="store_true", default=False, dest="onlywrite", help="Only write ptraj input scripts BUT don't execute them. Useful when manual editing is needed. (default: False)")
         cpp_density_parser.add_argument("--only-exe", action="store_true", default=False, dest="onlyexe", help="Only execute existing ptra scripts, do not overwrite them. If scripts don't exist, this function will fail. (Default: False)")
 
@@ -48,6 +49,7 @@ class Analyze(Command):
         align_parser.add_argument("-C", type=int, help="Number of cpus to use for the action. If option not given, will use 1 CPU serial mode.", dest="ncpus", default=1, action="store")
         align_parser.add_argument("--mask", action="store", dest="alignmask", help="Modify alignment mask defined when creating the replicas. By default the macromolecule will be automatically identified. Give a list with comma separated residue numbers or hyphen separated range. E.g. 10-100,120-240.")
         align_parser.add_argument("--ref", action="store", dest="ref", help="Path to reference PDB file. By default, pyMDmix generates one automatic reference pdb file which can be found inside each replica folder. This option will override it.")
+        align_parser.add_argument("--parallel-replicas", action="store_true", default=False, dest="parallel_replicas", help="Align all selected replicas at the same time. By default replicas are aligned one after the other (each one using the -C workers), which avoids concurrent disk access to several trajectories.")
         align_parser.add_argument("--only-write", action="store_true", default=False, dest="onlywrite", help="Only write ptraj input scripts BUT don't execute them. Useful when manual editing is needed. (default: False)")
         align_parser.add_argument("--only-exe", action="store_true", default=False, dest="onlyexe", help="Only execute existing ptra scripts, do not overwrite them. If scripts don't exist, this function will fail. (Default: False)")
         
@@ -99,13 +101,13 @@ class Analyze(Command):
                     # Options for partial execution selected
                     if onlywrite:
                         # Only write ptraj input scripts and do not execute them
-                        p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask, reference=reference, run=False)
+                        p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask, reference=reference, run=False, sequential=not parserargs.parallel_replicas)
                     else:
                         # Just execute existing alignment scripts
                         # Fail if scripts do not exist
-                        p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask, run=True, reference=reference, write=False)
+                        p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, alignmask=mask, run=True, reference=reference, write=False, sequential=not parserargs.parallel_replicas)
                 else:
-                    p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, reference=reference, alignmask=mask)
+                    p.alignReplicas(replicas, ncpus=ncpus, steps=nanosel, reference=reference, alignmask=mask, sequential=not parserargs.parallel_replicas)
                 print("DONE")
 
         elif parserargs.anl_command == 'cpp_density':
@@ -122,6 +124,7 @@ class Analyze(Command):
                     "ref": parserargs.ref,
                     "run": not parserargs.onlywrite,
                     "write": not parserargs.onlyexe,
+                    "sequential": not parserargs.parallel_replicas,
                 }
                 p.calc_cppdensityReplicas(replicas, **args)
                 print("DONE")

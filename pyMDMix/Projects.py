@@ -188,8 +188,14 @@ class Project(object):
         T.BROWSER.goback()
         self.fetchSystems()
 
-    def applyReplicas(self, action, replicalist=[], **kwargs):
-        "General method to call method *action* with arguments in **kwargs** to all replicas in replicalist. If list is empty, apply to all known replicas"
+    def applyReplicas(self, action, replicalist=[], sequential=False, **kwargs):
+        """
+        General method to call method *action* with arguments in **kwargs** to all replicas in replicalist. If list is empty, apply to all known replicas.
+
+        :arg bool sequential: If True, process the replicas one after the other (each one still uses ncpus workers).
+                              If False, all replicas are started at the same time, so their jobs share the same workers
+                              and read/write the disk of every replica simultaneously.
+        """
         if not replicalist: replicalist = list(self.fetchReplicas().values())
         process = []
         
@@ -213,8 +219,13 @@ class Project(object):
             process.append(multi.Process(target=meth, kwargs=kwargs))
         
         # Start jobs
-        [p.start() for p in process]
-        [p.join() for p in process]
+        if sequential:
+            for p in process:
+                p.start()
+                p.join()
+        else:
+            [p.start() for p in process]
+            [p.join() for p in process]
 
     def getSystem(self, sysname):
         "Return System object with name *sysname*. Must exists in current project folder."
@@ -409,7 +420,7 @@ class Project(object):
             r.createMDInput()
         return
     
-    def alignReplicas(self, replicalist, ncpus=1, steps=[], waitend=True, **kwargs):
+    def alignReplicas(self, replicalist, ncpus=1, steps=[], waitend=True, sequential=True, **kwargs):
         """
         Run alignment process on replicas in replicalist
         
@@ -417,12 +428,13 @@ class Project(object):
         :arg int ncpus: Threads to start
         :arg list steps: Steps to align. If emtpy: analyze all.
         :arg bool waitend: Wait until all alignment process is done before exiting the method        
+        :arg bool sequential: Align one replica at a time (default) so the disk is not shared by all replicas at once. Steps of a replica still run on ncpus workers.
         """
         self.log.info("Running alignment for replicas %s"%replicalist)
-        self.applyReplicas('runAlignment',replicalist, steps=steps, ncpus=ncpus, **kwargs)
+        self.applyReplicas('runAlignment',replicalist, steps=steps, ncpus=ncpus, sequential=sequential, **kwargs)
         if waitend: T.EXECUTOR.waitJobCompletion()
         
-    def calc_cppdensityReplicas(self, replicalist, ncpus=1, waitend=True, **kwargs):
+    def calc_cppdensityReplicas(self, replicalist, ncpus=1, waitend=True, sequential=True, **kwargs):
         """
         Run density calculation process on replicas in replicalist
         
@@ -432,7 +444,7 @@ class Project(object):
         :arg bool waitend: Wait until all alignment process is done before exiting the method        
         """
         self.log.info("Running cpp density calculation for replicas %s"%replicalist)
-        self.applyReplicas('runcppDensity',replicalist, ncpus=ncpus, **kwargs)
+        self.applyReplicas('runcppDensity',replicalist, ncpus=ncpus, sequential=sequential, **kwargs)
         if waitend: T.EXECUTOR.waitJobCompletion()
     
     def write(self):
