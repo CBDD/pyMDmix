@@ -41,12 +41,138 @@ import logging
 DISABLE_BISKIT_LOADING_WARNS = True
 if DISABLE_BISKIT_LOADING_WARNS:
     olderr = sys.stderr
-    sys.stderr = open(os.devnull, 'wb')
-    import Biskit.tools
+    sys.stderr = open(os.devnull, 'w')
+    import biskit.tools
     sys.stderr.close()
     sys.stderr = olderr
 
-from Biskit.tools import *
+# Biskit 3.0.1 writes integer PDB fields with repr(value). With numpy >= 2 (required by Python 3.13),
+# repr(numpy.int32(1)) is 'np.int32(1)', which corrupts every PDB written by PDBModel.writePdb.
+# Make the module-level repr of Biskit's FortranFormat convert numpy scalars to Python numbers.
+try:
+    import builtins as _builtins
+    import numpy as _npy
+    import biskit.core.scientificIO.FortranFormat as _ff
+    _ff.repr = lambda v: _builtins.repr(v.item() if isinstance(v, _npy.generic) else v)
+except Exception:   # Biskit layout changed: nothing to patch
+    pass
+
+from biskit.tools import *
+
+def create_tree(base, files, verbose=False):
+    """
+    Create the folder *base* and the folders needed to hold each path in *files* (relative to *base*).
+    Replacement for distutils.dir_util.create_tree, removed in Python 3.12.
+    """
+    dirs = {osp.join(base, osp.dirname(f)) if osp.dirname(f) else base for f in files}
+    dirs.add(base)
+    for d in sorted(dirs):
+        if not osp.isdir(d):
+            if verbose: print("creating %s" % d)
+            os.makedirs(d, exist_ok=True)
+import biskit.tools as _bt
+
+def tryRemove(f, verbose=0, tree=0, wildcard=0):
+    """
+    Same as :func:`biskit.tools.tryRemove`, but if the process is currently inside the folder that is
+    going to be removed (tests and replica creation chdir into their work folders), first move to its
+    parent. Otherwise the working directory is left deleted and every later relative path fails
+    (for example tmp.parm7 written by tleap in the next test).
+    """
+    try:
+        if tree and osp.isdir(f):
+            fa = osp.realpath(f)
+            try:
+                cwd = osp.realpath(os.getcwd())
+            except OSError:   # cwd already deleted
+                cwd = None
+            if cwd is None or cwd == fa or cwd.startswith(fa + os.sep):
+                os.chdir(osp.dirname(fa))
+    except OSError:
+        pass
+    return _bt.tryRemove(f, verbose=verbose, tree=tree, wildcard=wildcard)
+
+_BISKIT3_MODULES = None
+
+def _findBiskit3Class(module, name):
+    """
+    Translate a Biskit 2 pickle reference (module *Biskit.PDBModel*, class *PDBModel*) to the class in
+    Biskit 3, where modules were renamed (biskit.pdbModel) and some moved into subpackages
+    (biskit.core.localpath). Returns None if the class cannot be found.
+    """
+    global _BISKIT3_MODULES
+    import importlib, pkgutil
+    import biskit
+    if _BISKIT3_MODULES is None:
+        _BISKIT3_MODULES = {}
+        for m in pkgutil.walk_packages(biskit.__path__, 'biskit.'):
+            _BISKIT3_MODULES.setdefault(m.name.rsplit('.', 1)[-1].lower(), m.name)
+    candidates = []
+    base = module.split('.', 1)[1] if '.' in module else ''
+    if base and base.lower() in _BISKIT3_MODULES: candidates.append(_BISKIT3_MODULES[base.lower()])
+    for modname in candidates + ['biskit']:
+        try: return getattr(importlib.import_module(modname), name)
+        except (ImportError, AttributeError): continue
+    return None
+
+def load(filename, gzip=0, encoding='latin1'):
+    """
+    Load an object (or several, as a tuple) dumped with :func:`dump`.
+
+    Replaces ``biskit.tools.load``, which ignores its *encoding* argument and therefore cannot read
+    pickles written by Python 2. This function reads them with ``latin1`` (the encoding recommended
+    for Python 2 pickles holding numpy data) and translates the old ``Biskit.*`` module names into
+    their Biskit 3 equivalents. Existing projects, replicas, systems, hot spot sets and the solvent
+    database can thus still be opened.
+
+    :arg str filename: Path to the pickled file.
+    :arg bool gzip: True if the file is gzip compressed.
+    :arg str encoding: Encoding used to decode Python 2 ``str`` objects.
+    :raise PickleError: If the file is not a readable pickle.
+    """
+    import pickle, importlib
+    import gzip as _gzip
+
+    class _Unpickler(pickle.Unpickler):
+        def find_class(self, module, name):
+            if module == 'Biskit' or module.startswith('Biskit.'):
+                cls = _findBiskit3Class(module, name)
+                if cls is not None: return cls
+            return super().find_class(module, name)
+
+    filename = osp.expanduser(filename)
+    try:
+        f = _gzip.open(filename, 'rb') if gzip else open(filename, 'rb')
+        objects = []
+        try:
+            while True:
+                try: objects.append(_Unpickler(f, encoding=encoding).load())
+                except EOFError: break
+        finally:
+            f.close()
+        return objects[0] if len(objects) == 1 else tuple(objects)
+    except (ValueError, pickle.UnpicklingError, UnicodeDecodeError, ImportError, AttributeError) as why:
+        raise PickleError('Python pickle %s is corrupted or unreadable (%s).' % (filename, why))
+
+_PRIVATE_TEMPDIR = None
+
+def tempDir():
+    """
+    Private temporary folder of this process. It is created on demand and removed at exit.
+
+    Replaces ``biskit.tools.tempDir``, which returns the *shared* system temporary folder (for
+    example ``/tmp``). Code and tests that clean up with ``tryRemove(tempDir(), tree=1)`` would then
+    delete everything inside it, also files belonging to other programs.
+
+    :return: path to an existing private folder
+    :rtype: str
+    """
+    global _PRIVATE_TEMPDIR
+    if _PRIVATE_TEMPDIR is None or not osp.isdir(_PRIVATE_TEMPDIR):
+        import tempfile, atexit, shutil
+        _PRIVATE_TEMPDIR = tempfile.mkdtemp(prefix='pymdmix_')
+        atexit.register(shutil.rmtree, _PRIVATE_TEMPDIR, ignore_errors=True)
+    return _PRIVATE_TEMPDIR
 
 class InvalidPath( ToolsError ):
     pass
@@ -162,14 +288,14 @@ def validPath(v):
     try:
         v = absfile( v )
         if not v or not os.path.exists( v ):
-            raise InvalidPath, 'invalid path %r' % v
+            raise InvalidPath('invalid path %r' % v)
 
         return v
 
-    except InvalidPath, e:
+    except InvalidPath as e:
         raise
-    except Exception, e:
-        raise InvalidPath, 'error during path validation: %r' % str(e)
+    except Exception as e:
+        raise InvalidPath('error during path validation: %r' % str(e))
 
 
 def validBinary(v):
@@ -184,11 +310,11 @@ def validBinary(v):
     """
     try:
         if not v:
-            raise IOError, 'empty path'
+            raise IOError('empty path')
 
         return absbinary( v )
 
-    except IOError, msg:
+    except IOError as msg:
         raise InvalidBinary( str(msg) )
 
 def amberMaskToDict(maskstring):
@@ -199,7 +325,7 @@ def amberMaskToDict(maskstring):
     for el in splited:
         if '@' in el:
             split1 = el.split('@')
-            if not out.has_key(split1[0]):
+            if split1[0] not in out:
                 out[split1[0]] =[k.strip() for k in split1[1].split(',')]
             else:
                 out[split1[0]] += [k.strip() for k in split1[1].split(',')]
@@ -215,7 +341,7 @@ def parseNumMask(mask):
     out = []
     for el in s:
         if ':' in el:
-            a, b = map(int, el.split(':'))
+            a, b = list(map(int, el.split(':')))
             out += npy.arange(a,b+1).tolist()
         else:
             out += [int(el)]
@@ -229,8 +355,8 @@ def numListToMask(numlist):
     from itertools import groupby
     ranges = []
     numlist.sort()
-    for key, group in groupby(enumerate(numlist), lambda (index, item): index - item):
-        group = map(itemgetter(1), group)
+    for key, group in groupby(enumerate(numlist), lambda index_item: index_item[0] - index_item[1]):
+        group = list(map(itemgetter(1), group))
         if len(group) > 1:
             ranges.append('{0}-{1}'.format(group[0], group[-1]))
         else:
@@ -238,11 +364,11 @@ def numListToMask(numlist):
     return ','.join(ranges)
 
 ##### CONSTRUCT A BROWSER
-from Browser import Browser
+from .Browser import Browser
 BROWSER = Browser()
 
 ##### CONSTRUCT EXECUTOR
-from Executor import Executor
+from .Executor import Executor
 EXECUTOR = Executor()
 
 ##### LOGGING TOOLS
@@ -278,31 +404,31 @@ def traceback_plus():
         f = f.f_back
     stack.reverse()
     traceback.print_exc()
-    print "Locals by frame, innermost last"
+    print("Locals by frame, innermost last")
     for frame in stack:
-        print
-        print "Frame %s in %s at line %s" % (frame.f_code.co_name,
+        print()
+        print("Frame %s in %s at line %s" % (frame.f_code.co_name,
                                              frame.f_code.co_filename,
-                                             frame.f_lineno)
-        for key, value in frame.f_locals.items():
-            print "\t%20s = " % key,
+                                             frame.f_lineno))
+        for key, value in list(frame.f_locals.items()):
+            print("\t%20s = " % key, end=' ')
             #We have to be careful not to cause a new error in our error
             #printer! Calling str() on an unknown object could cause an
             #error we don't want.
             try:                   
-                print value
+                print(value)
             except:
-                print "<ERROR WHILE PRINTING VALUE>"
+                print("<ERROR WHILE PRINTING VALUE>")
 
 #### CLEAN NAMESPACE
 del Browser, Executor
 
 
 if __name__ == "__main__":
-    print projectRoot()
-    print solventsRoot()
+    print(projectRoot())
+    print(solventsRoot())
     l = [[1,2,3],4,[[5,6],[[7],[8],[9,10,11]],[[12,13],14]]]
-    print simplifyNestedList(l)
+    print(simplifyNestedList(l))
 
     BROWSER = Browser()
 
@@ -313,9 +439,9 @@ if __name__ == "__main__":
             self.browser = BROWSER
 
         def chdir(self, d):
-            print 'PREV:', self.name, self.browser.getcwd()
+            print('PREV:', self.name, self.browser.getcwd())
             self.browser.chdir(d)
-            print 'NEW:', self.name, self.browser.getcwd()
+            print('NEW:', self.name, self.browser.getcwd())
 
     testA = A('a')
     testB = A('b')
@@ -323,7 +449,7 @@ if __name__ == "__main__":
     testA.chdir('..')
     testB.chdir('..')
     testA.browser.goup()
-    print testA.name, testA.browser.cwd
-    print testB.name, testB.browser.cwd
+    print(testA.name, testA.browser.cwd)
+    print(testB.name, testB.browser.cwd)
     testB.browser.goback()
-    print testA.name, testA.browser.cwd
+    print(testA.name, testA.browser.cwd)

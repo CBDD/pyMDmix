@@ -18,5 +18,5 @@ class Remove(Command):
             name = parserargs.groupname
             r = p.removeGroup(name)
             if not r:
-                raise MDMixError, "Group name %s does not exists. Project groups: %s"%p.listGroups()
-            print "DONE"
+                raise MDMixError("Group name %s does not exists. Project groups: %s"%p.listGroups())
+            print("DONE")

@@ -44,3 +44,26 @@ UPDATE HISTORY (ZIP)
 07/07/2015
 - Fixed bug in PDB magicFit function causing maximum recursion error when too many water molecules are present. Added mask to the alignment. 
 - Fixed some bugs in grid comparison function.
+
+08/10/2026
+- Ported to Python 3 (>=3.9) and Biskit 3 (module `biskit`). Python 2 is no longer supported.
+- Python 2 pickles (projects, replicas, systems, hot spot sets, solvent database) are still readable.
+- Amber ASCII (.x) trajectories are read with a reader included in pyMDMix; NetCDF through netCDF4.
+- DCD reader detects the byte order automatically (NAMD on x86 writes little-endian files).
+- Integer divisions, text/bytes handling, set-ordering and numpy>=1.25 comparisons reviewed.
+- tools.tempDir() now returns a private folder: the tests removed the shared system temporary folder.
+
+14/10/2026
+- System and replica topology/coordinate files are now saved as .parm7 and .rst7 (previously .prmtop and .prmcrd). Test data renamed accordingly.
+- check_com: cpptraj PDB output now uses include_ep so virtual sites (e.g. EPW of OPC water) are kept in the stripped PDB.
+- Neutralization with NaCl loads leaprc.water.opc / leaprc.water.opc3 when the solvent water model is OPC / OPC3.
+- Amber.ambpdb writes the system PDB with cpptraj (trajout ... pdb include_ep) so virtual sites (EPW of OPC) are kept and the PDB has the same atoms as the topology and trajectories; it falls back to ambpdb, which skips extra points.
+- Solvent configuration parser: InvalidPath now reports which objectfile/frcmod was not found.
+- Amber restart files use the .rst7 extension (min.rst7, eqN.rst7, mdN.rst7, check_com.sh and getSimVolume).
+- ambpdb output is renumbered when it uses hybrid-36 numbering (more than 9999 residues or 99999 atoms), which Biskit cannot parse.
+- Plotter.plotRMSDdata: RMSD axis label corrected from A^2 to A (cpptraj rms reports RMSD in Angstroms, not squared).
+- Density (--com and all-heavy-atom grids): SolvatedPDB stores solvent residues as integer atom-index arrays instead of one boolean mask of length n_atoms per residue (about 1 GB per worker process for ~14000 waters, plus one full PDB scan per residue); COM and per-atom residue coordinates are computed vectorized (getResidueCoords), and grid counting uses a vectorized _count_coords (numpy add.at) instead of a per-coordinate Python loop. Results are identical (checked against the previous implementation).
+- FileLock (issue CBDD/pyMDmix#6): lock files store host and pid and are created next to the locked file; locks left by a dead process (same host) or older than 10 minutes are removed automatically; the timeout error names the lock file; forked workers never delete the parent's lock. returnMDMixProject no longer reports a lock error as 'No project file found'.
+- analyze align and analyze cpp_density now process replicas one after the other (each with its -C workers) instead of starting all replicas at once, which made every trajectory be read and written simultaneously; the previous behavior is available with --parallel-replicas. Project.applyReplicas accepts sequential=True.
+- Replace the bashism '&>' with POSIX '> file 2>&1' in the commands generated for ptraj alignment (Align.py), check_com calls in COMMANDS.sh (Amber.py) and NAMD (NAMD.py). Under /bin/sh (dash) 'cmd &> file' sends cmd to the background, so the Executor started ALL alignment jobs at once (60 cpptraj for 3 replicas x 20 steps) ignoring -C, and check_com ran concurrently with the next MD segment.
+- Executor: progress reporting for alignment and cpptraj density jobs (a line per finished job: [done/total, percent, elapsed] replica and step), and waitJobCompletion now waits until the jobs have finished instead of only until the queue is empty.

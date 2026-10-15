@@ -40,8 +40,8 @@ __date__ ="$16-ene-2014 19:28:13$"
 import logging
 import os
 import os.path as osp
-import ConfigParser
-import tools as T
+import configparser
+from . import tools as T
 import string
 
 class SettingsError( Exception ):
@@ -69,7 +69,7 @@ class WriteCfgError(SettingsError):
     pass
 
 
-class CaseSensitiveConfigParser( ConfigParser.SafeConfigParser ):
+class CaseSensitiveConfigParser( configparser.ConfigParser ):
     """
     Change ConfigParser so that it doesn't convert option names to lower case.
     """
@@ -105,13 +105,13 @@ class Setting(object):
         try:
             if not self.value is None:
                 if vtype == list and isinstance(self.value, str):
-                    self.value = map(string.strip, self.value.split(','))
+                    self.value = list(map(str.strip, self.value.split(',')))
                 else:
                     self.value = vtype( self.value )
             self.vtype = vtype
-        except ValueError, e:
-            raise InvalidValue, '%s: cannot convert "%s" to %r.' %\
-              (self.name,self.value,vtype)
+        except ValueError as e:
+            raise InvalidValue('%s: cannot convert "%s" to %r.' %\
+              (self.name,self.value,vtype))
 
     def __repr__( self, tab='' ):
         error = ''
@@ -127,16 +127,29 @@ class Setting(object):
     def __str__( self ):
         return self.__repr__( tab='\t' )
 
-    def __cmp__( self, other ):
-        """
-        Compare Setting instances by their name.
-        @return: 1,0,-1
-        @rtype: int
-        """
-        if isinstance( other, self.__class__ ):
-            return cmp( self.name, other.name )
+    # Rich comparisons (replace Python 2 __cmp__): Setting instances are compared by their name.
+    def __eq__( self, other ):
+        if isinstance( other, self.__class__ ): return self.name == other.name
+        return NotImplemented
 
-        return cmp( self, other )
+    def __lt__( self, other ):
+        if isinstance( other, self.__class__ ): return self.name < other.name
+        return NotImplemented
+
+    def __gt__( self, other ):
+        if isinstance( other, self.__class__ ): return self.name > other.name
+        return NotImplemented
+
+    def __le__( self, other ):
+        if isinstance( other, self.__class__ ): return self.name <= other.name
+        return NotImplemented
+
+    def __ge__( self, other ):
+        if isinstance( other, self.__class__ ): return self.name >= other.name
+        return NotImplemented
+
+    def __hash__( self ):
+        return hash( self.name )
 
 
     def formatted( self ):
@@ -208,11 +221,11 @@ class SettingsParser(object):
                 t = eval( s )
 
                 if not type(t) is type:
-                    raise TypeError, '%s is not a valid type' % s
+                    raise TypeError('%s is not a valid type' % s)
 
-            except Exception, e:
-                raise TypeError, 'Cannot extract type from %s: %r'\
-                      % option, e
+            except Exception as e:
+                raise TypeError('Cannot extract type from %s: %r'\
+                      % option) from e
 
         return t, o
 
@@ -252,7 +265,7 @@ class SettingsParser(object):
             if section == Setting.BIN:
                 r.value = T.validBinary( r.value )
 
-        except SettingsWarning, e:           ## catch and record warnings
+        except SettingsWarning as e:           ## catch and record warnings
             r.error = str(e)
 
         return r
@@ -296,25 +309,25 @@ class SettingsParser(object):
             c = CaseSensitiveConfigParser()
 
             if c.read( self.f_ini ) != [ self.f_ini ]:
-                raise IOError, 'Settings file %s not found.' % self.f_ini
+                raise IOError('Settings file %s not found.' % self.f_ini)
 
             for section in c.sections():
                 res = self.__processSection( c.items(section), section)
                 if keepsections: self.result.update({section:res})
                 else: self.result.update(res)
 
-        except ConfigParser.Error, e:
-            raise InvalidFile, 'Error parsing settings file %s: ' %\
-                  self.f_ini + str(e)
+        except configparser.Error as e:
+            raise InvalidFile('Error parsing settings file %s: ' %\
+                  self.f_ini + str(e))
 
         return self.result
 
     def __repr__( self):
         r = super( SettingsParser, self).__repr__()
-        err = len( [ s for s in self.result.values() if s.error ] )
+        err = len( [ s for s in list(self.result.values()) if s.error ] )
         r += ' -- %i entries, (!) %i errors' % (len( self.result ), err)
 
-        values = self.result.values()
+        values = list(self.result.values())
         values.sort()
 
         for v in values:
@@ -420,11 +433,13 @@ class SettingsManager(object):
         """
         r = {}
 
-        for name, default in cfg_default.items():
+        for name, default in list(cfg_default.items()):
 
             next = cfg_user.get( name, default )
 
-            if next.error > default.error:
+            # Python 2 ordered None below any string: reset only if the user setting has an error
+            # that the default does not have (or a greater one)
+            if next.error is not None and (default.error is None or next.error > default.error):
 
                 if self.verbose: self.log.warning(\
                     'User setting %s is reset to default (%r),\n\treason: %s'\
@@ -450,7 +465,7 @@ class SettingsManager(object):
                 puser = SettingsParser( self.fuser )
                 cuser = puser.parse()
 
-            except IOError, e:
+            except IOError as e:
                 if self.verbose: self.log.warning(
                     'Could not find file with user-defined settings in %s' \
                     % self.fuser)
@@ -459,9 +474,9 @@ class SettingsManager(object):
 
             self.settings = self.__update( cdefault, cuser )
 
-        except SettingsError, e:
+        except SettingsError as e:
             self.log.error( str(e) )
-            raise SettingsError, str(e)
+            raise SettingsError(str(e))
 
 
     def writeUserSettings( self, errorsonly=False ):
@@ -484,7 +499,7 @@ class SettingsManager(object):
 
             for section in sections:
 
-                r[ section ] = [ s for s in self.settings.values() \
+                r[ section ] = [ s for s in list(self.settings.values()) \
                                  if s.section == section]
                 r[ section ].sort()
 
@@ -508,8 +523,8 @@ class SettingsManager(object):
 
             f.close()
 
-        except OSError, e:
-            raise WriteCfgError, e
+        except OSError as e:
+            raise WriteCfgError(e)
 
     def settings2dict( self ):
         """
@@ -517,7 +532,7 @@ class SettingsManager(object):
         @return: dictionary of parameter names (keys) and values
         @rtype: dict {str : any}
         """
-        return dict( [ (s.name, s.value) for s in self.settings.values() ] )
+        return dict( [ (s.name, s.value) for s in list(self.settings.values()) ] )
 
 
     def updateNamespace( self, ns, keepdefined=True):
@@ -543,11 +558,11 @@ class SettingsManager(object):
 
         d = self.settings2dict()
 
-        if keepdefined: ns.update((k,v) for (k,v) in d.iteritems() if k not in ns.keys())
+        if keepdefined: ns.update((k,v) for (k,v) in d.items() if k not in list(ns.keys()))
         else: ns.update(d)
 
 
-import Biskit.test as BT
+import biskit.test as BT
 
 class Test(BT.BiskitTest):
     """Test"""
@@ -577,14 +592,14 @@ class Test(BT.BiskitTest):
         self.f_out = ''
         f_in = osp.join(T.templatesRoot(),'solvent_template.cfg')
         parser = SettingsParser(f_in)
-        print parser.parse()
+        print(parser.parse())
         parser.result = {}
-        print parser.parse(keepsections=True)
+        print(parser.parse(keepsections=True))
         
     def cleanUp(self):
         if self.f_out: T.tryRemove( self.f_out, tree=1 )
 
 
 if __name__ == '__main__':
-    print "testing"
+    print("testing")
     BT.localTest()

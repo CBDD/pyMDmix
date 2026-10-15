@@ -57,54 +57,54 @@ class Plot(object):
         if not isinstance(replicalist, list): replicalist = [replicalist]
         if not isinstance(properties, list): properties = [properties]
         
-        self.log.info("Plotting replicas %s. Properties: %s"%(','.join(map(lambda x: x.name, replicalist)), ','.join(properties)))
+        self.log.info("Plotting replicas %s. Properties: %s"%(','.join([x.name for x in replicalist]), ','.join(properties)))
         
         # Construct regexps
         regexps = {}
         for prop in properties:
-            regexps[prop] = re.compile('%s\s+=\s+(-{0,1}\d+\.{0,1}\d+)'%re.escape(prop))
+            regexps[prop] = re.compile(r'%s\s+=\s+(-{0,1}\d+\.{0,1}\d+)'%re.escape(prop))
         
         # Fetch data
         rdata = {}
         for repl in replicalist:
             check = repl.getChecker()
             rdata[repl.name] = dict([(p,[]) for p in properties])
-            steps = selectedsteps or range(1, repl.ntrajfiles+1)
+            steps = selectedsteps or list(range(1, repl.ntrajfiles+1))
             for f in steps:
                 outfile = check.getProductionOutputFile(f)
                 
                 if not outfile:
-                    raise PlotError, "Output file for step %i could not be found. Make sure all selected steps are finished: %s"%(f,steps)
+                    raise PlotError("Output file for step %i could not be found. Make sure all selected steps are finished: %s"%(f,steps))
                 
                 # fetch properties from file
                 tmpdata = dict([(p,[]) for p in properties])
                 for line in outfile.split('\n'):
-                    for prop, exp in regexps.iteritems():
+                    for prop, exp in regexps.items():
                         m = exp.search(line)
                         if m: tmpdata[prop].append(float(m.groups()[0]))
                 
                 # Remove two last digits from values (Meand and fluctuation values)
                 # and extend global results
-                for k, v in tmpdata.iteritems():
+                for k, v in tmpdata.items():
                     rdata[repl.name][k].extend(v[:-2])
                 
         # Organize data by property instead of by replica
         plotdata = {}
-        for r, data in rdata.iteritems():
-            for prop, vals in data.iteritems():
-                if not plotdata.has_key(prop): plotdata[prop] = {}
+        for r, data in rdata.items():
+            for prop, vals in data.items():
+                if prop not in plotdata: plotdata[prop] = {}
                 plotdata[prop][r] = vals
                 
         # Calc shape of the plot
         nplots = len(properties)
         fig, axes = plt.subplots(nplots, 1, sharex=True)
         for i,ax in enumerate(axes):
-            prop = plotdata.keys()[i]
+            prop = list(plotdata.keys())[i]
             data = plotdata[prop]
-            if i == (len(plotdata.keys())-1): ax.set_xlabel('STEP')
+            if i == (len(list(plotdata.keys()))-1): ax.set_xlabel('STEP')
             ax.set_ylabel(prop)
             if hideylabels: ax.set_yticklabels([])
-            [ax.plot(d, label=r) for r,d in data.iteritems()]
+            [ax.plot(d, label=r) for r,d in data.items()]
         
         del rdata
         
@@ -147,7 +147,7 @@ class Plot(object):
         import glob
         import re
 
-        digit = re.compile('(\d+)')
+        digit = re.compile(r'(\d+)')
         plotdata = {}
         for i, replica in enumerate(replicaList):
             # Check if replica is centered and fetch rmsd output files
@@ -162,7 +162,7 @@ class Plot(object):
                     filelist.sort(key=lambda x: int(digit.search(os.path.basename(x)).groups()[0]))
                     self.log.debug("Sorted file list to join: %s"%filelist)
                     data = npy.hstack([npy.loadtxt(f)[:,1] for f in filelist])
-                    data = npy.vstack((range(len(data)),data)).T
+                    data = npy.vstack((list(range(len(data))),data)).T
 
                     # Save data to disk inside centering folder
                     npy.savetxt(folder+os.sep+'all_bb_rmsd.dat', data, fmt='%.4f', delimiter='\t')
@@ -181,7 +181,7 @@ class Plot(object):
                     filelist.sort(key=lambda x: int(digit.search(os.path.basename(x)).groups()[0]))
                     self.log.debug("Sorted file list to join: %s"%filelist)
                     data = npy.hstack([npy.loadtxt(f)[:,1] for f in filelist])
-                    data = npy.vstack((range(len(data)),data)).T
+                    data = npy.vstack((list(range(len(data))),data)).T
 
                     # Save data to disk inside centering folder
                     npy.savetxt(folder+os.sep+'all_ha_rmsd.dat', data, fmt='%.4f', delimiter='\t')
@@ -209,12 +209,12 @@ class Plot(object):
         """
         mp.rcParams['lines.linewidth'] = 0.0
         mp.rcParams['axes.linewidth'] = 0.5
-        colorspace = cm.rainbow(npy.linspace(0,1,len(replicarmsd.keys())))
+        colorspace = cm.rainbow(npy.linspace(0,1,len(list(replicarmsd.keys()))))
         fig, axes = plt.subplots(2,1,sharex=True)
         
         # Plot replicas BB and HA
         i = 0
-        for replica, rmsdata in replicarmsd.iteritems():
+        for replica, rmsdata in replicarmsd.items():
             x,y = rmsdata['BB']
             axes[0].plot(x, y, color=colorspace[i], label=replica, linestyle='-', linewidth='1.5', *args, **kwargs)
             x,y = rmsdata['HA']
@@ -223,12 +223,12 @@ class Plot(object):
         
         # Decorate
         axes[0].set_title("BB RMSD plot")
-        axes[0].set_ylabel('RMSD ($\AA^2$)')
+        axes[0].set_ylabel(r'RMSD ($\AA$)')
         axes[1].set_title("HA RMSD plot")
         axes[1].set_xlabel('Time (ns)')
-        axes[1].set_ylabel('RMSD ($\AA^2$)')
+        axes[1].set_ylabel(r'RMSD ($\AA$)')
                 
-        plt.legend(prop={'size':'small'}, loc="upper center", ncol=min(len(replicarmsd.keys()), 3))
+        plt.legend(prop={'size':'small'}, loc="upper center", ncol=min(len(list(replicarmsd.keys())), 3))
         if outfilename: 
             self.log.info("Saving RMSD plot to file %s"%outfilename)
             fig.savefig(outfilename, *args, **kwargs)
@@ -256,10 +256,10 @@ class Plot(object):
         if isinstance(results, str):
             results = self.getDictFromOccupancyFile(results)
         elif not isinstance(results, dict):
-            raise AttributeError, "results should be a string with a valid filename containing occupancy results or a dictionary with the results from occupancy action."
+            raise AttributeError("results should be a string with a valid filename containing occupancy results or a dictionary with the results from occupancy action.")
         
         # One color per residue name
-        names = results['map'].keys()
+        names = list(results['map'].keys())
         if 'NO_OCCUPANCY' in names: names.remove('NO_OCCUPANCY')
         if not colormap:
             colorspace = cm.rainbow(npy.linspace(0,1,len(names)))
@@ -267,13 +267,13 @@ class Plot(object):
         
         # Build a reverse map ID to Name
         idToName = {}
-        for n, ids in results['map'].iteritems():
+        for n, ids in results['map'].items():
             for i in ids: idToName[i] = n
         
         # Finally re-order data by name to create different series
         # Each name will contain a list (resid, frame)
         data = {}
-        frames = results.keys()
+        frames = list(results.keys())
         frames.remove('map')
         maxframe = npy.array(frames, dtype=int).max()
         maxres = 0
@@ -283,7 +283,7 @@ class Plot(object):
             for idval in results[frame]:
                 if idval > maxres: maxres = int(idval)
                 name = idToName.get(idval)
-                if not data.has_key(name): data[name] = []
+                if name not in data: data[name] = []
                 data[name].append((idval,frame))
         
 #        labels = map(idToName.get, data.keys())
@@ -300,7 +300,7 @@ class Plot(object):
         plot.set_ylabel('Residue ID')
         
         # Work on each series (residues)
-        for name, resFrame in data.iteritems():
+        for name, resFrame in data.items():
             if name == 'NO_RESIDENCE': continue
             y,x = npy.array(resFrame).T
             plot.scatter(x, y, s=50, lw=0.0, alpha=0.5, facecolor=colormap[name], 
@@ -328,8 +328,8 @@ class Plot(object):
         return fig
 
 
-import Biskit.test as BT
-import tools as T
+import biskit.test as BT
+from . import tools as T
 
 class Test(BT.BiskitTest):
     """Test"""
@@ -342,4 +342,4 @@ class Test(BT.BiskitTest):
         
 
 if __name__ == "__main__":
-    print "Hello World"
+    print("Hello World")
