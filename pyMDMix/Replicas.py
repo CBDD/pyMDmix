@@ -598,7 +598,7 @@ Solvent: {solvent}
             from .OpenMM import OpenMMWriter as writer
 
         else:
-            raise ReplicaError("MD Program not recognized: %s"%self.mdprog)
+            raise ReplicaError("MD Program not recognized: %s"%self.mdProgram)
 
         # Write commands file and replica config input files
         self.go()

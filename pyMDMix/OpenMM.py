@@ -593,7 +593,7 @@ class Test(BT.BiskitTest):
         top = osp.join(T.testRoot('pep', 'pep.parm7'))
         crd = osp.join(T.testRoot('pep', 'pep.rst7'))
         sys = SolvatedSystem(name='pep',top=top, crd=crd)
-        settings = MDSettings(solvent='WAT',mdProgram='OpenMM',restrMode='HA', restrForce=0.1)
+        settings = MDSettings(solvent='WAT',mdProgram='OPENMM',restrMode='HA', restrForce=0.1)
         
         self.testdir =  T.tempDir()
         self.r1 = sys+settings
