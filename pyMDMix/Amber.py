@@ -319,12 +319,18 @@ class AmberCreateSystem(object):
         self.log.debug(out)
         return float(out[0].split()[-1])
         
-    def neutralizeWNaCl(self, unit):
-        "Neutralize in leap using NaCl. unit should be a solvated system."
+    def neutralizeWNaCl(self, unit, watmodel=None):
+        """
+        Neutralize in leap using NaCl. unit should be a solvated system.
+
+        :arg str watmodel: Water model of the solvent box used to solvate *unit* (selects the ion parameters).
+                           If not given it is taken from the replica, or from settings.DEF_AMBER_WATBOX.
+        """
         if not self.leap: self.initLeap()
         self.log.debug("Neutralizing with NaCl unit %s"%unit)
-        if self.replica: watmodel = Solvents.getSolvent(self.replica.solvent).watermodel
-        else: watmodel = S.DEF_AMBER_WATBOX
+        if not watmodel:
+            if self.replica: watmodel = Solvents.getSolvent(self.replica.solvent).watermodel
+            else: watmodel = S.DEF_AMBER_WATBOX
         waterff = {
             'TIP3P': 'leaprc.water.tip3p',
             'TIP4P': 'leaprc.water.tip3pew',
@@ -348,7 +354,7 @@ class AmberCreateSystem(object):
         self.log.info("Neutralize NaCl OK")    
         return True
 
-    def neutralizeIonicBox(self, unit, negativeres, positiveres):
+    def neutralizeIonicBox(self, unit, negativeres, positiveres, watmodel=None):
         "Special neutralization of solvent mixtures which have positive and negative residues"
         if not self.leap: self.initLeap()
         charge = self.leapCharge(unit)
@@ -377,7 +383,7 @@ class AmberCreateSystem(object):
         finalcharge = self.leapCharge(unit)
         if finalcharge != 0:
             self.log.warn("Could not neutralize ionic box in Leap. Charge: %.2f. Will try adding NaCl..."%finalcharge)
-            if self.neutralizeWNaCl(unit):
+            if self.neutralizeWNaCl(unit, watmodel):
                 self.log.warn("Neutralization succeded with NaCl. Continuing...")
                 return True
             else:
@@ -439,12 +445,12 @@ class AmberCreateSystem(object):
             negative_res = [r.name for r in solvent.residues if r.charge < 0]
             positive_res = [r.name for r in solvent.residues if r.charge > 0]
             if negative_res and positive_res:
-                corrected = self.neutralizeIonicBox(unit, negative_res[0], positive_res[0])
+                corrected = self.neutralizeIonicBox(unit, negative_res[0], positive_res[0], solvent.watermodel)
             else:
                 # Just one of the partners is present, neutralize with ions
-                corrected = self.neutralizeWNaCl(unit)
+                corrected = self.neutralizeWNaCl(unit, solvent.watermodel)
         else:
-            corrected = self.neutralizeWNaCl(unit)
+            corrected = self.neutralizeWNaCl(unit, solvent.watermodel)
 
         if not corrected:
             self.log.error("Could not neutralize system. Fix it manually. Exiting...")
@@ -480,7 +486,8 @@ class AmberCreateSystem(object):
         # and neutralize charge with NaCl
         if not self.leap: self.initLeap()
         outmessage = self.leap.command("%s %s %s %.2f iso 1"%(solvate_cmd, unit,watbox, buffer))
-        if self.neutralizeWNaCl(unit):
+        watmodel = watbox[:-3] if watbox.upper().endswith('BOX') else None   # TIP3PBOX -> TIP3P
+        if self.neutralizeWNaCl(unit, watmodel):
             # System is neutralized
             # write topology and crd files
             if self.leapSaveAmberParm(unit, top, crd): 
