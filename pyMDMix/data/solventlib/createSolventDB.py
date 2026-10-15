@@ -12,6 +12,6 @@ if __name__ == "__main__":
     configfilelist = glob.glob('*.config')
     maker=SolventManager()
     for conffile in configfilelist:
-	print 'Adding solvent from %s'%conffile
-	maker.saveSolvent(maker.createSolvent(conffile), db='SOLVENTS.db', createEmpty=True)
-    print "DONE"
+        print('Adding solvent from %s'%conffile)
+        maker.saveSolvent(maker.createSolvent(conffile), db='SOLVENTS.db', createEmpty=True)
+    print("DONE")

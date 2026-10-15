@@ -33,7 +33,7 @@ import os.path as osp
 import logging
 import tempfile
 import numpy as npy
-import Biskit as bi
+import biskit as bi
 
 import multiprocessing
 
@@ -63,15 +63,15 @@ class DensityGrids(object):
         self.log = logging.getLogger("DensityGrids")
         self.replica = replica
 
-        if not isinstance(replica, pyMDMix.Replica): raise DensityError, "replica argument of wrong type."
+        if not isinstance(replica, pyMDMix.Replica): raise DensityError("replica argument of wrong type.")
                 
         self.log.info("Setting up density grids calculation for replica %s"%replica.name)
         if not replica.isAligned(stepselection):
-            raise DensityError, "Cannot calculate density over non-aligned trajectory"
+            raise DensityError("Cannot calculate density over non-aligned trajectory")
         
         self.solvent = replica.getSolvent()
         if not self.solvent:
-            raise DensityError, "Cannot fetch solvent %s from the database! Make sure there are no conflicting files"%(replica.solvent)
+            raise DensityError("Cannot fetch solvent %s from the database! Make sure there are no conflicting files"%(replica.solvent))
         self.pdb = replica.getPDB()
         
         self.probeselection= probeselection
@@ -83,9 +83,9 @@ class DensityGrids(object):
         # Wrok only on subregion?
         if subregion:
             if len(subregion) != 2:
-                raise DensityError, "subregion argument should have two xyz coordinates: min and max. E.G.: ((x0,y0,z0),(x1,y1,z1))"
+                raise DensityError("subregion argument should have two xyz coordinates: min and max. E.G.: ((x0,y0,z0),(x1,y1,z1))")
             if len(subregion[0]) != 3 or len(subregion[1] != 3):
-                raise DensityError, "subregion argument should have two xyz coordinates: min and max. E.G.: ((x0,y0,z0),(x1,y1,z1))"
+                raise DensityError("subregion argument should have two xyz coordinates: min and max. E.G.: ((x0,y0,z0),(x1,y1,z1))")
         self.subregion = subregion
         
         # To be set un setup()
@@ -100,7 +100,7 @@ class DensityGrids(object):
                 self.log.info("Using PDB file %s as reference to construct density grid"%reference)
                 self.ref=osp.abspath(reference)
             else:
-                raise DensityError, "Reference PDB file %s not found."%reference
+                raise DensityError("Reference PDB file %s not found."%reference)
             
         self.setup()        
         
@@ -150,7 +150,7 @@ class DensityGrids(object):
                     self.includeCOM = True
                 else: self.log.debug("Probe %s not in current solvent. skipping..."%p)
             if not l:
-                raise DensityError, "No probes selected"
+                raise DensityError("No probes selected")
             self.probes = l
         else:
             l = self.solvent.probelist
@@ -216,7 +216,7 @@ class DensityGrids(object):
         self.log.info("Processing density results for replica %s"%self.replica.name)
         self.replica.go()
         if not osp.exists(self.replica.densityfolder): os.mkdir(self.replica.densityfolder)
-        for probe, data in self.countGrids.iteritems():
+        for probe, data in self.countGrids.items():
             g = self.container.copy()
             g.update(data)
             g.setProbe(probe)
@@ -280,7 +280,7 @@ class CountGridsWorker(multiprocessing.Process):
                     try:
                         self.outCountGrids[probe][tuple(idx)] += 1
                     except IndexError:
-                        raise IndexError, "{} {} {} grid shape: {}".format(idx, tuple(idx), probe, self.outCountGrids[probe].shape)
+                        raise IndexError("{} {} {} grid shape: {}".format(idx, tuple(idx), probe, self.outCountGrids[probe].shape))
 
 class CountProteinWorker(multiprocessing.Process):
     def __init__(self, snapQueue, lock, mask, solvatedPdb, outCountGrids, indexFunction, subregionfx):
@@ -322,11 +322,11 @@ class DensityProtein(object):
         :arg tuple subregion: coordinates of minimum and maximum point to consider. 
         """
         self.log = logging.getLogger("DensityProtein")
-        if not isinstance(replica, pyMDMix.Replica): raise DensityError, "replica argument of wrong type."
+        if not isinstance(replica, pyMDMix.Replica): raise DensityError("replica argument of wrong type.")
         self.replica = replica
         self.log.info("Setting up density grids calculation BY MASK for replica %s"%replica.name)
         if not replica.isAligned(stepselection):
-            raise DensityError, "Cannot calculate density over non-aligned trajectory"
+            raise DensityError("Cannot calculate density over non-aligned trajectory")
         
         self.pdb = replica.getPDB()
         
@@ -336,9 +336,9 @@ class DensityProtein(object):
         # Wrok only on subregion?
         if subregion:
             if len(subregion) != 2:
-                raise DensityError, "subregion argument should have two xyz coordinates: min and max. E.G.: ((x0,y0,z0),(x1,y1,z1))"
+                raise DensityError("subregion argument should have two xyz coordinates: min and max. E.G.: ((x0,y0,z0),(x1,y1,z1))")
             if len(subregion[0]) != 3 or len(subregion[1] != 3):
-                raise DensityError, "subregion argument should have two xyz coordinates: min and max. E.G.: ((x0,y0,z0),(x1,y1,z1))"
+                raise DensityError("subregion argument should have two xyz coordinates: min and max. E.G.: ((x0,y0,z0),(x1,y1,z1))")
         self.subregion = subregion
         
         # To be set in setup()
@@ -476,11 +476,11 @@ class DensityGridsAllHA(object):
         self.replica = replica
         self.log.info("Setting up density grid calculation for all heavy atoms in replica %s"%replica.name)
         if not replica.isAligned(stepselection):
-            raise DensityError, "Cannot calculate density over non-aligned trajectory"
+            raise DensityError("Cannot calculate density over non-aligned trajectory")
         
         self.solvent = replica.getSolvent()
         if not self.solvent:
-            raise DensityError, "Cannot fetch solvent %s from the database! Make sure there are no conflicting files"%(replica.solvent)
+            raise DensityError("Cannot fetch solvent %s from the database! Make sure there are no conflicting files"%(replica.solvent))
         self.pdb = replica.getPDB()
 
         if outprefix: self.outprefix = outprefix
@@ -489,9 +489,9 @@ class DensityGridsAllHA(object):
         # Wrok only on subregion?
         if subregion:
             if len(subregion) != 2:
-                raise DensityError, "subregion argument should have two xyz coordinates: min and max. E.G.: ((x0,y0,z0),(x1,y1,z1))"
+                raise DensityError("subregion argument should have two xyz coordinates: min and max. E.G.: ((x0,y0,z0),(x1,y1,z1))")
             if len(subregion[0]) != 3 or len(subregion[1] != 3):
-                raise DensityError, "subregion argument should have two xyz coordinates: min and max. E.G.: ((x0,y0,z0),(x1,y1,z1))"
+                raise DensityError("subregion argument should have two xyz coordinates: min and max. E.G.: ((x0,y0,z0),(x1,y1,z1))")
         self.subregion = subregion
         
         # To be set un setup()
@@ -499,7 +499,7 @@ class DensityGridsAllHA(object):
         self.container = None
         self.countGrids = {}
         
-        if not isinstance(replica, pyMDMix.Replica): raise DensityError, "replica argument of wrong type."
+        if not isinstance(replica, pyMDMix.Replica): raise DensityError("replica argument of wrong type.")
         self.setup()
     
     def setup(self):
@@ -598,7 +598,7 @@ class DensityGridsAllHA(object):
         self.log.info("Processing density results for replica %s"%self.replica.name)
         self.replica.go()
         if not osp.exists(self.replica.densityfolder): os.mkdir(self.replica.densityfolder)
-        for probe, data in self.countGrids.iteritems():
+        for probe, data in self.countGrids.items():
             g = self.container.copy()
             g.update(data)
             g.setProbe(probe)
@@ -669,7 +669,7 @@ class CountGridsWorkerHA(multiprocessing.Process):
                     try:
                         self.outCountGrids[probe][tuple(ix)] += 1
                     except IndexError:
-                        raise IndexError, "{} {} {} grid shape: {}".format(ix, tuple(idx), probe, self.outCountGrids[probe].shape)
+                        raise IndexError("{} {} {} grid shape: {}".format(ix, tuple(idx), probe, self.outCountGrids[probe].shape))
 
 
 def DensityGrids_postprocess(results, replica, **kwargs):
@@ -682,7 +682,7 @@ def DensityGrids_postprocess(results, replica, **kwargs):
     """
     replica.go()
     if not osp.exists(replica.densityfolder): os.mkdir(replica.densityfolder)
-    for probe, grid in results.iteritems():
+    for probe, grid in results.items():
         grid.writeDX(osp.join(replica.folder, probe+'.dx'))
     pyMDMix.browser.goback()
     
@@ -696,7 +696,7 @@ def DensityGridsAllHA_postprocess(results, replica, **kwargs):
     """
     replica.go()
     if not osp.exists(replica.densityfolder): os.mkdir(replica.densityfolder)
-    for probe, grid in results.iteritems():
+    for probe, grid in results.items():
         grid.writeDX(osp.join(replica.folder, probe+'.dx'))
     pyMDMix.browser.goback()
 class cppDensity(object):
@@ -785,7 +785,7 @@ class cppDensity(object):
         gridcenter = self._calculate_grid_center(kwargs['griddimensions'], kwargs['gridorigin'])
 
         scripts=[]
-        for probe, mask in self.probesmap.items():
+        for probe, mask in list(self.probesmap.items()):
             # For each step, generate alignment script and write file
             outpath_grid = self.replica.name+'_'+self.solvent.name+'_'+probe+'.dx'
             # Create script
@@ -820,7 +820,7 @@ class cppDensity(object):
         path = osp.join(self.replica.path, self.replica.densityfolder)
         # Check input file exists
         if not osp.exists(osp.join(path,input_file)):
-            raise AlignError, "File %s does not exists in alignment folder of replica %s"%(input_file, self.replica.name)
+            raise AlignError("File %s does not exists in alignment folder of replica %s"%(input_file, self.replica.name))
         outf= input_file.replace('.ptraj','_ptraj.log')
         top = os.pardir+os.sep+self.replica.top
         cmd = S.AMBER_PTRAJ+' {top} < {inf} > {outf}'.format(top=top, inf=input_file, outf=outf)
@@ -836,7 +836,7 @@ class cppDensity(object):
     def _select_align_trajectories(self, exts, alignpath):
         trajin = None
         if not self.nanosel:
-            trajin = [alignpath+os.sep+self.replica.mdoutfiletemplate.format(step=n, extension=fileformat) for n,fileformat in exts.items()]
+            trajin = [alignpath+os.sep+self.replica.mdoutfiletemplate.format(step=n, extension=fileformat) for n,fileformat in list(exts.items())]
         elif isinstance(self.nanosel,list):
             fileformat = exts[self.nanosel[0]]
             trajin = [alignpath+os.sep+self.replica.mdoutfiletemplate.format(step=n, extension=fileformat) for n in self.nanosel]

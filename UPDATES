@@ -44,3 +44,11 @@ UPDATE HISTORY (ZIP)
 07/07/2015
 - Fixed bug in PDB magicFit function causing maximum recursion error when too many water molecules are present. Added mask to the alignment. 
 - Fixed some bugs in grid comparison function.
+
+08/10/2026
+- Ported to Python 3 (>=3.9) and Biskit 3 (module `biskit`). Python 2 is no longer supported.
+- Python 2 pickles (projects, replicas, systems, hot spot sets, solvent database) are still readable.
+- Amber ASCII (.x) trajectories are read with a reader included in pyMDMix; NetCDF through netCDF4.
+- DCD reader detects the byte order automatically (NAMD on x86 writes little-endian files).
+- Integer divisions, text/bytes handling, set-ordering and numpy>=1.25 comparisons reviewed.
+- tools.tempDir() now returns a private folder: the tests removed the shared system temporary folder.

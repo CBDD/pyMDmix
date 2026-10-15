@@ -12,8 +12,8 @@ RUN wget \
     && rm -f Miniconda3-latest-Linux-x86_64.sh 
 RUN conda --version
 
-COPY ./environment_p27.yml ./environment_p27.yml
-RUN conda env create -f environment_p27.yml
+COPY ./environment.yml ./environment.yml
+RUN conda env create -f environment.yml
 RUN echo ". $CONDA_PREFIX/etc/profile.d/conda.sh" >> ~/.bash_profile
 RUN echo "conda activate mdmix-env" >> ~/.bash_profile
 WORKDIR /mnt
