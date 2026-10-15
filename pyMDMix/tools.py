@@ -70,6 +70,27 @@ def create_tree(base, files, verbose=False):
         if not osp.isdir(d):
             if verbose: print("creating %s" % d)
             os.makedirs(d, exist_ok=True)
+import biskit.tools as _bt
+
+def tryRemove(f, verbose=0, tree=0, wildcard=0):
+    """
+    Same as :func:`biskit.tools.tryRemove`, but if the process is currently inside the folder that is
+    going to be removed (tests and replica creation chdir into their work folders), first move to its
+    parent. Otherwise the working directory is left deleted and every later relative path fails
+    (for example tmp.parm7 written by tleap in the next test).
+    """
+    try:
+        if tree and osp.isdir(f):
+            fa = osp.realpath(f)
+            try:
+                cwd = osp.realpath(os.getcwd())
+            except OSError:   # cwd already deleted
+                cwd = None
+            if cwd is None or cwd == fa or cwd.startswith(fa + os.sep):
+                os.chdir(osp.dirname(fa))
+    except OSError:
+        pass
+    return _bt.tryRemove(f, verbose=verbose, tree=tree, wildcard=wildcard)
 
 _BISKIT3_MODULES = None
 
