@@ -547,7 +547,12 @@ def returnMDMixProject(parserargs):
     except FileLockException:
         # A lock problem is not a missing project: report the real cause
         raise
-    except Exception:
+    except Exception as e:
+        # No project file in the folder is a normal answer; a project file that cannot be loaded is not
+        import glob
+        if glob.glob('*.mproj'):
+            import logging
+            logging.getLogger('pyMDMix').error("A project file was found but it could not be loaded: %s: %s"%(type(e).__name__, e))
         return False
 
 def returnMDMixProjectOrFail(parserargs):
