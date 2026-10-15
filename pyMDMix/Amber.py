@@ -38,9 +38,9 @@ import subprocess as sub
 
 import numpy as npy
 
-import tools as T
-import settings as S
-import Solvents
+from . import tools as T
+from . import settings as S
+from . import Solvents
 
 # ERRORS DEFINITION
 class AmberWriterError(Exception):
@@ -55,7 +55,7 @@ class AmberCreateSystemError(Exception):
 class Leaper(object):
     """Class to handle tLeap I/O"""
     def __init__(self,  objectFileName=None, extraff=[], cwd=None):
-        self.tleap = sub.Popen(S.AMBEREXE+os.sep+"tleap -f - ",  shell=True,   stdin = sub.PIPE,  stdout=sub.PIPE,  stderr=sub.PIPE, cwd=cwd)
+        self.tleap = sub.Popen(S.AMBEREXE+os.sep+"tleap -f - ",  shell=True,   stdin = sub.PIPE,  stdout=sub.PIPE,  stderr=sub.PIPE, cwd=cwd, universal_newlines=True, bufsize=1)
         self._in = self.tleap.stdin
         self._out = self.tleap.stdout
         self._err = self.tleap.stderr
@@ -82,6 +82,7 @@ class Leaper(object):
         self._in.write(command+'\n')
         logging.getLogger("AmberTleap").debug(command)
         self._in.write(self._terminator+'\n')
+        self._in.flush()
         return self.flush()
         #self._in.write('lastCommandOut\n')
         #out = []
@@ -101,12 +102,15 @@ class Leaper(object):
         #for line in self._out.readline().splitlines():
             #line = line.strip()
             #if not line: break
-            line = self._out.readline().strip()
+            raw = self._out.readline()
+            if raw == '':
+                # EOF: tleap exited. Without this check the loop never ends (readline keeps returning '').
+                self.tleap.poll()
+                break
+            line = raw.strip()
             if 'mdmix_terminator_command' in line:
                 logging.getLogger("AmberTleap").debug(line)    
                 done = True
-                break
-            if self.tleap.returncode is not None:
                 break
             if 'Fatal Error!' in line:
                 break
@@ -215,7 +219,7 @@ class AmberCreateSystem(object):
         if okffname:
             self.FFlist.append(okffname)
             self.log.info("Using Forcefield or FRCMOD file: %s"%okffname)
-            self.FFlist = list(set(self.FFlist))
+            self.FFlist = list(dict.fromkeys(self.FFlist))     # drop duplicates but keep the load order: it sets parameter precedence in tleap
             return True
         else:
             self.log.warn("%s forcefield or frcmod not found. Will not be loaded!"%ffname)
@@ -231,21 +235,63 @@ class AmberCreateSystem(object):
         return True
     
     def ambpdb(self, top, crd, outpdb):
-        # Save pdb from top and crd
+        """
+        Save a PDB file from topology and coordinates. cpptraj is used with *include_ep* so extra points
+        (e.g. EPW virtual sites of OPC/TIP4P waters) are written: ambpdb silently skips them, which leaves the PDB
+        with fewer atoms than the topology and trajectories and shifts every atom index after the first virtual site.
+        If cpptraj fails, falls back to ambpdb.
+        """
         self.log.info("Creating PDB file %s from top and crd files '%s' and '%s'"%(outpdb, top, crd))
-        null = os.devnull
-#        null = osp.splitext(top)[0]+'_ambpdb.log'
-        #ampdb = osp.join(S.AMBEREXE,S.AMBER_AMBPDB)
-        # original line:
-        #command = '(%s -p %s < %s > %s) 1> %s 2> %s'%(S.AMBER_AMBPDB, top, crd, outpdb,null,null)
-        # debug line:
-        command = '(%s -p %s < %s > %s) '%(S.AMBER_AMBPDB, top, crd, outpdb)
-        self.log.debug(command)
-        proc = sub.Popen(command, shell=True)
-        exit_code = proc.wait()
-        if exit_code: # Exit different to zero means error
-            self.log.error("Could not save PDB from TOP and CRD. Check %s file in project folder for the reason."%null)
-            raise AmberCreateSystemError, "Could not save PDB from TOP and CRD. Check leap.log file in project folder."
+        script = 'parm %s\ntrajin %s\ntrajout %s pdb include_ep\nrun\nquit\n'%(top, crd, outpdb)
+        ok = False
+        try:
+            proc = sub.Popen([S.AMBER_PTRAJ, ], stdin=sub.PIPE, stdout=sub.PIPE, stderr=sub.STDOUT, universal_newlines=True)
+            out, _ = proc.communicate(script)
+            self.log.debug(out)
+            ok = proc.returncode == 0 and osp.exists(outpdb) and os.stat(outpdb).st_size > 0
+        except OSError as e:
+            self.log.warn("Could not run %s to write PDB (%s). Trying ambpdb."%(S.AMBER_PTRAJ, e))
+        if not ok:
+            self.log.warn("cpptraj could not write the PDB. Falling back to ambpdb (virtual sites will be missing).")
+            command = '(%s -p %s < %s > %s) '%(S.AMBER_AMBPDB, top, crd, outpdb)
+            self.log.debug(command)
+            proc = sub.Popen(command, shell=True)
+            exit_code = proc.wait()
+            if exit_code: # Exit different to zero means error
+                self.log.error("Could not save PDB from TOP and CRD.")
+                raise AmberCreateSystemError("Could not save PDB from TOP and CRD. Check leap.log file in project folder.")
+        self.fixPDBNumbering(outpdb)
+        return True
+
+    @staticmethod
+    def fixPDBNumbering(pdbfile):
+        """
+        Recent ambpdb versions write residue numbers above 9999 (and atom serials above 99999) in
+        hybrid-36 notation (e.g. 'A4DJ'), which Biskit cannot parse. If any is found, atoms and residues
+        are renumbered sequentially (wrapping at 99999 and 9999 respectively). Standard files are left untouched.
+        """
+        lines = open(pdbfile).read().split('\n')
+        def hybrid(l):
+            return (l[:6] in ('ATOM  ', 'HETATM', 'TER   ') and
+                    (not l[6:11].strip().isdigit() and l[6:11].strip() != '' or
+                     (l[:6] != 'TER   ' and not l[22:26].strip().lstrip('-').isdigit())))
+        if not any(hybrid(l) for l in lines):
+            return False
+        out, serial, resn, lastkey = [], 0, 0, None
+        for l in lines:
+            rec = l[:6]
+            if rec in ('ATOM  ', 'HETATM'):
+                key = (l[17:22], l[22:27])
+                if key != lastkey:
+                    resn += 1
+                    lastkey = key
+                serial += 1
+                l = l[:6] + '%5d' % (((serial - 1) % 99999) + 1) + l[11:22] + '%4d' % (((resn - 1) % 9999) + 1) + l[26:]
+            elif rec == 'TER   ':
+                serial += 1
+                l = l[:6] + '%5d' % (((serial - 1) % 99999) + 1) + l[11:22] + '%4d' % (((resn - 1) % 9999) + 1) + l[26:]
+            out.append(l)
+        open(pdbfile, 'w').write('\n'.join(out))
         return True
 
     def saveAmberParm(self, unit, top, crd, leapHandler=None):
@@ -273,18 +319,26 @@ class AmberCreateSystem(object):
         self.log.debug(out)
         return float(out[0].split()[-1])
         
-    def neutralizeWNaCl(self, unit):
-        "Neutralize in leap using NaCl. unit should be a solvated system."
+    def neutralizeWNaCl(self, unit, watmodel=None):
+        """
+        Neutralize in leap using NaCl. unit should be a solvated system.
+
+        :arg str watmodel: Water model of the solvent box used to solvate *unit* (selects the ion parameters).
+                           If not given it is taken from the replica, or from settings.DEF_AMBER_WATBOX.
+        """
         if not self.leap: self.initLeap()
         self.log.debug("Neutralizing with NaCl unit %s"%unit)
-        if self.replica: watmodel = Solvents.getSolvent(self.replica.solvent).watermodel
-        else: watmodel = S.DEF_AMBER_WATBOX
+        if not watmodel:
+            if self.replica: watmodel = Solvents.getSolvent(self.replica.solvent).watermodel
+            else: watmodel = S.DEF_AMBER_WATBOX
         waterff = {
             'TIP3P': 'leaprc.water.tip3p',
             'TIP4P': 'leaprc.water.tip3pew',
-            'SPC': 'leaprc.water.spce'
+            'SPC': 'leaprc.water.spce',
+            'OPC': 'leaprc.water.opc',
+            'OPC3': 'leaprc.water.opc3'
         }
-        if waterff.has_key(watmodel):
+        if watmodel in waterff:
             self.log.debug("Loading ions params: %s"%waterff[watmodel])
             self.leap.command("source %s"%waterff[watmodel])
         else:
@@ -300,7 +354,7 @@ class AmberCreateSystem(object):
         self.log.info("Neutralize NaCl OK")    
         return True
 
-    def neutralizeIonicBox(self, unit, negativeres, positiveres):
+    def neutralizeIonicBox(self, unit, negativeres, positiveres, watmodel=None):
         "Special neutralization of solvent mixtures which have positive and negative residues"
         if not self.leap: self.initLeap()
         charge = self.leapCharge(unit)
@@ -308,7 +362,7 @@ class AmberCreateSystem(object):
         self.log.debug("Neutralize ionic box unit %s, negativeres: %s, positiveres:%s"%(unit, negativeres, positiveres))
 
         # Get first residue number
-        digit = re.compile('\d+')
+        digit = re.compile(r'\d+')
         first = int(digit.search(desc[0]).group())
 
         NEGids = npy.where([negativeres in e for e in desc])[0]
@@ -329,7 +383,7 @@ class AmberCreateSystem(object):
         finalcharge = self.leapCharge(unit)
         if finalcharge != 0:
             self.log.warn("Could not neutralize ionic box in Leap. Charge: %.2f. Will try adding NaCl..."%finalcharge)
-            if self.neutralizeWNaCl(unit):
+            if self.neutralizeWNaCl(unit, watmodel):
                 self.log.warn("Neutralization succeded with NaCl. Continuing...")
                 return True
             else:
@@ -391,12 +445,12 @@ class AmberCreateSystem(object):
             negative_res = [r.name for r in solvent.residues if r.charge < 0]
             positive_res = [r.name for r in solvent.residues if r.charge > 0]
             if negative_res and positive_res:
-                corrected = self.neutralizeIonicBox(unit, negative_res[0], positive_res[0])
+                corrected = self.neutralizeIonicBox(unit, negative_res[0], positive_res[0], solvent.watermodel)
             else:
                 # Just one of the partners is present, neutralize with ions
-                corrected = self.neutralizeWNaCl(unit)
+                corrected = self.neutralizeWNaCl(unit, solvent.watermodel)
         else:
-            corrected = self.neutralizeWNaCl(unit)
+            corrected = self.neutralizeWNaCl(unit, solvent.watermodel)
 
         if not corrected:
             self.log.error("Could not neutralize system. Fix it manually. Exiting...")
@@ -410,7 +464,7 @@ class AmberCreateSystem(object):
         Take unit and solvate in tip3pbox water box.
         
         :arg str unit: tLeap unit name to be solvated.
-        :arg str outPrefix: Prefix to output prmtop and prmcrd files.
+        :arg str outPrefix: Prefix to output parm7 and rst7 files.
         :arg str watbox: Water model to use. Default will be taken from settings.DEF_AMBER_WATBOX.
         :arg float buffer: Buffer distance to add in solvate command. By default will take settings.DEF_AMBER_BUFFER.
         :arg bool cubicBox: Use a cubic box (TRUE) instead of an orthorombic box (FALSE). Default: Take from settings.DEF_AMBER_CUBICBOX.
@@ -421,8 +475,8 @@ class AmberCreateSystem(object):
         self.log.debug("SolvateWater unit %s watbox %s buffer %s cubicBox %s"%(unit, watbox, buffer, cubicBox))
 
         # output names
-        top = outPrefix+'.top'
-        crd = outPrefix+'.crd'
+        top = outPrefix+'.parm7'
+        crd = outPrefix+'.rst7'
 
         # Solvate command depends on cubic or orthorombic box choice
         if cubicBox: solvate_cmd = 'solvateBox'
@@ -432,7 +486,8 @@ class AmberCreateSystem(object):
         # and neutralize charge with NaCl
         if not self.leap: self.initLeap()
         outmessage = self.leap.command("%s %s %s %.2f iso 1"%(solvate_cmd, unit,watbox, buffer))
-        if self.neutralizeWNaCl(unit):
+        watmodel = watbox[:-3] if watbox.upper().endswith('BOX') else None   # TIP3PBOX -> TIP3P
+        if self.neutralizeWNaCl(unit, watmodel):
             # System is neutralized
             # write topology and crd files
             if self.leapSaveAmberParm(unit, top, crd): 
@@ -451,13 +506,13 @@ class AmberCreateSystem(object):
         :arg str unitname: Unitname to assign to the unit created with leap. Default: 'sys'
         :arg list extraff: Extra forcefield parameters or modifications to be loaded in tLeap for correct recognition of non-standard residues.
         """
-        import Biskit as bi
-        from AutoPrepare import AmberPDBCleaner
+        import biskit as bi
+        from .AutoPrepare import AmberPDBCleaner
         
         if isinstance(inpdb, str) and osp.exists(inpdb):
             inpdb = bi.PDBModel(inpdb)
         elif not isinstance(inpdb, bi.PDBModel):
-            raise AmberCreateSystemError, "createOff requires a pdb file path or Biskit.PDBModel parameter as inpdb parameter"
+            raise AmberCreateSystemError("createOff requires a pdb file path or Biskit.PDBModel parameter as inpdb parameter")
 
         # Check/add FF
         for ff in extraff:
@@ -481,7 +536,7 @@ class AmberCreateSystem(object):
         self.leap.command('%s = loadpdb %s'%(unitname,outprefix+'.pdb'))
         err = self.leap.command('check %s'%unitname)
         if not 'Unit is OK' in err[-1]:
-            raise AmberCreateSystemError, "Errors encountered when loading pdb file into Leap. Please check leap.log file for more info. Cannot automatically create the OFF file"
+            raise AmberCreateSystemError("Errors encountered when loading pdb file into Leap. Please check leap.log file for more info. Cannot automatically create the OFF file")
 
         else:
             # Unit is OK, let's check if there are warnings apart from charge.
@@ -518,7 +573,7 @@ class AmberCheck(object):
     def checkMinimization(self, replica=False):
         "Check if minimization run correctly"
         replica = replica or self.replica
-        if not replica: raise AmberCheckError, "Replica not assigned."
+        if not replica: raise AmberCheckError("Replica not assigned.")
 
         # Move to replica path if not yet there
         T.BROWSER.gotoReplica(replica)
@@ -549,11 +604,11 @@ class AmberCheck(object):
         Returns: True or False
         """
         replica = replica or self.replica
-        if not replica: raise AmberCheckError, "Replica not assigned."
+        if not replica: raise AmberCheckError("Replica not assigned.")
         if not isinstance(stepselection, list): stepselection=[stepselection]
 
         # Check all equilibration steps (look for 'Total CPU time:')
-        selection = stepselection or range(1, 6)
+        selection = stepselection or list(range(1, 6))
         for i in selection:
             out = self.getEquilibrationOutputFile(i, replica, outextension)
             if not out:
@@ -579,7 +634,7 @@ class AmberCheck(object):
         :rtype: str or bool
         """
         replica = replica or self.replica
-        if not replica: raise AmberCheckError, "Replica not assigned."
+        if not replica: raise AmberCheckError("Replica not assigned.")
 
         # Move to replica path if not yet there
         T.BROWSER.gotoReplica(replica)
@@ -603,7 +658,7 @@ class AmberCheck(object):
         :rtype: str or bool
         """
         replica = replica or self.replica
-        if not replica: raise AmberCheckError, "Replica not assigned."
+        if not replica: raise AmberCheckError("Replica not assigned.")
 
         # Move to replica path if not yet there
         T.BROWSER.gotoReplica(replica)
@@ -625,10 +680,10 @@ class AmberCheck(object):
         Returns: True or False
         """
         replica = replica or self.replica
-        if not replica: raise AmberCheckError, "Replica not assigned."
+        if not replica: raise AmberCheckError("Replica not assigned.")
         if not isinstance(stepselection, list): stepselection=[stepselection]
 
-        selection = stepselection or range(1, replica.ntrajfiles+1)
+        selection = stepselection or list(range(1, replica.ntrajfiles+1))
         for i in selection:
             out = self.getProductionOutputFile(i, replica, outextension)
             if not out:
@@ -646,7 +701,7 @@ class AmberCheck(object):
         "Check in current folder min/ eq/ and md/ for N nanoseconds taken from project info\
          if 'returnsteps', don't evaluate and just return True or False for min, eq and md steps in a dictironary."
         replica = replica or self.replica
-        if not replica: raise AmberCheckError, "Replica not assigned."
+        if not replica: raise AmberCheckError("Replica not assigned.")
 
         stepsdone = {}
         stepsdone['min'] = self.checkMinimization(self.replica)
@@ -657,7 +712,7 @@ class AmberCheck(object):
         if returnsteps: return stepsdone
         
         # Evaluate to True or False if all is done or not respectively.
-        if npy.sum([stepsdone.values()]) == 3:
+        if npy.sum([list(stepsdone.values())]) == 3:
             self.log.info("Simulation completed for replica %s"%replica.name)
             return True
         else:
@@ -670,14 +725,14 @@ class AmberCheck(object):
         
         :arg Replica replica: Replica to study. If false, will take replica loaded in initalization.
         :arg int step: Step to fetch volume for. If False, will identify last completed production step and use that one.
-        :arg str boxextension: Extension for the output file containing the restart information. DEFAULT: rst.
+        :arg str boxextension: Extension for the output file containing the restart information. DEFAULT: rst7.
         
         :return float Volume: Simulation volume.
         """
         replica = replica or self.replica
-        if not replica: raise AmberCheckError, "Replica not assigned."
+        if not replica: raise AmberCheckError("Replica not assigned.")
         
-        boxextension = boxextension or 'rst'
+        boxextension = boxextension or 'rst7'
         
         # Work on step. If not given, fetch last completed production step.
         step = step or replica.lastCompletedProductionStep()
@@ -688,7 +743,7 @@ class AmberCheck(object):
         if not os.path.exists(fname):
             self.log.error("No file found with name %s to fetch box volume in DG0 penalty calculation. Returning no penalty..."%fname)
             return False
-        box = map(float, open(fname,'r').readlines()[-1].strip().split())
+        box = list(map(float, open(fname,'r').readlines()[-1].strip().split()))
         vol = box[0]*box[1]*box[2]
         
         if box[3] != 90.0: vol *= 0.77 # orthorombic volume correction
@@ -750,7 +805,7 @@ class AmberWriter(object):
         :returns: string with execution command.
         """
         replica = replica or self.replica
-        if not replica: raise AmberWriterError, "Replica not assigned."
+        if not replica: raise AmberWriterError("Replica not assigned.")
 
         prevsep = os.pardir+os.sep
         top = osp.basename(replica.top)
@@ -762,7 +817,7 @@ class AmberWriter(object):
 
         # Set reference file if restrained simulation
         if replica.hasRestraints:
-            if replica.minimizationAsRef: ref = prevsep+replica.minfolder+os.sep+'min.rst'
+            if replica.minimizationAsRef: ref = prevsep+replica.minfolder+os.sep+'min.rst7'
             else: ref = prevsep+crd
         else:
             ref = False
@@ -773,7 +828,7 @@ class AmberWriter(object):
         iwrap = replica.iwrap == '1'
             
         if process == 'min':
-            command = S.AMBER_MIN_EXE+' -O -i min.in -o min.out -p %s -c %s -r min.rst'%(prevsep+top, prevsep+crd)
+            command = S.AMBER_MIN_EXE+' -O -i min.in -o min.out -p %s -c %s -r min.rst7'%(prevsep+top, prevsep+crd)
             if ref and not replica.minimizationAsRef: command += ' -ref %s'%ref
             return command
 
@@ -782,18 +837,18 @@ class AmberWriter(object):
             if step == 1:
                 #First step
                 eqfname = replica.eqoutfiletemplate.format(step=step,extension='')
-                command = S.AMBER_PROD_EXE+' -O -i eq1.in -o %sout -p %s -c %smin.rst -r %srst -x %s%s'%(eqfname, prevsep+top,
+                command = S.AMBER_PROD_EXE+' -O -i eq1.in -o %sout -p %s -c %smin.rst7 -r %srst7 -x %s%s'%(eqfname, prevsep+top,
                                                 prevsep+replica.minfolder+os.sep, eqfname, eqfname, extension)
 
             elif step > 1:
                 eqfname = replica.eqoutfiletemplate.format(step=step,extension='')
                 preveqfname = replica.eqoutfiletemplate.format(step=step-1,extension='')
-                command =  S.AMBER_PROD_EXE+' -O -i eq%i.in -o %sout -p %s -c %srst -r %srst -x %s%s'% \
+                command =  S.AMBER_PROD_EXE+' -O -i eq%i.in -o %sout -p %s -c %srst7 -r %srst7 -x %s%s'% \
                                                             (step, eqfname, prevsep+top, preveqfname, eqfname, eqfname, extension)
             if ref:
                 # Add reference flag and trajectory imaging of restart file
                 command += ' -ref %s\n'%(ref)
-                if iwrap: command += 'sh %scheck_com.sh %srst &> %simage.log'%(prevsep, eqfname, eqfname)
+                if iwrap: command += 'sh %scheck_com.sh %srst7 &> %simage.log'%(prevsep, eqfname, eqfname)
 
             return command
             
@@ -803,21 +858,21 @@ class AmberWriter(object):
             mdouttemplate=replica.mdoutfiletemplate.replace('.{extension}','')
             if step == 1:
                 fname = mdouttemplate.format(step=1)
-                command = S.AMBER_PROD_EXE+' -O -i md.in -o {fname}.out -p %s -c %seq5.rst -r {fname}.rst -x {fname}.%s'%(prevsep+top, prevsep+replica.eqfolder+os.sep, extension)
+                command = S.AMBER_PROD_EXE+' -O -i md.in -o {fname}.out -p %s -c %seq5.rst7 -r {fname}.rst7 -x {fname}.%s'%(prevsep+top, prevsep+replica.eqfolder+os.sep, extension)
                 if ref:
                     command += ' -ref %s\n'%(ref)
-                    if iwrap: command += 'sh %scheck_com.sh %s.rst &> %s.image.log'%(prevsep, fname, fname)
+                    if iwrap: command += 'sh %scheck_com.sh %s.rst7 &> %s.image.log'%(prevsep, fname, fname)
 
                 command = command.format(fname=fname)
 
             elif step > 1:
                 prevfname=mdouttemplate.format(step=step-1)
                 nextfname=mdouttemplate.format(step=step)
-                command = S.AMBER_PROD_EXE+' -O -i md.in -o {nextfname}.out -p %s -c {prevfname}.rst -r {nextfname}.rst -x {nextfname}.%s'%(prevsep+top, extension)
+                command = S.AMBER_PROD_EXE+' -O -i md.in -o {nextfname}.out -p %s -c {prevfname}.rst7 -r {nextfname}.rst7 -x {nextfname}.%s'%(prevsep+top, extension)
                 fname = nextfname
                 if ref:
                     command += ' -ref %s\n'%(ref)
-                    if iwrap: command += 'sh %scheck_com.sh %s.rst &> %s.image.log'%(prevsep, fname, fname)
+                    if iwrap: command += 'sh %scheck_com.sh %s.rst7 &> %s.image.log'%(prevsep, fname, fname)
 
                 command = command.format(nextfname=nextfname, prevfname=prevfname)
 
@@ -836,10 +891,10 @@ class AmberWriter(object):
         :returns: List of strings with commands to be executed.
         """
         replica = replica or self.replica
-        if not replica: raise AmberWriterError, "Replica not assigned."
+        if not replica: raise AmberWriterError("Replica not assigned.")
 
         if not (replica.top and replica.crd):
-            raise AmberWriterError, "Replica %s does not have PRMTOP and PRMCRD files set."%replica.name
+            raise AmberWriterError("Replica %s does not have parm7 and rst7 files set."%replica.name)
 
 #        S.gotoReplica(replica)
 #        self.log.info("Writing shell commands to run the MD for replica %s. Adapt it to your queue needs.\
@@ -864,7 +919,7 @@ class AmberWriter(object):
     def writeCommands(self, replica=False, outfile='COMMANDS.sh'):
         "Write list of commands to run the MD into an output file."
         replica = replica or self.replica
-        if not replica: raise AmberWriterError, "Replica not assigned."
+        if not replica: raise AmberWriterError("Replica not assigned.")
         T.BROWSER.gotoReplica(replica)
         commands = self.getReplicaCommands(replica)
         open(outfile,'w').write('\n'.join(commands))
@@ -887,17 +942,17 @@ class AmberWriter(object):
         replica has FREE restrain mode.
         """
         replica = replica or self.replica
-        if not replica: raise AmberWriterError, "Replica not assigned."
+        if not replica: raise AmberWriterError("Replica not assigned.")
 
         if replica.restrMode == 'FREE': return False
 
         if not replica.restrMask or replica.restrMask.upper() == 'AUTO':
             # Obtain mask from residue ids in solute
             if not replica.system:
-                raise AmberWriterError, "Replica System not set. Can not generate mask."
+                raise AmberWriterError("Replica System not set. Can not generate mask.")
             syspdb = replica.system.getSolvatedPDB()
             if not syspdb:
-                raise AmberWriteError, "Error creating SolvatedPDB from System in replica %s"%replica.name
+                raise AmberWriteError("Error creating SolvatedPDB from System in replica %s"%replica.name)
             
             out = ':'+syspdb.getAutoMaskResIds()
         else:
@@ -915,14 +970,14 @@ class AmberWriter(object):
     
     def writeReplicaInput(self, replica=False):
         replica = replica or self.replica
-        if not replica: raise AmberWriterError, "Replica not assigned."
+        if not replica: raise AmberWriterError("Replica not assigned.")
 
         self.log.info("Writing AMBER simulation input files for replica %s ..."%(replica.name))
         cwd = T.BROWSER.cwd
         T.BROWSER.gotoReplica(replica)
         
         if not (osp.exists(replica.top) and osp.exists(replica.crd)): # and osp.exists(replica.pdb)):
-            raise AmberWriterError, "Replica top or crd files not found in current folder: %s, %s"%(replica.top, replica.crd)
+            raise AmberWriterError("Replica top or crd files not found in current folder: %s, %s"%(replica.top, replica.crd))
 
         substDict = {}
 
@@ -1034,7 +1089,7 @@ class AmberWriter(object):
 
     def getAutoMask(self, pdb=None, extraResidues=[]):
         "From a PDB file or replica ref pdb if pdb is None, get an automask of form: 1-100,105-200"
-        from PDB import SolvatedPDB
+        from .PDB import SolvatedPDB
         pdb = pdb or osp.join(self.replica.path,self.replica.ref)
         extraResidues = extraResidues or self.replica.system.extraResList
         pdb = SolvatedPDB(pdb, extraResidues=extraResidues).getSolute()
@@ -1162,14 +1217,14 @@ class AmberWriter(object):
         if system:
             pdb = system.getSolvatedPDB()
         elif pdbFile:
-            from PDB import SolvatedPDB
+            from .PDB import SolvatedPDB
             if extraResidues:
                 if not isinstance(extraResidues, list): extraResidues = [extraResidues]
             pdb = SolvatedPDB(pdbFile, extraResidues=extraResidues)
         elif self.replica:
             pdb = self.replica.getPDB()
         else:
-            raise AmberWriterError, "A PDB is needed to produce ptraj imaging strings. Either pass a pdb path or a SolvatedSystem instance or initialize AmberWriter with a Replica as parameter."
+            raise AmberWriterError("A PDB is needed to produce ptraj imaging strings. Either pass a pdb path or a SolvatedSystem instance or initialize AmberWriter with a Replica as parameter.")
 
         template = "center :%i-%i mass origin\nimage :* origin center byres familiar\n"
         command = ""
@@ -1185,13 +1240,13 @@ class AmberWriter(object):
 
         return command
 
-import Biskit.test as BT
+import biskit.test as BT
 
 class Test(BT.BiskitTest):
     """Test"""
     def test_tleap(self):
         """Test correct operation of tLeap"""
-        leap = Leaper(extraff='leaprc.ff99SB')
+        leap = Leaper(extraff=['leaprc.protein.ff19SB'])
         leap.command("savepdb LEU tmpleu.pdb")
         leap.close()
         self.testdir = 'tmpleu.pdb'
@@ -1199,10 +1254,10 @@ class Test(BT.BiskitTest):
     
     def test_AmberWriter(self):
         """Create new replica and write MDinput"""
-        from Replicas import Replica
+        from .Replicas import Replica
         
-        top = osp.join(T.testRoot(), 'pep','pep.prmtop')
-        crd = osp.join(T.testRoot(), 'pep','pep.prmcrd')
+        top = osp.join(T.testRoot(), 'pep','pep.parm7')
+        crd = osp.join(T.testRoot(), 'pep','pep.rst7')
 #        checkCommands = [l.strip() for l in open(osp.join(T.testRoot(),
 #                                'pep','COMMANDS_test.sh'),'r').readlines()]
         

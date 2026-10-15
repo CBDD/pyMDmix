@@ -28,58 +28,58 @@ class Command(object):
         "Function that checks and returns replicas matching args in current project."
         if parserargs.mode == 'all':
             #return all replicas in project
-            returnlist = project.replicas.values()
-            print "Selected replica names: %s"%[r.name for r in returnlist]
+            returnlist = list(project.replicas.values())
+            print("Selected replica names: %s"%[r.name for r in returnlist])
             return returnlist
         elif parserargs.mode == 'bysolvent' or parserargs.mode == 'byname' or parserargs.mode == 'group':
             #Check a selection list was given
             if not parserargs.selection:
-                raise AttributeError, "Selection (-s fag) is mandatory when 'byname', 'bysolvent' or 'group' mode is chosen."
+                raise AttributeError("Selection (-s fag) is mandatory when 'byname', 'bysolvent' or 'group' mode is chosen.")
             selection = parserargs.selection
 
             if parserargs.mode == 'bysolvent':
                 #Check all solvents are present in project
                 for s in selection:
-                    if s not in project.solventCounter.keys():
-                        print >>sys.stderr, "Solvent %s not in project. Skipping."%s
+                    if s not in list(project.solventCounter.keys()):
+                        print("Solvent %s not in project. Skipping."%s, file=sys.stderr)
                 #Return only replicas matching solvents in selection list
                 returnlist = []
-                [returnlist.append(r) for r in project.replicas.values() if r.solvent in selection]
+                [returnlist.append(r) for r in list(project.replicas.values()) if r.solvent in selection]
                 
                 if returnlist:
-                    print "Selected replica names: %s"%[r.name for r in returnlist]
+                    print("Selected replica names: %s"%[r.name for r in returnlist])
                     return returnlist
                 else:
-                    raise MDMixError, "Replicas not found."
+                    raise MDMixError("Replicas not found.")
 
             if parserargs.mode == 'byname':
                 #Return only replicas is name matches selection
                 returnlist = []
-                [returnlist.append(r) for r in project.replicas.values() if r.name in selection]
+                [returnlist.append(r) for r in list(project.replicas.values()) if r.name in selection]
 
                 if returnlist:
-                    print "Selected replica names: %s"%[r.name for r in returnlist]
+                    print("Selected replica names: %s"%[r.name for r in returnlist])
                     return returnlist
                 else:
-                    raise MDMixError, "Replicas not found."
+                    raise MDMixError("Replicas not found.")
             
             if parserargs.mode == 'group':
                 for s in selection:
                     if s not in project.listGroups():
-                        print >> sys.stderr, "Groupname %s not in current project. Skipping..."%s
+                        print("Groupname %s not in current project. Skipping..."%s, file=sys.stderr)
                     returnlist = []
                     [returnlist.extend(project.getGroup(s)) for s in selection if s in project.listGroups()]
                     
                     if returnlist:
-                        print "Selected replica names: %s"%[r.name for r in returnlist]
+                        print("Selected replica names: %s"%[r.name for r in returnlist])
                         return returnlist
                     else:
-                        raise MDMixError, "Replicas not found"
+                        raise MDMixError("Replicas not found")
         else:
             return False
 
     def parsenanos(self, argparser):
         if not argparser.nanoselect: return False
         nanosel = parseNumMask(argparser.nanoselect[0])
-        print "Selected steps: %s"%(', '.join(map(str, nanosel)))
+        print("Selected steps: %s"%(', '.join(map(str, nanosel))))
         return nanosel

@@ -55,24 +55,24 @@ class Tools(Command):
             rad = parserargs.radius or 0
             xyz = parserargs.xyzfile
             pdb = parserargs.pdbfile
-            if not pdb and not xyz: raise MDMixError, "Either PDB or XYZ file required."
-            if not os.path.exists(grid): raise MDMixError, "Grid file %s not found"%grid
+            if not pdb and not xyz: raise MDMixError("Either PDB or XYZ file required.")
+            if not os.path.exists(grid): raise MDMixError("Grid file %s not found"%grid)
 
             from pyMDMix.GridsManager import getEnergyFromTxtCoords, getEnergyFromPDBCoords
 
             if pdb:
-                print "Fetching values at PDB coordinates"
+                print("Fetching values at PDB coordinates")
                 results = getEnergyFromPDBCoords(grid, pdb, forceradius=rad)
             else:
-                print "Fetching values at XYZ file coordinates"
+                print("Fetching values at XYZ file coordinates")
                 results = getEnergyFromTxtCoords(grid, xyz, radius=rad)
 
             if out:
-                print "Saving results to %s"%out
+                print("Saving results to %s"%out)
                 numpy.savetxt(out, results, fmt="%.3f")
             else:
-                print '\n'.join(['%.3f'%r for r in results])
-            print "DONE"
+                print('\n'.join(['%.3f'%r for r in results]))
+            print("DONE")
         
         elif parserargs.util_command == 'diffgrids':
             grid1 = parserargs.grid1
@@ -80,7 +80,7 @@ class Tools(Command):
             out = parserargs.outfile
             
             for grid in (grid1, grid2):
-                if not os.path.exists(grid): raise MDMixError, "Grid file %s not found"%grid
+                if not os.path.exists(grid): raise MDMixError("Grid file %s not found"%grid)
 
             from pyMDMix.GridsManager import gridDifference
             gridDifference(grid1, grid2, out)
@@ -91,7 +91,7 @@ class Tools(Command):
             out = parserargs.outfile
             
             for grid in (grid1, grid2):
-                if not os.path.exists(grid): raise MDMixError, "Grid file %s not found"%grid
+                if not os.path.exists(grid): raise MDMixError("Grid file %s not found"%grid)
 
             from pyMDMix.GridsManager import gridSum
             gridSum(grid1, grid2, out)
@@ -102,8 +102,8 @@ class Tools(Command):
             refpdb = parserargs.refpdb
             buffer = parserargs.buff
             
-            if not os.path.exists(refpdb): raise MDMixError, "PDB file %s not found"%refpdb
-            if not os.path.exists(ingrid): raise MDMixError, "Grid file %s not found"%ingrid
+            if not os.path.exists(refpdb): raise MDMixError("PDB file %s not found"%refpdb)
+            if not os.path.exists(ingrid): raise MDMixError("Grid file %s not found"%ingrid)
             
             from pyMDMix.GridsManager import trim, Grid, GridData
             smallgrid = GridData.createFromPDB(refpdb, spacing=0.5, buff=buffer, takeProtein=False)
@@ -111,7 +111,7 @@ class Tools(Command):
             # trimmed = trim(smallgrid, ingrid)
             # trimmed[1].writeDX(outname)
             trim(smallgrid, ingrid)[1].writeDX(outname)
-            print "DONE trimming"
+            print("DONE trimming")
         
         elif parserargs.util_command == 'projecttemplate':
             import shutil

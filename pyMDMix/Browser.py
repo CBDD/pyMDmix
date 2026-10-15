@@ -55,7 +55,7 @@ class Browser(object):
         self.setHome(project.projectPath)
 
     def chdir(self, newdir):
-        if not osp.exists(newdir): raise WrongDirectory, "Directory %s does not exists"%(newdir)
+        if not osp.exists(newdir): raise WrongDirectory("Directory %s does not exists"%(newdir))
         os.chdir(newdir)
         self.update()
 
@@ -76,7 +76,7 @@ class Browser(object):
     def setHome(self, homedir=None):
         "Move to project home folder and do setHome there"
         if homedir and os.getcwd() != homedir:
-            if not osp.exists(homedir): raise WrongDirectory, "Directory %s does not exists"%(homedir)
+            if not osp.exists(homedir): raise WrongDirectory("Directory %s does not exists"%(homedir))
             os.chdir(homedir)
         self.home = self.update()
 
@@ -100,4 +100,4 @@ class Browser(object):
 
 
 if __name__ == "__main__":
-    print "Hello World"
+    print("Hello World")

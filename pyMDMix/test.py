@@ -29,7 +29,8 @@ Inherited functions are modified to make testing work on pyMDMix tree structure.
 All rights to Raik.
 """
 
-from Biskit.test import *
+from biskit.test import *
+from biskit import StdLog, LogFile
 import pyMDMix.tools as T
 import os.path as osp
 
@@ -41,10 +42,10 @@ class PyMDMixTestLoader( BiskitTestLoader ):
     Wrap for BiskitTestLoader to match pyMDMix structure
     """
     def modulesFromPath( self, path=osp.split(T.projectRoot())[0], module='pyMDMix' ):
-	import glob
-	module_folder = module.replace('.', os.path.sep)
+        import glob
+        module_folder = module.replace('.', os.path.sep)
         files = glob.glob( os.path.join( path, module_folder,'*.py' ) )
-        files = map( T.stripFilename, files )
+        files = list(map( T.stripFilename, files ))
         files = [ f for f in files if f[0] != '_' ]
         r = []
         for f in files:
@@ -55,7 +56,7 @@ class PyMDMixTestLoader( BiskitTestLoader ):
                 pass  ## temporary // remove after testing
         return r
     def collectTests( self, path=osp.split(T.projectRoot())[0], module='pyMDMix' ):
-	modules = self.modulesFromPath( path=path, module=module )
+        modules = self.modulesFromPath( path=path, module=module )
         self.addTestsFromModules( modules )
 
 
@@ -64,7 +65,7 @@ class PyMDMixTestLoader( BiskitTestLoader ):
 ############################################
 
 def _use( defaults ):
-    print """
+    print("""
 Run unittest tests for pyMDMix.
 
     test.py [-i |include tag1 tag2..| -e |exclude tag1 tag2..|
@@ -93,9 +94,9 @@ Examples:
 
 
 Default options:
-"""
-    for key, value in defaults.items():
-        print "\t-",key, "\t",value
+""")
+    for key, value in list(defaults.items()):
+        print("\t-",key, "\t",value)
 
     sys.exit(0)
 
@@ -120,12 +121,12 @@ def _convertOptions( o ):
     if o['log']:
         o['log'] = LogFile( o['log'] )
     else:
-        o['log'] = StdLog()
+        o['log'] = sys.stdout   # Biskit 3 test runner needs a stream with flush()
     o['p'] = T.toList( o['p'] )
 
 
 if __name__ == '__main__':
-    from Biskit import EHandler
+    from biskit import EHandler
     import sys
 
 
@@ -151,10 +152,10 @@ if __name__ == '__main__':
 
 
     for package in o['p']:
-        print 'collecting ', repr( package )
+        print('collecting ', repr( package ))
         l.collectTests( module=package )
 
     l.run( dry=o['dry'] )
     l.report()
 
-    print "DONE"
+    print("DONE")

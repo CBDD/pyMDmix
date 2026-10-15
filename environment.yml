@@ -1,0 +1,17 @@
+name: mdmix-env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - numpy
+  - scipy
+  - matplotlib
+  - netcdf4
+  - cftime
+  - biopython
+  - mechanize
+  - griddataformats
+  - ambertools
+  - pip:
+      - biskit>=3.0
