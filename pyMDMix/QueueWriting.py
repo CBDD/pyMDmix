@@ -36,8 +36,8 @@ import re
 import os
 import os.path as osp
 import glob
-import settings as S
-import tools as T
+from . import settings as S
+from . import tools as T
 
 class QueueInputError(Exception):
     pass
@@ -62,7 +62,7 @@ class QueueInputWriter(object):
             # User directory has priority
             usertemplates = glob.glob(S.USER_MDMIX_HOME+os.sep+'*_queue_temp.txt')
             packagetemplates = glob.glob(T.templatesRoot()+os.sep+'*_queue_temp.txt')
-            qname = re.compile('(\w+)_queue_temp.txt')
+            qname = re.compile(r'(\w+)_queue_temp.txt')
             for f in usertemplates:
                 n = qname.match(osp.basename(f))
                 if n:
@@ -78,7 +78,7 @@ class QueueInputWriter(object):
                         if n == self.queue: self.templfile = f
 
             # If still no template found, raise QueueInputError
-            if not self.templfile: raise QueueInputError, "No template file for queue name %s"%self.queue
+            if not self.templfile: raise QueueInputError("No template file for queue name %s"%self.queue)
 
         self.template = open(self.templfile,'r').read()
 
@@ -102,23 +102,23 @@ class QueueInputWriter(object):
     def write(self, replica=None, queuename='', **kwargs):
         "Write queue input files for replica *replica*"
         if not replica: replica=self.replica
-        if not replica: raise QueueInputError, "Replica not set"
+        if not replica: raise QueueInputError("Replica not set")
 
         # CWD
         cwd = T.BROWSER.getcwd()
 
         # Get writter
         if replica.mdProgram == 'AMBER':
-            from Amber import AmberWriter
+            from .Amber import AmberWriter
             writer = AmberWriter(replica)
         elif replica.mdProgram == 'NAMD':
-            from NAMD import NAMDWriter
+            from .NAMD import NAMDWriter
             writer = NAMDWriter(replica)
         elif replica.mdProgram == 'OPENMM':
-            from OpenMM import OpenMMWriter
+            from .OpenMM import OpenMMWriter
             writer = OpenMMWriter(replica)
         else:
-            raise QueueInputError, "Replica has unknown mdProgram attribute: %s"%replica.mdProgram
+            raise QueueInputError("Replica has unknown mdProgram attribute: %s"%replica.mdProgram)
 
         # start writing files
         # MINIMIZATION
@@ -166,13 +166,13 @@ class QueueInputWriter(object):
 def listQueueSystems():
     usertemplates = glob.glob(S.USER_MDMIX_HOME+os.sep+'*_queue_temp.txt')
     packagetemplates = glob.glob(T.templatesRoot()+os.sep+'*_queue_temp.txt')
-    qname = re.compile('(\w+)_queue_temp.txt')
+    qname = re.compile(r'(\w+)_queue_temp.txt')
     qsys = []
     usermatches = [qname.match(osp.basename(f)) for f in usertemplates]
     [qsys.append(m.groups()[0]) for m in usermatches if m]
     packagemathes = [qname.match(osp.basename(f)) for f in packagetemplates]
     [qsys.append(m.groups()[0]) for m in packagemathes if m]
-    return list(set(qsys))
+    return list(dict.fromkeys(qsys))
 
 if __name__ == "__main__":
-    print "Hello World"
+    print("Hello World")

@@ -33,12 +33,12 @@ import os
 import os.path as osp
 import logging
 
-import Systems
-from MDSettings import MDSettings
-import settings as S
-import tools as T
-from Replicas import Replica
-from Structures import FileLock
+from . import Systems
+from .MDSettings import MDSettings
+from . import settings as S
+from . import tools as T
+from .Replicas import Replica
+from .Structures import FileLock
 
 
 class ProjectError(Exception):
@@ -72,7 +72,7 @@ class Project(object):
                 self.fetchReplicas()
                 if _updated: self.updateReplicaPaths()
             else:
-                raise BadFile, "Project File %s not found"%fromfile
+                raise BadFile("Project File %s not found"%fromfile)
         else:
             import collections
             
@@ -109,20 +109,20 @@ class Project(object):
         s+='\n'
         s+= 'SYSTEMS:\n'
         s+= '========\n'
-        for sys in self.systems.values(): sysinfo+=str(sys)
+        for sys in list(self.systems.values()): sysinfo+=str(sys)
         if not sysinfo: sysinfo='NO SYSTEM FOUND\n'
         s+= sysinfo
         s+= '\n'
         s+= 'REPLICAS\n'
         s+= '========\n'
-        for repl in self.replicas.values(): replinfo+=repl.name+'\n'
+        for repl in list(self.replicas.values()): replinfo+=repl.name+'\n'
         if not replinfo: replinfo='NO SYSTEM FOUND\n'
         s+= replinfo
         s+='\n'
         if self.replicagroups:
             s+='GROUPS\n'
             s+='======\n'
-            for n, g in self.replicagroups.iteritems():
+            for n, g in self.replicagroups.items():
                 s+="%s: %s\n"%(n,', '.join(g))
         s+='\n'
         s+="-"*30
@@ -148,20 +148,20 @@ class Project(object):
         s+='\n'
         s+= 'SYSTEMS:\n'
         s+= '========\n'
-        for sys in self.systems.values(): sysinfo+=str(sys)
+        for sys in list(self.systems.values()): sysinfo+=str(sys)
         if not sysinfo: sysinfo='NO SYSTEM FOUND\n'
         s+= sysinfo
         s+= '\n'
         s+= 'REPLICAS\n'
         s+= '========\n'
-        for repl in self.replicas.values(): replinfo+=repl.desc()
+        for repl in list(self.replicas.values()): replinfo+=repl.desc()
         if not replinfo: replinfo='NO SYSTEM FOUND\n'
         s+= replinfo
         s+='\n'
         if self.replicagroups:
             s+='GROUPS\n'
             s+='======\n'
-            for n, g in self.replicagroups.iteritems():
+            for n, g in self.replicagroups.items():
                 s+="%s: %s\n"%(n,', '.join(g))
         s+='\n'
         s+="-"*30
@@ -174,13 +174,13 @@ class Project(object):
 
         :arg list systems: List of :class:`Systems.System` instances. Make sure System names are unique.
         """
-        if not self.__folderscreated: raise ProjectError, "Can not add Systems if Project folder is not created"
+        if not self.__folderscreated: raise ProjectError("Can not add Systems if Project folder is not created")
         if not isinstance(systems, list): systems = [systems]
         T.BROWSER.goHome()
         for s in systems:
             if not isinstance(s, Systems.System):
                 self.log.warn("Invalid type. system should be Systems.System instance.")
-            if s.name not in self.systems.keys():
+            if s.name not in list(self.systems.keys()):
                 self.__createSystem(s)
             else:
                 self.log.warn("System %s already exists. Skipping..."%s.name)
@@ -190,7 +190,7 @@ class Project(object):
 
     def applyReplicas(self, action, replicalist=[], **kwargs):
         "General method to call method *action* with arguments in **kwargs** to all replicas in replicalist. If list is empty, apply to all known replicas"
-        if not replicalist: replicalist = self.fetchReplicas().values()
+        if not replicalist: replicalist = list(self.fetchReplicas().values())
         process = []
         
         # Set executor number of threads here and
@@ -206,7 +206,7 @@ class Project(object):
                 continue
                 
             try: meth = getattr(r, action)
-            except: raise ProjectError, "Replica do not have method with name %s"%action
+            except: raise ProjectError("Replica do not have method with name %s"%action)
             
             import multiprocessing as multi
             self.log.debug("Submitting replica %s action %s"%(r.name, action))
@@ -232,13 +232,13 @@ class Project(object):
         :arg str systemname: Name of system to use. Must exist in current project (add it before calling this method with :meth:`addNewSystems`)
         :arg list setttings: List of :class:`MDSettings` objects.
         """
-        if not self.__folderscreated: raise ProjectError, "Can not create Replicas if Project folder is not created"
-        if not systemname in self.systems.keys(): raise BadAttribute, "System name %s not found in current project"%systemname
+        if not self.__folderscreated: raise ProjectError("Can not create Replicas if Project folder is not created")
+        if not systemname in list(self.systems.keys()): raise BadAttribute("System name %s not found in current project"%systemname)
         if not isinstance(settings, list): settings = [settings]
 
         # Check types
         for sets in settings:
-            if not isinstance(sets, MDSettings): raise BadAttribute, "Expected MDSettings type, but %s given"%(type(sets))
+            if not isinstance(sets, MDSettings): raise BadAttribute("Expected MDSettings type, but %s given"%(type(sets)))
 
         # Build replicas and add names
         T.BROWSER.goHome()
@@ -324,7 +324,7 @@ class Project(object):
             
         # Check expected project file exists inside *path*
         if not osp.exists(osp.join(path, self.projFileName)):
-            raise ProjectError, "Trying to set project path to folder %s that does not contain expected project file %s"%(path, self.projFileName)
+            raise ProjectError("Trying to set project path to folder %s that does not contain expected project file %s"%(path, self.projFileName))
 
         self.projectPath = path
         self.projFilePath = osp.join(self.projectPath, self.projFileName)
@@ -337,24 +337,23 @@ class Project(object):
     def updateReplicaPaths(self):
         "Update replica paths with current project main path information"
         # Update replica paths
-        for r in self.replicas.values():
+        for r in list(self.replicas.values()):
             r.setPath(osp.join(self.projectPath,self.replPaths,r.name))
             r.write()
 
     def createProjectFolder(self):
         "Create folder structure for current project name and update paths"
-        import distutils.dir_util as du
         if not self.__folderscreated:
             self.log.info("Creating project folder")
             self.__folderscreated= True
-            du.create_tree(self.projName,[self.replPaths+os.sep], verbose=True)
+            T.create_tree(self.projName,[self.replPaths+os.sep], verbose=True)
             T.BROWSER.chdir(self.projName)
             self.projFilePath = self.projFileName
             self.write()
             self.updatePath()
 
     def listGroups(self):
-        return self.replicagroups.keys()
+        return list(self.replicagroups.keys())
 
     def createGroup(self, groupname, replicanames):
         """
@@ -388,7 +387,7 @@ class Project(object):
         Remove group.
         :arg str groupname: group name to be removed from project
         """
-        if self.replicagroups.has_key(groupname):
+        if groupname in self.replicagroups:
             self.replicagroups.pop(groupname)
             self.write()
             return True
@@ -404,7 +403,7 @@ class Project(object):
         if not isinstance(replicalist, list): replicalist = [replicalist]
         for r in replicalist:
             if isinstance(r, str): r = self.getReplica(r)
-            if not isinstance(r, Replica): raise BadAttribute, "Expected argument of type Replica, not %s"%(type(r))
+            if not isinstance(r, Replica): raise BadAttribute("Expected argument of type Replica, not %s"%(type(r)))
             self.log.info("Extending replica %s simulation %i nanoseconds to %s"%(r.name, nanos, r.nanos+nanos))
             r.setNanos(r.nanos+nanos)
             r.createMDInput()
@@ -496,14 +495,14 @@ def createProject(projectConfigFile, name):
     :arg str projectConfigFile: path to config file containing SYSTEM and MDSETTINGS sections
     :arg str name: Name to project to be created
     """
-    from Systems import parseSystemConfigFile
-    from MDSettings import parseSettingsConfigFile
-    if not osp.exists(projectConfigFile): raise BadFile, "File %s not found."%projectConfigFile
-    print "Parsing System information..."
+    from .Systems import parseSystemConfigFile
+    from .MDSettings import parseSettingsConfigFile
+    if not osp.exists(projectConfigFile): raise BadFile("File %s not found."%projectConfigFile)
+    print("Parsing System information...")
     sys = parseSystemConfigFile(projectConfigFile)
-    print "Parsing md settings for replica creation..."
+    print("Parsing md settings for replica creation...")
     sets = parseSettingsConfigFile(projectConfigFile)
-    print "Creating project %s"%name
+    print("Creating project %s"%name)
     project = Project(name=name)
     project.createProjectFolder()
     project.addNewSystems(sys)
@@ -513,14 +512,14 @@ def createProject(projectConfigFile, name):
 def loadProject(projectfile=None):
     """
     Load existing project.
-    If projecfile path is not given, will try to load any \*.mproj file present in current folder.
+    If projecfile path is not given, will try to load any \\*.mproj file present in current folder.
     """
     if not projectfile:
         import glob
         files = glob.glob('*.mproj')
-        if not files: raise ProjectError,"No project file found in current folder. Make sure you are in a pyMDMix project folder."
+        if not files: raise ProjectError("No project file found in current folder. Make sure you are in a pyMDMix project folder.")
         if len(files) > 1:
-            raise ProjectError,"More than one project file in current folder. Please remove the invald one."
+            raise ProjectError("More than one project file in current folder. Please remove the invald one.")
         projectfile = files[0]
     return Project(fromfile=projectfile)
 
@@ -540,19 +539,19 @@ def returnMDMixProjectOrFail(parserargs):
     #Let's try to load a project or exit
     p = returnMDMixProject(parserargs)
     from pyMDMix import MDMixError
-    if not p: raise MDMixError, 'No project file found in current folder. Make sure you are in a pyMDMix project folder.'
+    if not p: raise MDMixError('No project file found in current folder. Make sure you are in a pyMDMix project folder.')
     return p
 
 
 ###TESTING
-import Biskit.test as BT
+import biskit.test as BT
 
 class Test(BT.BiskitTest):
     """Test"""
     def test_CREATEpepProject(self):
         """Create complete test project"""
         import shutil
-        print T.testRoot()
+        print(T.testRoot())
         cfg = T.testRoot('pep','pep_amber_mdmix.cfg')
         off = T.testRoot('pep','pep.off')
         self.f_out = T.tempDir()

@@ -31,9 +31,9 @@ import sys
 import struct
 
 import numpy as npy
-import Biskit.tools as T
-from Biskit.PDBModel import PDBModel
-from Biskit.LogFile import StdLog
+import biskit.tools as T
+from biskit.pdbModel import PDBModel
+from biskit.logFile import StdLog
 
 class NamdDCDParser:
     
@@ -55,7 +55,7 @@ class NamdDCDParser:
         @type  verbose: int
         """
         self.fdcd = T.absfile( fdcd )
-        self.dcd = open(self.fdcd, "r", 0)
+        self.dcd = open(self.fdcd, "rb")
         
         if isinstance(fref, str) :
             self.ref=PDBModel(T.absfile(fref), pdbCode=pdbCode)
@@ -73,7 +73,7 @@ class NamdDCDParser:
     def readHeader(self, verbose=False):
         """
         Read NAMD DCD coordinates file
-        Only for 32bit DCD with opposite endianness!
+        Only for 32bit DCD (little or big endian, detected automatically)
         AND only if no atom is fixed!
         """
         f = self.dcd
@@ -84,9 +84,14 @@ class NamdDCDParser:
         if f.tell() != 0:
             f.seek(0)
         
+        # Byte order: the first record marker is always 84. NAMD/CHARMM write the native order of the
+        # machine (little-endian on x86); big-endian files come from other platforms.
+        self.endian = '<' if struct.unpack('<I', f.read(4))[0] == 84 else '>'
+        f.seek(0)
+
         # First read header information and check correct file format
-        header = struct.unpack(">I 4s 9I f 11I", f.read(92))
-        if header[0] == 84 and header[1] == 'CORD' and header[-1] == 84 and header[-2] != 0:
+        header = struct.unpack(self.endian + "I 4s 9I f 11I", f.read(92))
+        if header[0] == 84 and header[1] == b'CORD' and header[-1] == 84 and header[-2] != 0:
             #print "recognized 32 bit DCD file of opposite endianness"
             #Store the number of sets of coordinates (NSET). Frames
             self.nset = header[2]
@@ -107,17 +112,17 @@ class NamdDCDParser:
             sys.exit("Bad DCD Format")
             
         # Read title information
-        if (unpack('>I',f.read(4))[0] - 4) % 80 == 0:
+        if (unpack(self.endian + 'I',f.read(4))[0] - 4) % 80 == 0:
             # Number of title lines
-            self.ntitle = int(unpack('>I', f.read(4))[0])
-            self.title = [unpack(">80s",f.read(80)) for i in range(self.ntitle)]
+            self.ntitle = int(unpack(self.endian + 'I', f.read(4))[0])
+            self.title = [unpack(self.endian + "80s",f.read(80)) for i in range(self.ntitle)]
             f.read(4) # Skip closing block number
         else:
             f.close()
             sys.exit("ERROR in title. Bad DCD format")
         
         # Read number of atoms
-        atomBlock = unpack('>3I', f.read(12))
+        atomBlock = unpack(self.endian + '3I', f.read(12))
         if atomBlock[-1] == 4:
             self.natoms = atomBlock[1]
         else:
@@ -125,13 +130,13 @@ class NamdDCDParser:
             sys.exit("Bad DCD format")
         
         if verbose:
-            print self.title
-            print "Number of atoms:", self.natoms
-            print "Number of frames:",self.nset
-            print "Starting timestep", self.istart
-            print "Final timestep:", self.ntot
-            print "Steps between frames:", self.nsavc
-            print "Time step of simulation:", self.delta
+            print(self.title)
+            print("Number of atoms:", self.natoms)
+            print("Number of frames:",self.nset)
+            print("Starting timestep", self.istart)
+            print("Final timestep:", self.ntot)
+            print("Steps between frames:", self.nsavc)
+            print("Time step of simulation:", self.delta)
     
     def set_pointerInfo(self):
         """
@@ -155,8 +160,8 @@ class NamdDCDParser:
         unpack = struct.unpack
         
         # This block contains the box information
-        if unpack('>I', f.read(4))[0] == 48:
-            self.unitcell = npy.fromstring( f.read(48), dtype=">d")
+        if unpack(self.endian + 'I', f.read(4))[0] == 48:
+            self.unitcell = npy.frombuffer(f.read(48), dtype=self.endian + "d").copy()
             f.read(4)
         else:
             f.close()
@@ -174,13 +179,13 @@ class NamdDCDParser:
         # Read coordinates
         # Each coordinates block is enclosed by one integer
         # that we will skip all the times
-        xyz = npy.zeros([self.natoms, 3], dtype=">f4")
+        xyz = npy.zeros([self.natoms, 3], dtype=self.endian + "f4")
         f.read(4)
-        xyz[:,0] = npy.fromstring(f.read(size('f')*self.natoms), dtype=">f4")
+        xyz[:,0] = npy.frombuffer(f.read(size('f')*self.natoms), dtype=self.endian + "f4")
         f.read(8)
-        xyz[:,1] = npy.fromstring(f.read(size('f')*self.natoms), dtype=">f4")
+        xyz[:,1] = npy.frombuffer(f.read(size('f')*self.natoms), dtype=self.endian + "f4")
         f.read(8)
-        xyz[:,2] = npy.fromstring(f.read(size('f')*self.natoms), dtype=">f4")
+        xyz[:,2] = npy.frombuffer(f.read(size('f')*self.natoms), dtype=self.endian + "f4")
         f.read(4)
         
         return xyz
@@ -194,7 +199,7 @@ class NamdDCDParser:
         f.seek(self.h_size)
         
         # Read Frames
-        all_snap = npy.zeros([self.nset, self.natoms, 3], dtype=">f4")
+        all_snap = npy.zeros([self.nset, self.natoms, 3], dtype=self.endian + "f4")
         for i in range(self.nset):
             all_snap[i,:] = self.read_dcdstep()
         

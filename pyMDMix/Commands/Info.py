@@ -13,7 +13,7 @@ class Info(Command):
     def action(self, parserargs):
         if parserargs.infoselection == 'project':
             p = returnMDMixProjectOrFail(parserargs)
-            print p.longdesc()
+            print(p.longdesc())
         elif parserargs.infoselection == 'solvents':#Actions on solvent database
             man = pyMDMix.Solvents.SolventManager()
-            print man
+            print(man)
