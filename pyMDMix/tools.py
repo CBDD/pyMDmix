@@ -46,6 +46,17 @@ if DISABLE_BISKIT_LOADING_WARNS:
     sys.stderr.close()
     sys.stderr = olderr
 
+# Biskit 3.0.1 writes integer PDB fields with repr(value). With numpy >= 2 (required by Python 3.13),
+# repr(numpy.int32(1)) is 'np.int32(1)', which corrupts every PDB written by PDBModel.writePdb.
+# Make the module-level repr of Biskit's FortranFormat convert numpy scalars to Python numbers.
+try:
+    import builtins as _builtins
+    import numpy as _npy
+    import biskit.core.scientificIO.FortranFormat as _ff
+    _ff.repr = lambda v: _builtins.repr(v.item() if isinstance(v, _npy.generic) else v)
+except Exception:   # Biskit layout changed: nothing to patch
+    pass
+
 from biskit.tools import *
 
 def create_tree(base, files, verbose=False):
