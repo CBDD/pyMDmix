@@ -37,25 +37,45 @@ import subprocess as sub
 import multiprocessing
 
 class ExecutorThread(multiprocessing.Process):
-    def __init__(self, queue):
+    def __init__(self, queue, stats=None):
         multiprocessing.Process.__init__(self)
         self.queue = queue
+        self.stats = stats      # (submitted, done, t0) shared counters used to report progress
 #        self.sid = sid #sessionid
-        
+
+    def _report(self, label):
+        "Count a finished job and print the progress line."
+        if not self.stats: return
+        submitted, done, t0 = self.stats
+        with done.get_lock():
+            done.value += 1
+            n = done.value
+        total = max(submitted.value, n)
+        elapsed = time.time() - t0.value
+        print("[%d/%d, %3d%%, %s elapsed] %s finished" % (n, total, 100 * n // total, _fmt_time(elapsed), label or 'job'), flush=True)
+
     def run(self):
         while True:
             # Get next task or exit if None
             exe = self.queue.get()
             if exe is None: break
             if isinstance(exe[0], str): 
-                # Shell comands
-                cmd, path = exe
+                # Shell comands (cmd, path[, label])
+                cmd, path = exe[0], exe[1]
+                label = exe[2] if len(exe) > 2 else None
                 exit = sub.Popen(cmd, shell=True, cwd=path).wait()
                 if exit: print("cmd exited with non-zero code: %s"%cmd, file=sys.stderr)
+                self._report(label or cmd)
             else:
                 # Methods and functions
                 fx, args, kwargs = exe
                 fx(*args,**kwargs)
+                self._report(getattr(fx, '__name__', 'function'))
+
+def _fmt_time(seconds):
+    "Format seconds as H:MM:SS."
+    seconds = int(seconds)
+    return "%d:%02d:%02d" % (seconds // 3600, (seconds % 3600) // 60, seconds % 60)
 
 class Executor(object):
     def __init__(self, nthreads=1, twait=1):
@@ -66,6 +86,11 @@ class Executor(object):
         self.threads = []
         self.queue = multiprocessing.Queue()
         self.ncalls = multiprocessing.Manager().Value('i',0)
+        # Shared job counters (submitted, finished, start time) for progress reporting and for waiting
+        # until the jobs have really finished (an empty queue only means they were picked up)
+        self.submitted = multiprocessing.Value('i', 0)
+        self.done = multiprocessing.Value('i', 0)
+        self.t0 = multiprocessing.Value('d', time.time())
         self.log.debug("Init executor nthreads: %d"%nthreads)
     
     def __del__(self):
@@ -77,7 +102,12 @@ class Executor(object):
     def start(self):
         self.ncalls.value += 1
         self.log.debug("Registering new caller. ncalls: %d"%self.ncalls.value)
-        if self.ncalls.value == 1: self.__setThreads() # init threads if first call
+        if self.ncalls.value == 1:
+            # first call: reset the progress counters and init threads
+            self.submitted.value = 0
+            self.done.value = 0
+            self.t0.value = time.time()
+            self.__setThreads()
                 
     def terminate(self):
         self.ncalls.value -= 1
@@ -92,7 +122,7 @@ class Executor(object):
     def __setThreads(self):
         "Start threads acording to self.maxproc"
         self.log.debug("Starting threads")
-        [self.threads.append(ExecutorThread(self.queue)) for _ in range(self.nthreads)]
+        [self.threads.append(ExecutorThread(self.queue, (self.submitted, self.done, self.t0))) for _ in range(self.nthreads)]
         [t.start() for t in self.threads]
 #        [t.join() for t in self.threads]
             
@@ -101,24 +131,30 @@ class Executor(object):
         self.nthreads = nthreads or 1
         self.log.debug("Changed executor nthreads: %d"%nthreads)
 
-    def submitCmd(self, fx=None, cmd=None, path=None, *args, **kwargs):
+    def submitCmd(self, fx=None, cmd=None, path=None, label=None, *args, **kwargs):
         """
         Submit command. Will wait for any slot in the processes to empty to launch current.
         
         :arg str cmd: String with full execution command. 
         :arg str path: Path where to execute the program. Path will be passed to ``subprocess.Popen`` as *cwd* argument.
+        :arg str label: Short name of the job (for example "ETAO_2 md7") shown in the progress line when it finishes.
         """
         if self.ncalls.value == 0: self.start()
         if cmd:
             self.log.debug("Submitting to queue: %s (%s)"%(cmd,path or 'cwd'))
-            self.queue.put_nowait((cmd,path))
+            with self.submitted.get_lock(): self.submitted.value += 1
+            self.queue.put_nowait((cmd,path,label))
         elif fx:
+            with self.submitted.get_lock(): self.submitted.value += 1
             self.queue.put_nowait((fx, args, kwargs))
         
     def waitJobCompletion(self):
-        "Wait until all jobs in the queue are done"
-        while not self.queue.empty(): 
-#            self.log.debug("Wating completion")
+        "Wait until all submitted jobs have finished (not only until they have left the queue)."
+        while self.done.value < self.submitted.value:
+            # Do not wait forever if every worker started by this process died
+            if self.threads and not any(t.is_alive() for t in self.threads):
+                self.log.warning("Executor workers are not running; %d job(s) did not finish."%(self.submitted.value - self.done.value))
+                break
             time.sleep(self.twait)
     
 

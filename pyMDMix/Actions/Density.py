@@ -849,6 +849,6 @@ class cppDensity(object):
             cmdpath = self.__densitycmd(probe_name)
             if cmdpath: 
                 cmd, path = cmdpath
-                T.EXECUTOR.submitCmd(cmd=cmd, path=path)
+                T.EXECUTOR.submitCmd(cmd=cmd, path=path, label='%s %s density'%(self.replica.name, probe_name))
             else:
                 self.log.warn("Not all requested trajectories are present in alignment directory")

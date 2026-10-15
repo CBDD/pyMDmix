@@ -148,12 +148,12 @@ class Align(object):
         
     def run(self):
         "Run centering process for steps selected at instantiation."
-        self.log.info("Running alignment of trajectory in replica %s"%self.replica.name)
+        self.log.info("Running alignment of trajectory in replica %s (%d steps)"%(self.replica.name, len(self.steps)))
         for i in self.steps:
             cmdpath = self.__aligncmd(i)
             if cmdpath: 
                 cmd, path = cmdpath
-                T.EXECUTOR.submitCmd(cmd=cmd, path=path)
+                T.EXECUTOR.submitCmd(cmd=cmd, path=path, label='%s md%s alignment'%(self.replica.name, i))
             else:
                 if self.warn: self.log.warn("Production step %i not found")
 
