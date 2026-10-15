@@ -58,3 +58,6 @@ UPDATE HISTORY (ZIP)
 - check_com: cpptraj PDB output now uses include_ep so virtual sites (e.g. EPW of OPC water) are kept in the stripped PDB.
 - Neutralization with NaCl loads leaprc.water.opc / leaprc.water.opc3 when the solvent water model is OPC / OPC3.
 - Amber.ambpdb writes the system PDB with cpptraj (trajout ... pdb include_ep) so virtual sites (EPW of OPC) are kept and the PDB has the same atoms as the topology and trajectories; it falls back to ambpdb, which skips extra points.
+- Solvent configuration parser: InvalidPath now reports which objectfile/frcmod was not found.
+- Amber restart files use the .rst7 extension (min.rst7, eqN.rst7, mdN.rst7, check_com.sh and getSimVolume).
+- ambpdb output is renumbered when it uses hybrid-36 numbering (more than 9999 residues or 99999 atoms), which Biskit cannot parse.
