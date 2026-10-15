@@ -53,9 +53,9 @@ import os
 import os.path as osp
 import tempfile
 import logging
-import tools as T
+from . import tools as T
 
-from Structures import FileLock
+from .Structures import FileLock
 
 class ReplicaError(Exception):
     pass
@@ -120,17 +120,17 @@ class Replica(object):
             self.setName(name)
 
             # Init system
-            import Systems
+            from . import Systems
             if system:
                 # Solvated system as input to create the replica
-                if not isinstance(system, Systems.SolvatedSystem):  raise ReplicaError, "system should be SolvatedSystem instance. Got %s instead."%(type(system))
+                if not isinstance(system, Systems.SolvatedSystem):  raise ReplicaError("system should be SolvatedSystem instance. Got %s instead."%(type(system)))
                 self.system = system                #: SolvatedSystem. System with solvent box already created.
             elif top and crd:
-                # Input as PRMTOP and PRMCRD, create solvated system from them
+                # Input as parm7 and rst7, create solvated system from them
                 self.system = Systems.SolvatedSystem(top=top, crd=crd)
-            self.top = None                      #: Amber PRMTOP file with solvated system. To be set from input system.
-            self.pdb = None                      #: PDB file generated from PRMTOP and PRMCRD. To be set from input system.
-            self.crd = None                      #: Amber PRMCRD file with solvated system
+            self.top = None                      #: Amber parm7 file with solvated system. To be set from input system.
+            self.pdb = None                      #: PDB file generated from parm7 and rst7. To be set from input system.
+            self.crd = None                      #: Amber rst7 file with solvated system
             self.ref = None
             self.path = None                    #: Path to replica folder
             self.replFilePath = None            #: path to replica pickled file, should be placed inside replica directory
@@ -138,10 +138,10 @@ class Replica(object):
             # ADOPT ATTRIBUTES FROM MDSETTINGS
             # If not defined in kwargs
             if not mdsettings:
-                from MDSettings import MDSettings
+                from .MDSettings import MDSettings
                 mdsettings = MDSettings(**kwargs)
                 
-            for k,v in mdsettings.__dict__.iteritems():
+            for k,v in mdsettings.__dict__.items():
                 if k == 'name': continue
                 if k == 'FF': continue
                 setattr(self, k, v)
@@ -226,18 +226,18 @@ Solvent: {solvent}
         # Finally divide num of steps needed by num of steps per file
         self.ntrajfiles=int((self.nanos*1e6/self.md_timestep)/self.prod_steps)
 
-    def __fixTopology(self, prmtop):
+    def __fixTopology(self, parm7):
         """
-        Fix prmtop by removing SCEE and SCNB sections, they will take default values.
+        Fix parm7 by removing SCEE and SCNB sections, they will take default values.
         File will be copied with same name and suffix ``_back`` to prevent file loss.
         Fixed topology will overwrite old filename.
         
-        :arg str prmtop: File path to amber parm7 topology file.
+        :arg str parm7: File path to amber parm7 topology file.
         """
         import shutil
-        shutil.copy(prmtop, prmtop+'_back')
-        top = open(prmtop+'_back','r')
-        out = open(prmtop,'w')
+        shutil.copy(parm7, parm7+'_back')
+        top = open(parm7+'_back','r')
+        out = open(parm7,'w')
         line=top.readline()
         while line:
                 if not '%FLAG SCEE_SCALE_FACTOR' in line:
@@ -262,7 +262,7 @@ Solvent: {solvent}
 
     def asMDSettings(self):
         "Return MDSettings object with settings for current replica"
-        from MDSettings import MDSettings
+        from .MDSettings import MDSettings
         d = self.__dict__.copy()
         [d.pop(i) for i in ('log', 'top', 'crd', 'pdb','ref','path','attached',
                         'extension','replFilePath','system','restrPdb','create',
@@ -282,7 +282,7 @@ Solvent: {solvent}
         if not prefix: prefix = ''
         if not suffix: suffix = ''
         self.log.debug("Fetching replica %s grids (prefix: %s suffix: %s)"%(self.name, prefix, suffix))
-        import GridsManager as GM
+        from . import GridsManager as GM
         grids = []
         for root, dir, files in os.walk(self.path):
             for f in files:
@@ -298,25 +298,25 @@ Solvent: {solvent}
         "Get MD checker according to the simulation program used"
         # Set checker according to mdProgram
         if self.mdProgram == 'AMBER':
-            from Amber import AmberCheck
+            from .Amber import AmberCheck
             return AmberCheck(self, **kwargs)
         if self.mdProgram == 'OPENMM':
-            from OpenMM import OpenMMCheck
+            from .OpenMM import OpenMMCheck
             return OpenMMCheck(self, **kwargs)
         elif self.mdProgram == 'NAMD':
-            from NAMD import NAMDCheck
+            from .NAMD import NAMDCheck
             return NAMDCheck(self, **kwargs)
 
     def getSolvent(self):
         "Return solvent instance assigned to current replica"
-        import Solvents
+        from . import Solvents
         return Solvents.getSolvent(self.solvent)
 
     def getProbes(self):
         "Return a list with all possible probes to be calculated from solvent"
         solv = self.getSolvent()
         probes = solv.probelist
-        probes.extend(solv.comprobes.keys())
+        probes.extend(list(solv.comprobes.keys()))
         return probes
 
     def getTrajectory(self, stepselection=[], usealigned=True, framestep=1, frameselection=[]):
@@ -330,9 +330,9 @@ Solvent: {solvent}
 
         :return: :class:`Trajectory.Trajectory` object
         """
-        from Trajectory import Trajectory
+        from .Trajectory import Trajectory
         
-        if not stepselection: stepselection = range(1, self.ntrajfiles+1)
+        if not stepselection: stepselection = list(range(1, self.ntrajfiles+1))
         else: self.log.info("Trajectory selected steps: %s"%stepselection)
         if usealigned:
             if not self.isAligned(stepselection): usealigned = False
@@ -343,7 +343,7 @@ Solvent: {solvent}
             self.log.debug("Using aligned trajectory")
         else:
             if not self.isProductionFinished(stepselection):
-                raise ReplicaError, "Cannot retrieve trajectory for non-finished steps: %s"%stepselection
+                raise ReplicaError("Cannot retrieve trajectory for non-finished steps: %s"%stepselection)
             path = self.mdpath
             checkext = self.checkProductionExtension
             self.log.debug("Using not aligned trajectory")
@@ -367,7 +367,7 @@ Solvent: {solvent}
 
     def getPDB(self):
         "Return a SolvatedPDB with replica pdb"
-        from PDB import SolvatedPDB
+        from .PDB import SolvatedPDB
         p = SolvatedPDB(pdb=osp.join(self.path, self.pdb), solvent=self.solvent, extraResidues=self.system.extraResList)
 #        p.setSolvent(self.solvent)
         p.fixNumbering()
@@ -387,7 +387,7 @@ Solvent: {solvent}
             grids_by_type[g.type].append(g)
         d = {
             gtype: {g.probe: g for g in glist} if grid_type is None or grid_type == gtype else {}
-            for gtype, glist in grids_by_type.items()
+            for gtype, glist in list(grids_by_type.items())
         }
         return d
 
@@ -405,7 +405,7 @@ Solvent: {solvent}
         d = {}
         for g in self.grids:
             if set([g.probe]) & set(probelist):
-                if not d.has_key(g.probe): d[g.probe] = []
+                if g.probe not in d: d[g.probe] = []
                 d[g.probe].append(g)
         return d
         
@@ -419,14 +419,14 @@ Solvent: {solvent}
         import re
         self.go()
         self.log.debug("Checking production extension %s"%self.name)
-        steps = steps or range(1, self.ntrajfiles+1)
+        steps = steps or list(range(1, self.ntrajfiles+1))
         if not isinstance(steps, list): steps = [steps]
         result = {}
 
         files = os.listdir(self.mdfolder)
         for i in steps:
             n = self.mdoutfiletemplate.format(step=i, extension='')
-            ext = re.compile(n+'(\w+)')
+            ext = re.compile(n+r'(\w+)')
             tmp = []
             for f in files:
                 m = ext.search(f)
@@ -452,7 +452,7 @@ Solvent: {solvent}
         import re
         self.go()
         self.log.debug("Checking align extension %s"%self.name)
-        steps = steps or range(1, self.ntrajfiles+1)
+        steps = steps or list(range(1, self.ntrajfiles+1))
         if not isinstance(steps, list): steps = [steps]
         result = {}
 
@@ -463,7 +463,7 @@ Solvent: {solvent}
         files = os.listdir(self.alignfolder)
         for i in steps:
             n = self.mdoutfiletemplate.format(step=i, extension='')
-            ext = re.compile(n+'(\w+)')
+            ext = re.compile(n+r'(\w+)')
             tmp = []
             for f in files:
                 m = ext.search(f)
@@ -483,11 +483,11 @@ Solvent: {solvent}
         """
         Return True if the trajectory has been already aligned to the reference structure.
         """
-        if not stepselection: stepselection=range(1,self.ntrajfiles+1)
+        if not stepselection: stepselection=list(range(1,self.ntrajfiles+1))
         if not isinstance(stepselection, list): stepselection = [stepselection]
         
         exts = self.checkAlignExtension(stepselection) # Check all file extensions in align folder
-        if sum([el != None for el in exts.values()]) != len(stepselection):
+        if sum([el != None for el in list(exts.values())]) != len(stepselection):
             return False
         return True
 
@@ -500,7 +500,7 @@ Solvent: {solvent}
         
         :returns: Bool indicating if steps are correctly finished.
         """
-        if not stepselection: stepselection=range(1,self.ntrajfiles+1)
+        if not stepselection: stepselection=list(range(1,self.ntrajfiles+1))
         if not isinstance(stepselection, list): stepselection = [stepselection]
         check = self.getChecker(warn=warn)
         return check.checkProduction(stepselection=stepselection)
@@ -591,14 +591,14 @@ Solvent: {solvent}
         # Check folder was created and select appropriate writer
         if not self.__folderscreated: self.createFolder()
         if self.mdProgram == 'AMBER':
-            from Amber import AmberWriter as writer
+            from .Amber import AmberWriter as writer
         elif self.mdProgram == 'NAMD':
-            from NAMD import NAMDWriter as writer
+            from .NAMD import NAMDWriter as writer
         elif self.mdProgram == 'OPENMM':
-            from OpenMM import OpenMMWriter as writer
+            from .OpenMM import OpenMMWriter as writer
 
         else:
-            raise ReplicaError, "MD Program not recognized: %s"%self.mdprog
+            raise ReplicaError("MD Program not recognized: %s"%self.mdProgram)
 
         # Write commands file and replica config input files
         self.go()
@@ -618,7 +618,7 @@ Solvent: {solvent}
         :arg str queue: Name of the template file defining a queue system. File ``queue_queue_temp.txt`` should exist in users mdmix home directory or package templates.
         """
         if not self.folderscreated(): return False
-        import QueueWriting as Q
+        from . import QueueWriting as Q
         self.log.info("Writing Queue %s input files for replica %s"%(queue,self.name))
         self.go()
         queue = Q.QueueInputWriter(queue, **kwargs)
@@ -660,10 +660,9 @@ Solvent: {solvent}
 
         """
         if not self.name:
-            raise ReplicaError, "Unnamed replica folder can not be created."
+            raise ReplicaError("Unnamed replica folder can not be created.")
         
         if self.system and self.eqfolder and self.mdfolder:
-            import distutils.dir_util as du
             import shutil
 
             self.log.info("Creating folder structure for replica %s"%self.name)
@@ -674,7 +673,7 @@ Solvent: {solvent}
             else: where = T.BROWSER.getcwd()
             T.BROWSER.chdir(where)
 
-            du.create_tree(self.name, [self.minfolder+os.sep, self.eqfolder+os.sep,
+            T.create_tree(self.name, [self.minfolder+os.sep, self.eqfolder+os.sep,
                                         self.mdfolder+os.sep],verbose=True)
 
 
@@ -684,11 +683,11 @@ Solvent: {solvent}
             pdbok = self.system.savePDB(osp.join(self.name, basenames+'.pdb'))
 
             if topcrdok and pdbok:
-                self.top = basenames+'.prmtop'
-                self.crd = basenames+'.prmcrd'
+                self.top = basenames+'.parm7'
+                self.crd = basenames+'.rst7'
                 self.pdb = basenames+'.pdb'
             else:
-                raise ReplicaError, "Error saving system top, crd or pdb files"
+                raise ReplicaError("Error saving system top, crd or pdb files")
 
             # update replica path and save replica file
             T.BROWSER.chdir(self.name)
@@ -708,7 +707,7 @@ Solvent: {solvent}
             T.BROWSER.chdir(pwd)
 #            self.log.info("Created folder structure for replica %s"%self.name)
         else:
-            raise ReplicaError, "Folder names or replica name not set. Cannot create folders."
+            raise ReplicaError("Folder names or replica name not set. Cannot create folders.")
 
     def createAll(self, queue=False, **kwargs):
         """
@@ -756,10 +755,10 @@ Solvent: {solvent}
         if not self.__folderscreated: self.createFolder()
         self.go()
         self.log.debug("Importing data to %s"%T.BROWSER.getcwd())
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             # Check attribute exists
             if not hasattr(self, key):
-                raise BadAttribute, "%s attribute not in Replica object"%key 
+                raise BadAttribute("%s attribute not in Replica object"%key) 
             # File pair
             if osp.isfile(value):
                 fname = osp.basename(value)
@@ -773,7 +772,7 @@ Solvent: {solvent}
                 destpath = getattr(self, key)
                 # Get first level of files/dir structure at source folder
                 # and link each file and subfolder
-                firstlevelpath = os.walk(value).next()
+                firstlevelpath = next(os.walk(value))
                 main = firstlevelpath[0]
                 for f in T.simplifyNestedList(firstlevelpath[1:], []):
                     dest = osp.join(destpath, f)
@@ -784,7 +783,7 @@ Solvent: {solvent}
                     os.symlink(ori, dest)
                 self.log.debug("Linked folder %s content to replica folder %s"%(value, destpath))
             else:
-                raise BadFile, "Not a valid path: %s"%value
+                raise BadFile("Not a valid path: %s"%value)
         self.write()
 
     def setPath(self, path, update=True):
@@ -823,7 +822,7 @@ Solvent: {solvent}
         # Go to replica folder if not there
         T.BROWSER.gotoReplica(self)
         # If attachname present, remove it first
-        if self.attached.has_key(attachname): self.dettach(attachname)
+        if attachname in self.attached: self.dettach(attachname)
 
         # Obtain temp name, save pickle and store info in self.attached
         attachfile = fname = os.path.basename(tempfile.mktemp(prefix=self.name+'_%s_'%attachname))
@@ -861,19 +860,19 @@ Solvent: {solvent}
             T.BROWSER.gotoReplica(self)
             if not osp.exists(fname):
                 T.BROWSER.goback()
-                raise BadFile, "%s file not found in replica folder."%fname
+                raise BadFile("%s file not found in replica folder."%fname)
             obj = T.load(fname)
             T.BROWSER.goback()
             return obj
         else: return False
 
     def runAlignment(self, ncpus=1, steps=[], waitend=True, **kwargs):
-        if kwargs.get('run') and not self.isProductionFinished(steps): raise ReplicaError, "Cannot align replica because production stage is not completed."
-        from Align import Align
+        if kwargs.get('run') and not self.isProductionFinished(steps): raise ReplicaError("Cannot align replica because production stage is not completed.")
+        from .Align import Align
         Align(self, steps=steps, nthreads=ncpus, waitend=waitend, **kwargs)     
     def runcppDensity(self, ncpus, waitend=True, **kwargs):
-        if kwargs.get('run') and not self.isAligned(): raise ReplicaError, "Cannot calculate density because alignment is not completed."
-        from Actions.Density import DensityGrids, cppDensity
+        if kwargs.get('run') and not self.isAligned(): raise ReplicaError("Cannot calculate density because alignment is not completed.")
+        from .Actions.Density import DensityGrids, cppDensity
         samplegrid = DensityGrids(self, probeselection=kwargs['probelist'], outprefix=kwargs['outprefix'], includeCOM=kwargs['includeCOM'],
                             onlyCOM=kwargs['onlyCOM'], stepselection=kwargs['nanosel'], reference=kwargs['ref'])
         samplegrid.prepareGrids()
@@ -881,8 +880,8 @@ Solvent: {solvent}
         dimensions = samplegrid.container.shape
         cppDensity(self, nthreads=ncpus, waitend=waitend,  griddimensions = dimensions, gridorigin=origin,**kwargs)
     def calcEnergy(self, **kwargs):
-        "Convert density to energies. Give in ``\*\*kwargs`` all parameters to :meth:`Energy.EnergyConversion.convert`."
-        from Energy import EnergyConversion
+        "Convert density to energies. Give in ``\\*\\*kwargs`` all parameters to :meth:`Energy.EnergyConversion.convert`."
+        from .Energy import EnergyConversion
         econv = EnergyConversion()
         econv.convert(self, **kwargs)
 
@@ -898,12 +897,12 @@ Solvent: {solvent}
     def load(self, replfile=None):
         "Load existing project from pickled file"
         f = replfile or self.replFilePath
-        if not osp.exists(f): raise BadFile, "File %s not found."%f
+        if not osp.exists(f): raise BadFile("File %s not found."%f)
         with FileLock(f) as lock:
             d = T.load(f)
             d['log'] = logging.getLogger("Replica (%s)"%d['name'])
             d['grids'] = None
-            if not d.has_key('prod_steps'): d['prod_steps'] = d['nvt_prod_steps']
+            if 'prod_steps' not in d: d['prod_steps'] = d['nvt_prod_steps']
             self.__dict__.update(d)
 
 
@@ -925,7 +924,7 @@ def renameReplicaList(repls):
 def loadReplica(replicafile=None):
     """
     Load existing replica. 
-    If *replicafile* path is not given, will try to load any ``\*.mrepl`` file present in current folder.
+    If *replicafile* path is not given, will try to load any ``\\*.mrepl`` file present in current folder.
 
     :returns: :class:`~Replicas.Replica` object
     """
@@ -933,14 +932,14 @@ def loadReplica(replicafile=None):
         import glob
         files = glob.glob('*.mrepl')
         if len(files) > 1:
-            raise ReplicaError,"More than one project file in current folder. Please remove the invald one."
+            raise ReplicaError("More than one project file in current folder. Please remove the invald one.")
         elif not files:
-            raise ReplicaError,"No file found with extension *.mrepl in current folder and no path was given."
+            raise ReplicaError("No file found with extension *.mrepl in current folder and no path was given.")
         replicafile = files[0]
     return Replica(fromfile=replicafile)
 
 
-import Biskit.test as BT
+import biskit.test as BT
 
 class Test(BT.BiskitTest):
     """Test"""

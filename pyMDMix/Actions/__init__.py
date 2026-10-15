@@ -33,9 +33,10 @@ __all__ = []
 
 import pkgutil
 import inspect
+import importlib
 
 for loader, name, is_pkg in pkgutil.walk_packages(__path__):
-    module = loader.find_module(name).load_module(name)
+    module = importlib.import_module('.' + name, __name__)
 #    globals()[name] = module
 #    __all__.append(name)
     for name, value in inspect.getmembers(module):
@@ -45,4 +46,4 @@ for loader, name, is_pkg in pkgutil.walk_packages(__path__):
         globals()[name] = value
         __all__.append(name)
 
-del inspect, pkgutil, name, loader, is_pkg
+del inspect, pkgutil, importlib, name, loader, is_pkg

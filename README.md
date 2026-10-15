@@ -15,7 +15,8 @@ INSTALLATION
 ---------------
 This version of pyMDMix depends on:
   - ambertools>=12
-  - python>=2.7
+  - python>=3.9
+  - biskit>=3.0 (installed automatically; this is the Python 3 release of Biskit, imported as `biskit`)
 
 make sure ambertools environment variables are set
 
@@ -34,11 +35,12 @@ there are three recommended ways to install pyMDMix:
 
 ```bash
 git clone https://github.com/CBDD/pyMDmix.git
-cd pyMDMix
-conda env create -f environment_p27.yml
-conda activate mdmix-env
-conda env config vars set AMBERHOME=$CONDA_PREFIX/envs/mdmix-env
-pip install .
+cd pyMDmix
+conda env create -f environment.yml
+conda activate pymdmix3
+conda env config vars set AMBERHOME=$CONDA_PREFIX
+conda deactivate && conda activate pymdmix3
+pip install -e .
 ```
 
 3 - Testing
@@ -57,7 +59,21 @@ Test the program works correctly:
 	Move again to the package source directory and type:
 		> python pyMDMix/test.py all
 	This will run a series of source code checks.
-	No test should fail.
+	Some tests need a working AMBER installation (tleap, cpptraj, ambpdb) and
+	internet access (PDB2PQR web server), so they will fail without them.
+
+Tutorial
+--------
+A short Spanish tutorial (cajas de solvente OPC, creacion de proyectos, analisis) is in TUTORIAL.md. The step-by-step guide to build mixed-solvent boxes with OPC water (build_box.sh, boxcalc.py) is in TUTORIAL_CAJAS.md.
+A complete project configuration template is in pyMDMix/data/templates/complete.cfg
+(`mdmix create template -f proyecto.cfg` copies it to the current folder).
+
+Python 3 notes
+--------------
+pyMDMix runs on Python 3 (>=3.9). Projects, replicas, systems, hot spot sets and the
+solvent database saved with the Python 2 version can still be opened: they are read with
+the `latin1` encoding and saved again in the Python 3 pickle format the next time they
+are written. Once saved by Python 3 they can no longer be read by the Python 2 version.
 
 4 - Using Docker
 ----------------

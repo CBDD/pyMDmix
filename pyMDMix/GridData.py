@@ -33,6 +33,12 @@ import re
 import copy
 
 import numpy as npy
+
+def _notempty(value):
+    """True unless *value* is the empty-string marker. Arrays are always considered set
+    (comparing an array with '' is elementwise in modern numpy and has no single truth value)."""
+    return isinstance(value, npy.ndarray) or value != ''
+
 from gridData import Grid
 
 class GridDataError(Exception):
@@ -74,9 +80,9 @@ class GridData(object):
               if '.xplor' in fname or '.cns' in fname: self.readXPLOR(fname)
               elif '.dx' in fname: self.readDX(fname)
               else: 
-                raise BadFile, "Can not identify %s file format.It should contain 'xplor', 'cns' or 'dx' extension"%fname
+                raise BadFile("Can not identify %s file format.It should contain 'xplor', 'cns' or 'dx' extension"%fname)
             else:
-                raise BadFile, "File %s not found."%fname   
+                raise BadFile("File %s not found."%fname)   
 
         # Construct empty grid
         elif origin is not None:
@@ -85,7 +91,7 @@ class GridData(object):
             if len(origin)==3:
                 self.origin = npy.array(origin) - margin
             else:
-                raise BadAttribute,"Invalid origin. Should be a tuple or list of 3 floats or numpy array"
+                raise BadAttribute("Invalid origin. Should be a tuple or list of 3 floats or numpy array")
 
             if spacing != None:
                 if type(spacing) is int or type(spacing) is float:
@@ -104,9 +110,9 @@ class GridData(object):
                     elif isinstance(geomExtent, list) or isinstance(geomExtent, tuple) or isisntance(geomExtent, npy.ndarray):
                         geomExtent = npy.array(geomExtent).astype(float)
                     self.shape=(geomExtent+margin*2)/self.delta
-                    self.shape= map(int, self.shape)
+                    self.shape= list(map(int, self.shape))
                 else:
-                    raise BadAttribute, "Constructing empty Grid: When spacing is given, origin+shape or origin+geomExtent are mandatory."
+                    raise BadAttribute("Constructing empty Grid: When spacing is given, origin+shape or origin+geomExtent are mandatory.")
 
             else:
                 # No spacing, to create grid, origin+shape+geometricExtent are needed, spacing will be adapted
@@ -119,13 +125,13 @@ class GridData(object):
                         geomExtent = npy.array(geomExtent).astype(float)
                     self.delta = (geomExtent+margin*2)/self.shape
                 else:
-                    raise BadAttribute, "Constructing empty Grid: When no spacing is given, origin+shape+geomExtent are mandatory. Grid not created."
+                    raise BadAttribute("Constructing empty Grid: When no spacing is given, origin+shape+geomExtent are mandatory. Grid not created.")
 
             # Build data array. dtype can be assigned through kwargs
             self.data = npy.zeros(self.shape, **kwargs) + value_filling
 
         else:
-            raise BadAttribute, "To create a grid, a filename of an existing grid or an origin+shape or origin+extent must be given."
+            raise BadAttribute("To create a grid, a filename of an existing grid or an origin+shape or origin+extent must be given.")
 
     def __getitem__(self, point):
         """Iterate Data giving cartesian coordinates"""
@@ -150,12 +156,12 @@ class GridData(object):
     
     def __call__(self):
         """Returns information about the grid if already defined"""
-        if (self.data !='' and self.origin !='' and self.delta !=''):
-            print "Grid instance source:",self.source
-            print "Data shape: ",self.data.shape," number of entries: ",self.data.size
-            print "Grid Origin: ",self.origin
-            print "Grid Spacing: ",self.delta
-        else: print "Empty grid instance or data missing!"
+        if (_notempty(self.data) and _notempty(self.origin) and _notempty(self.delta)):
+            print("Grid instance source:",self.source)
+            print("Data shape: ",self.data.shape," number of entries: ",self.data.size)
+            print("Grid Origin: ",self.origin)
+            print("Grid Spacing: ",self.delta)
+        else: print("Empty grid instance or data missing!")
   
     def readXPLOR(self, CNS):
         """
@@ -165,7 +171,7 @@ class GridData(object):
         # Unzip if zipped
         if 'gz' in CNS:
             import gzip
-            op = lambda x: gzip.open(x, 'rb')
+            op = lambda x: gzip.open(x, 'rt')
         else:
             op = lambda x: open(x, 'r')
 
@@ -181,8 +187,8 @@ class GridData(object):
             head-=1
 
         #Read grid format
-        nx, minx, maxx, ny, miny, maxy, nz, minz, maxz = map(int, f.readline().split())
-        dx, dy, dz, deltax, deltay, deltaz = map(float, f.readline().split())
+        nx, minx, maxx, ny, miny, maxy, nz, minz, maxz = list(map(int, f.readline().split()))
+        dx, dy, dz, deltax, deltay, deltaz = list(map(float, f.readline().split()))
 
         #Skip ZYX line
         f.readline()
@@ -200,7 +206,7 @@ class GridData(object):
         def readconsecutivenxny(f):
             nxy = ny*nx # bits per number
             # Calulate bits due to linebreaks
-            lbreaks = nxy/6  # 6 columns
+            lbreaks = nxy//6  # 6 columns
             if nxy%6: lbreaks+=1   # remainder
             size = nxy*12+lbreaks
             chunkstring = lambda b: [b[i:i+12] for i in range(0,len(b),12)]
@@ -209,14 +215,14 @@ class GridData(object):
         def readsplittednxny(f):
             nxy = ny*nx # bits per number
             # Calulate bits due to linebreaks
-            lbreaks = (nx/6)*ny  # 6 columns
+            lbreaks = (nx//6)*ny  # 6 columns
             if nx%6: lbreaks+=nx   # remainder
             size = nxy*12+lbreaks
             chunkstring = lambda b: [b[i:i+12] for i in range(0,len(b),12)]
             return npy.array(chunkstring(f.read(size).replace('\n','')), dtype=float)
 
         grid = npy.zeros([nx,ny,nz])
-        for z in xrange(nz):
+        for z in range(nz):
             f.readline() #skip block identifier line
             pos = f.tell()
             try:
@@ -249,7 +255,7 @@ class GridData(object):
         struct.unpack('s',of.read(1))
         hlen, =struct.unpack('i',of.read(4))
         header=struct.unpack('s'*hlen, of.read(hlen))
-        print ''.join(header)
+        print(b''.join(header).decode('latin-1'))
 
         # Write grid specifications
         maxd = [0,0,0]
@@ -258,12 +264,12 @@ class GridData(object):
 
         grid = npy.zeros((nx,ny,nz), dtype=float)
         # Write data without floritures
-        for z in xrange(nz):
+        for z in range(nz):
             grid[:,:,z] = npy.array(struct.unpack('f'*nx*ny, of.read(4*nx*ny)), dtype=float).reshape(nx, ny)
 
         sentinel, = struct.unpack('i',of.read(4))    #end of file testimony
         of.close()
-        if sentinel != -9999: print 'read error!'
+        if sentinel != -9999: print('read error!')
 
         self.data = grid
         self.delta = npy.array([(dx/nx), (dy/ny), (dz/nz)])
@@ -305,7 +311,7 @@ class GridData(object):
             grid = npy.load(pick)
             self.data = grid
             self.source = pick
-        else: raise IOError, "File not found."
+        else: raise IOError("File not found.")
 
     def loadVar(self, pick):
         """DEPREACTED. Loads origin and delta information from a pickled file"""
@@ -314,7 +320,7 @@ class GridData(object):
             origin, delta= V[:]
             self.origin = origin
             self.delta = delta
-        else: raise IOError,"File not found."
+        else: raise IOError("File not found.")
 
     def writeDX(self, dxname, header=False, gzip=False):
         """
@@ -324,14 +330,14 @@ class GridData(object):
         :parm str header: Custom string (one line without breaks) to be introduced at the top of the file for identification. If false a predefined string will be writen.
         :parm bool gzip: Write file in gzipped form.
         """
-        if (self.data !='' and self.origin !='' and self.delta !=''):
+        if (_notempty(self.data) and _notempty(self.origin) and _notempty(self.delta)):
             grid = self.data
             origin = self.origin
             delta = self.delta
 
             if gzip:
                 import gzip
-                op = lambda x: gzip.open(x, 'wb')
+                op = lambda x: gzip.open(x, 'wt')
             else:
                 op = lambda x: open(x, 'w')
 
@@ -357,16 +363,16 @@ class GridData(object):
             dxf.write('\n')
             dxf.close()
 
-        else: raise GridError, "Data or parameters missing. Can't write DX File."
+        else: raise GridError("Data or parameters missing. Can't write DX File.")
         
     def dump(self, dataname=None, varname=None):
         """
         DEPRECATED. This method uses by default the source name of self to generate the dumped file's names. For a specific name, it must be provided when calling the method.
         """
-        if (self.data !='' and self.origin !='' and self.delta !=''):
+        if (_notempty(self.data) and _notempty(self.origin) and _notempty(self.delta)):
 
           if not self.source:
-              raise BadAttribute, "Must provide a name for the dumped files. Source attribute not defined."      
+              raise BadAttribute("Must provide a name for the dumped files. Source attribute not defined.")      
 
           if dataname:
             dname = dataname      #Grid data pickle name
@@ -382,7 +388,7 @@ class GridData(object):
           V = [self.origin, self.delta]
           npy.save(vdname, V)
         else:
-          raise BadAttribute, "Data or parameters missing. Check attributes."
+          raise BadAttribute("Data or parameters missing. Check attributes.")
 
     def writeXPLOR(self, xplorname, header="", gzip=False, binary=False):
         """
@@ -399,7 +405,7 @@ class GridData(object):
         if isinstance(delta, npy.ndarray):
             delta = delta.tolist()
         elif type(delta) is int or type(delta) is float:
-            delta = map(float, [delta, delta, delta])
+            delta = list(map(float, [delta, delta, delta]))
         nx, ny, nz = grid.shape
 
         #minx, miny, minz, = origin[0]/delta[0], origin[1]/delta[1], origin[2]/delta[2]
@@ -417,19 +423,19 @@ class GridData(object):
             of = open(xplorname, 'wb')
 
             # Write header
-            of.write(struct.pack('s',header[0]))
+            of.write(struct.pack('s',header[0].encode('latin-1')))
             hlen=len(header[2])
             of.write(struct.pack('i',hlen))
-            of.write(struct.pack('s'*hlen, *tuple(header[2])))
+            of.write(struct.pack('%ds'%hlen, header[2].encode('latin-1')))
 
             # Write grid specifications
-            of.write(struct.pack('i'*9,*(nx, mind[0], maxd[0],
+            of.write(struct.pack('i'*9,*map(int, (nx, mind[0], maxd[0],
                                         ny, mind[1], maxd[1],
-                                        nz, mind[2], maxd[2])))
+                                        nz, mind[2], maxd[2]))))
             of.write(struct.pack('f'*6, space[0], space[1], space[2],deltax, deltay, deltaz))
 
             # Write data without floritures
-            for z in xrange(nz):
+            for z in range(nz):
                 d = tuple(grid[:,:,z].flatten())
                 dlen = len(d)
                 of.write(struct.pack('f'*dlen, *d))
@@ -441,7 +447,7 @@ class GridData(object):
 
             if gzip:
                 import gzip
-                op = lambda x: gzip.open(x, 'wb')
+                op = lambda x: gzip.open(x, 'wt')
             else:
                 op = lambda x: open(x, 'w')
 
@@ -459,10 +465,10 @@ class GridData(object):
                 mind[0], maxd[0], ny, mind[1], maxd[1], nz, mind[2], maxd[2], space[0], space[1], space[2], 
                 deltax, deltay, deltaz))
 
-            chunkiter = lambda a: (a[i:i+6] for i in xrange(0, len(a), 6))
+            chunkiter = lambda a: (a[i:i+6] for i in range(0, len(a), 6))
             fmt='%12.5E'
             #Write Grid data
-            for z in xrange(nz):
+            for z in range(nz):
                 of.write("%8d\n"%(mind[2]))
                 for ch in chunkiter(grid[:,:,z].flatten('F')):
                     s = fmt*len(ch)+'\n'
@@ -483,9 +489,9 @@ class GridData(object):
         calcgrid += 1/27. 
 
         narr = copy.deepcopy(self.data)
-        for x in xrange(1,narr.shape[0]-1):
-            for y in xrange(1,narr.shape[1]-1):
-                for z in xrange(1,narr.shape[2]-1):
+        for x in range(1,narr.shape[0]-1):
+            for y in range(1,narr.shape[1]-1):
+                for z in range(1,narr.shape[2]-1):
                     sl = self.data[x-1:x+2,y-1:y+2,z-1:z+2]
                     narr[x,y,z] = (sl * calcgrid).sum()
 
@@ -547,7 +553,7 @@ class GridData(object):
           spacing = self.delta
           origin = self.origin
           return (indexes * spacing) + origin
-        else: raise BadAttribute, "indexes should be tuple or list of len 3."
+        else: raise BadAttribute("indexes should be tuple or list of len 3.")
 
     def getIndex(self, cartesian):
         """
@@ -598,11 +604,11 @@ class GridData(object):
         @param3 value:  Optionally one can provide the value to assign to those points (default = 999)
         @param3 type:   int
         """
-        import Biskit
-        if isinstance(PDB, Biskit.PDBModel):
+        import biskit
+        if isinstance(PDB, biskit.PDBModel):
             protein = PDB
         else:
-            protein = Biskit.PDBModel(PDB)
+            protein = biskit.PDBModel(PDB)
         origin = self.origin
         delta = self.delta
         for atom in protein.xyz:
@@ -626,11 +632,11 @@ class GridData(object):
 
         return data
         """
-        import Biskit
-        if isinstance(PDB, Biskit.PDBModel):
+        import biskit
+        if isinstance(PDB, biskit.PDBModel):
             protein = PDB
         else:
-            protein = Biskit.PDBModel(PDB)
+            protein = biskit.PDBModel(PDB)
 
         origin = self.origin
         delta = self.delta
@@ -653,7 +659,7 @@ class GridData(object):
 
     def min_indx(self):
         """Returns index for the minimum value in data"""
-        return npy.array( zip( *npy.where( self.data == self.data.min() ) ) )[0]
+        return npy.array( list(zip( *npy.where( self.data == self.data.min() ) )) )[0]
 
     def expand(self, buff,fill=0):
         """
@@ -709,7 +715,7 @@ class GridData(object):
             return newarray
 
         else:
-            raise BadAttribute, "Spacing is not equal. Can not trim."
+            raise BadAttribute("Spacing is not equal. Can not trim.")
 
     def takeSubGridBox(self, bot, top,forceCubic=0):
         """
@@ -821,7 +827,7 @@ class GridData(object):
     def setRadialValues(self, rmax, rmin, value, center=None, point=None):
         "Set all values around 'center' or 'point' from rmin to rmax angstroms to 'value'"
         if center is None and point is None:
-            raise AttributeError, "Calling setRadialValues requires a cooridnate ('center' arg) or a grid index ('point' arg)."
+            raise AttributeError("Calling setRadialValues requires a cooridnate ('center' arg) or a grid index ('point' arg).")
 
         if center != None: idx = self.getIndex(center)
         elif point != None: idx = point
@@ -834,7 +840,7 @@ class GridData(object):
 
 class GridFromPDB(GridData):
     def __init__(self, PDB, spacing, buff=0, value_filling=0, takeProtein=True):
-	"""
+        """
 	PDB	PDBModel or PDB file
 	spacing grid spacing
 	buff	buffer around atom coordinates in angstroms
@@ -842,15 +848,15 @@ class GridFromPDB(GridData):
 	takeProtein	Boolean. If true, will try to compress only protein from PDB.
 			If False, will take the whole PDB itself
 	"""
-        import Biskit
-        if isinstance(PDB, Biskit.PDBModel):
+        import biskit
+        if isinstance(PDB, biskit.PDBModel):
             prot = PDB
         elif os.path.exists(PDB):
-            pdb_model = Biskit.PDBModel(PDB)                    #Open pdb as Biskit PDBModel
+            pdb_model = biskit.PDBModel(PDB)                    #Open pdb as Biskit PDBModel
             if takeProtein: prot = pdb_model.compress(pdb_model.maskProtein())  #Read only protein from PDBModel
-	    else: prot = pdb_model
+            else: prot = pdb_model
         else: 
-            print "Couldn't locate PDB file: ",PDB
+            print("Couldn't locate PDB file: ",PDB)
             return False        
         
         xyz = prot.xyz                                                  # get protein coordinates
@@ -1289,17 +1295,19 @@ def getRadialIndices(radius, spacing, minradius=False):
 
 ###TESTING
 
-import Biskit.test as BT
-import tools as T
+import biskit.test as BT
+from . import tools as T
 
 class Test(BT.BiskitTest):
     """Test"""
     def prepare(self):
+        self._cwd0 = os.getcwd()
         self.f_out = T.tempfile.mkdtemp()
         self.dxf = T.testRoot('grids','ETA_CT.dx')
         self.xplorf = T.testRoot('grids','ETA_CT.xplor')
 
     def cleanUp(self):
+        os.chdir(self._cwd0)   # tests chdir into f_out; do not leave the process in a deleted folder
         T.tryRemove(self.f_out, tree=1)
 
     def test_GridData_XPLOR(self):
@@ -1313,8 +1321,8 @@ class Test(BT.BiskitTest):
         """Load DX grid"""
         g = GridData(self.dxf)
         self.assertAlmostEqual(g.data.mean(), 4.215793, 4)
-        self.assertEqual(g.delta, [0.5,0.5,0.5])
-        self.assertEqual(g.origin, [-33., -33., -33.])
+        npy.testing.assert_allclose(g.delta, [0.5,0.5,0.5])         # DX grids hold numpy arrays
+        npy.testing.assert_allclose(g.origin, [-33., -33., -33.])
 
     def test_GridData_writeDX(self):
         """Read XPLOR, write DX"""
@@ -1324,7 +1332,7 @@ class Test(BT.BiskitTest):
         gxplor.writeDX('test.dx')
         gread = GridData('test.dx')
         self.assertAlmostEqual(gread.data[10,10,10], gdx.data[10,10,10])
-        self.assertEqual(gdx.origin, gread.origin)
+        npy.testing.assert_allclose(gdx.origin, gread.origin)
 
     def test_GridData_writeXPLOR(self):
         """Read DX, write XPLOR"""

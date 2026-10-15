@@ -22,30 +22,30 @@ class Add(Command):
         if action == 'system' or action == 'replicas':
             file = parserargs.file
             if not file:
-                raise MDMixError, "Configuration file needed to add new systems or replicas (use -f option)."
+                raise MDMixError("Configuration file needed to add new systems or replicas (use -f option).")
         if action == 'system':
             file = parserargs.file
             system = pyMDMix.parseSystemConfigFile(file)
             p.addNewSystems(system)
-            print "DONE"
+            print("DONE")
         elif action == 'replicas':
             file = parserargs.file
             sysname = parserargs.sysname
             if not sysname:
-                avail = p.systems.keys()
+                avail = list(p.systems.keys())
                 if len(avail) == 1: sysname = avail[0]
-                else: raise MDMixError, "More than one system in current project. Choose which one you wish to prepare with -sys option. Available systems: %s"%avail
+                else: raise MDMixError("More than one system in current project. Choose which one you wish to prepare with -sys option. Available systems: %s"%avail)
             else:
-                if not sysname in p.systems.keys():
-                    raise MDMixError, "Wrong system name. Project systems are: %s"%p.systems.keys()
-            print "Creating replicas for system %s"%sysname
+                if not sysname in list(p.systems.keys()):
+                    raise MDMixError("Wrong system name. Project systems are: %s"%list(p.systems.keys()))
+            print("Creating replicas for system %s"%sysname)
             settings = pyMDMix.parseSettingsConfigFile(file)
             p.createReplicas(sysname, settings)
-            print "DONE"
+            print("DONE")
         elif action == 'group':
             if not parserargs.groupname:
-                raise MDMixError, "Groupname is required (-gn option)."
+                raise MDMixError("Groupname is required (-gn option).")
             if not parserargs.selection:
-                raise MDMixError, "Selection list is mandatory for creating group %s (use -s option)."%parserargs.groupname
+                raise MDMixError("Selection list is mandatory for creating group %s (use -s option)."%parserargs.groupname)
             p.createGroup(parserargs.groupname, parserargs.selection)
-            print "DONE"
+            print("DONE")
