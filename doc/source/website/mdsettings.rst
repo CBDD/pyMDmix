@@ -138,7 +138,7 @@ pyMDMix is distributed with a file which defines all default MD parameters all p
  int-nvt_prod_steps = 500000 # 1ns production files = nvt_prod_steps*(md_timestep/10e6)
  float-md_timestep = 2 # 2 fs timestep
  int-namd_heating_steps = 500000 # 1ns equilibration total time to increase temperature from float-heating_tempi to float-temp in NAMD
- list-FF = leaprc.ff99SB, leaprc.gaff # Default forcefield files to load when opening tLeap
+ list-FF = leaprc.protein.ff19SB, leaprc.gaff2 # Default forcefield files to load when opening tLeap
 
 # DEFINE REFERENCE STRUCTURE FOR RESTRAINED SIMULATIONS
 # If 1: Use output of minimization as reference structure to set positional restraints.

@@ -56,7 +56,7 @@ Selection of forcefield to use
 ##############################
 To chose what forcefield should be used when preparing the solvated system, or to tell the program the FF
 used when creating the Object File, give a list of files in :attr:`FF` argument. The program will try to locate
-those files in current folder or under AMBERHOME directory. The default forcefields loaded are leaprc.ff99SB and leaprc.gaff
+those files in current folder or under AMBERHOME directory. The default forcefields loaded are leaprc.protein.ff19SB and leaprc.gaff2
 
 What are the default forcefields can be tailored using settings files :ref:`settings`
 
