@@ -1,6 +1,11 @@
-import simtk.openmm as mm
-import simtk.openmm.app as app
-import simtk.unit as u
+try:
+    import openmm as mm
+    import openmm.app as app
+    import openmm.unit as u
+except ImportError:     # OpenMM < 7.6 used the simtk namespace
+    import simtk.openmm as mm
+    import simtk.openmm.app as app
+    import simtk.unit as u
 
 import sys
 

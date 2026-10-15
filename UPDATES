@@ -44,3 +44,23 @@ UPDATE HISTORY (ZIP)
 07/07/2015
 - Fixed bug in PDB magicFit function causing maximum recursion error when too many water molecules are present. Added mask to the alignment. 
 - Fixed some bugs in grid comparison function.
+
+08/10/2026
+- Ported to Python 3 (>=3.9) and Biskit 3 (module `biskit`). Python 2 is no longer supported.
+- Python 2 pickles (projects, replicas, systems, hot spot sets, solvent database) are still readable.
+- Amber ASCII (.x) trajectories are read with a reader included in pyMDMix; NetCDF through netCDF4.
+- DCD reader detects the byte order automatically (NAMD on x86 writes little-endian files).
+- Integer divisions, text/bytes handling, set-ordering and numpy>=1.25 comparisons reviewed.
+- tools.tempDir() now returns a private folder: the tests removed the shared system temporary folder.
+
+14/10/2026
+- System and replica topology/coordinate files are now saved as .parm7 and .rst7 (previously .prmtop and .prmcrd). Test data renamed accordingly.
+- check_com: cpptraj PDB output now uses include_ep so virtual sites (e.g. EPW of OPC water) are kept in the stripped PDB.
+- Neutralization with NaCl loads leaprc.water.opc / leaprc.water.opc3 when the solvent water model is OPC / OPC3.
+- Amber.ambpdb writes the system PDB with cpptraj (trajout ... pdb include_ep) so virtual sites (EPW of OPC) are kept and the PDB has the same atoms as the topology and trajectories; it falls back to ambpdb, which skips extra points.
+- Solvent configuration parser: InvalidPath now reports which objectfile/frcmod was not found.
+- Amber restart files use the .rst7 extension (min.rst7, eqN.rst7, mdN.rst7, check_com.sh and getSimVolume).
+- ambpdb output is renumbered when it uses hybrid-36 numbering (more than 9999 residues or 99999 atoms), which Biskit cannot parse.
+- Default Amber force fields are now leaprc.protein.ff19SB and leaprc.gaff2 (settings, md-settings and documentation); the previous combination (leaprc.protein.ff14SB, leaprc.gaff) remains available by setting it in the project or settings files.
+- New package defaults: water model OPC (DEF_AMBER_WATBOX), leaprc.water.opc in DEF_AMBER_FF and FF, solvation buffer 10 A (AMBER_SOLVATE_BUFFER, DEF_AMBER_BUFFER) and temperature 310 K. Legacy TIP3P solvents must declare watermodel = TIP3P in their .config.
+- Minimization runs with "mpirun -np 10 pmemd.MPI" by default (AMBER_MIN_EXE): pmemd.cuda tends to blow up during the minimization of a freshly solvated system.

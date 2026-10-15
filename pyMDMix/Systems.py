@@ -28,7 +28,7 @@
 """
 Defines two classes to work and store structure and amber parameters for a particular biomolecule and other related information.
 
-At the end, to define the system in the MD, we need an amber parameter file (PRMTOP) and a coordinates file (PRMCRD)
+At the end, to define the system in the MD, we need an amber parameter file (parm7) and a coordinates file (rst7)
 idependently of the simulation program (AMBER or NAMD) chosen.
 
 Two different classes have been implemented:
@@ -44,10 +44,10 @@ import os
 import os.path as osp
 import logging
 
-import Solvents
-import tools as T
-import settings as S
-from Structures import FileLock
+from . import Solvents
+from . import tools as T
+from . import settings as S
+from .Structures import FileLock
 
 class SystemError(Exception):
     pass
@@ -118,8 +118,8 @@ class System(object):
         return s
 
     def __add__(self, other):
-        from MDSettings import MDSettings
-        from Replicas import Replica
+        from .MDSettings import MDSettings
+        from .Replicas import Replica
 
         if isinstance(other, MDSettings): other = [other]
         if isinstance(other, list):
@@ -144,7 +144,7 @@ class System(object):
 
     def __initCreate(self):
         if not self.create:
-            from Amber import AmberCreateSystem
+            from .Amber import AmberCreateSystem
             self.create = AmberCreateSystem(FFlist=self.FF, informative=False)
             if self.amberOFF:
                 tmpoff = self.amberOFF.writeTmp()
@@ -175,7 +175,7 @@ class System(object):
         :return: Nothing will be returned, the object file generated will be stored in :attr:`amberOFF` as an :class:`~OFFManager.OFFManager` object.
         """
         if not osp.exists(amberPDB):
-            raise BadFile, "PDB file %s does not exists"
+            raise BadFile("PDB file %s does not exists")
 
         FF = FF or self.FF
 
@@ -192,12 +192,12 @@ class System(object):
         :arg str amberOFF: Path to amber object file.
         :arg str unitname: Name of the unit we should use in the future. If not given, automatically take the first unit found in the file.
         """
-        from OFFManager import OFFManager
+        from .OFFManager import OFFManager
         
         # Special case: test
         # Grab off from testing directory
         if amberOFF.lower() == 'test': 
-            print "WORKING WITH A TEST SYSTEM!"
+            print("WORKING WITH A TEST SYSTEM!")
             amberOFF = T.testRoot('pep','pep.off')
             self.name = 'testsystem'
             self.sysFilePath = self.name+'.msys'
@@ -211,19 +211,19 @@ class System(object):
 
     def solvate(self, solvent, suffix=None, tmp=True):
         """
-        Solvate system in OFF using solvent *solvent*. A PRMTOP and PRMCRD files will be saved and paths stored to :attr:`top` and :attr:`crd`.
+        Solvate system in OFF using solvent *solvent*. A parm7 and rst7 files will be saved and paths stored to :attr:`top` and :attr:`crd`.
 
         :arg solvent: Solvent Instance or Name to fetch the Solvent Instance in the database.
         :type: str or :class:`~Solvents.Solvent`
-        :arg str suffix: Suffix for output files. Prefix will be the system name. E.g.: ``systemname_suffix.prmtop`` and ``systemname_suffix.prmcrd``.
+        :arg str suffix: Suffix for output files. Prefix will be the system name. E.g.: ``systemname_suffix.parm7`` and ``systemname_suffix.rst7``.
         :arg bool tmp: Work in temporary folder.
         """
         if not self.amberOFF:
-            raise SystemError, "Can not solvate if no Amber Object File is assigned."
+            raise SystemError("Can not solvate if no Amber Object File is assigned.")
         
         if isinstance(solvent, str): solvent = Solvents.getSolvent(solvent)
         if not solvent:
-            raise SystemError, 'Invalid solvent instance or name.'
+            raise SystemError('Invalid solvent instance or name.')
 
         # Build a loger just for this method
         log = logging.getLogger("SystemLogger")
@@ -231,23 +231,23 @@ class System(object):
 
         suffix = suffix or solvent.name
         name = '{0}_{1}'.format(self.name, suffix)
-        prmtop = name+'.prmtop'
-        prmcrd = name+'.prmcrd'
+        parm7 = name+'.parm7'
+        rst7 = name+'.rst7'
 
         if tmp:
             if isinstance(tmp, str): path = tmp
             else: path = T.tempDir()
-            prmtop = osp.join(path, prmtop)
-            prmcrd = osp.join(path, prmcrd)
+            parm7 = osp.join(path, parm7)
+            rst7 = osp.join(path, rst7)
 
         # Initiate AmberCreateSystem with loaded AmberOFF
         # Solvate, neutralize
         self.__initCreate()
         self.create.solvateOrganic(self.unitName, solvent=solvent)  # It will work even if its water
-        self.create.saveAmberParm(self.unitName, prmtop, prmcrd)
+        self.create.saveAmberParm(self.unitName, parm7, rst7)
         self.__cleanCreate()
 
-        s = SolvatedSystem(name, prmtop, prmcrd, solvent=solvent.name, ref=self.ref)
+        s = SolvatedSystem(name, parm7, rst7, solvent=solvent.name, ref=self.ref)
         return s
 
     def writeOFF(self, fname):
@@ -259,15 +259,15 @@ class System(object):
         """
         Create reference pdb and store it in self.ref
         """
-        import Biskit as bi
+        import biskit as bi
         # Initiate AmberCreateSystem with loaded AmberOFF
         self.__initCreate()
-        self.create.saveAmberParm(self.unitName, 'tmp.top', 'tmp.crd')
-        self.create.ambpdb('tmp.top','tmp.crd','tmp.pdb')
+        self.create.saveAmberParm(self.unitName, 'tmp.parm7', 'tmp.rst7')
+        self.create.ambpdb('tmp.parm7','tmp.rst7','tmp.pdb')
         self.ref = bi.PDBModel('tmp.pdb')
         self.ref.source.set_string("System %s reference"%self.name)
         # Remove tmp files
-        [os.remove('tmp.'+ext) for ext in ('top','crd','pdb')]
+        [os.remove('tmp.'+ext) for ext in ('parm7','rst7','pdb')]
         self.__cleanCreate()
 
     def copy(self):
@@ -292,7 +292,7 @@ class System(object):
     def load(self, sysfile=None):
         "Load existing project from pickled file"
         f = sysfile or self.sysFilePath
-        if not osp.exists(f): raise BadFile, "File %s not found."%f
+        if not osp.exists(f): raise BadFile("File %s not found."%f)
         with FileLock(f) as lock:
             d = T.load(f)
 #            d['log'] = logging.getLogger("System (%s)"%d['name'])
@@ -308,17 +308,17 @@ class SolvatedSystem(System):
         Solvated System constructor
 
         :arg str name: Name of solvated system.
-        :arg str top: File path to amber prmtop
-        :arg str crd: File path to amber prmcrd
-        :arg str pdb: File path to pdb file created from prmtop and prmcrd files. If none, will be automatically created
+        :arg str top: File path to amber parm7
+        :arg str crd: File path to amber rst7
+        :arg str pdb: File path to pdb file created from parm7 and rst7 files. If none, will be automatically created
         :arg str solvent: Solvent used in solvating the System
         :arg ref: PDBModel that will be used as reference for trajectory alignment, common to all solvated systems coming from same System.
         :type ref: :class:`Biskit.PDBModel`
         """
         System.__init__(self, name=name, **kwargs)
-        self.top = None #: Amber PRMTOP file. To be set from :meth:`setTOPCRD` or from :attr:`setOFF
-        self.crd = None #: Amber PRMCRD file`. Same as PRMTOP
-        self.pdb = None #: PDB created from PRMTOP and PRMCRD
+        self.top = None #: Amber parm7 file. To be set from :meth:`setTOPCRD` or from :attr:`setOFF
+        self.crd = None #: Amber rst7 file`. Same as parm7
+        self.pdb = None #: PDB created from parm7 and rst7
         self.ref = ref  #: Reference PDB, PDB before solvation that will be used as reference for al solvated systems
 
         # Store temprorary files paths
@@ -333,8 +333,8 @@ class SolvatedSystem(System):
         return "%s SolvatedSystem"%self.name
 
     def __add__(self, other):
-        from MDSettings import MDSettings
-        from Replicas import Replica
+        from .MDSettings import MDSettings
+        from .Replicas import Replica
         
         if isinstance(other, MDSettings): other = [other]
         if isinstance(other, list):
@@ -349,19 +349,19 @@ class SolvatedSystem(System):
 
     def setTopCrd(self, top, crd):
         """
-        Set PRMTOP and PRMCRD for the system. In this case, the system might be already solvated.
+        Set parm7 and rst7 for the system. In this case, the system might be already solvated.
 
-        :arg str top: path to PRMTOP file
-        :arg str crd: path to PRMCRD file
+        :arg str top: path to parm7 file
+        :arg str crd: path to rst7 file
         """
-        if not osp.exists(top): raise BadFile, "File %s not found."%top
-        if not osp.exists(crd): raise BadFile, "File %s not found."%crd
+        if not osp.exists(top): raise BadFile("File %s not found."%top)
+        if not osp.exists(crd): raise BadFile("File %s not found."%crd)
         self.top = open(top,'r').read()
         self.crd = open(crd,'r').read()
         self.setPDBfromTOPCRD()
 
         if self.ref:
-            from PDB import SolvatedPDB
+            from .PDB import SolvatedPDB
             self.ref = SolvatedPDB(self.ref)
         else:
             # Reference not given, create one from self.pdb
@@ -372,13 +372,13 @@ class SolvatedSystem(System):
             
     def saveTopCrd(self, prefix):
         """
-        Save top disk file system topology and coordinates (amber PRMTOP and PRMCRD).
-        :arg str prefix: Prefix name to output files. Extensions will be ``.prmtop`` and ``.prmcrd``.
+        Save top disk file system topology and coordinates (amber parm7 and rst7).
+        :arg str prefix: Prefix name to output files. Extensions will be ``.parm7`` and ``.rst7``.
         """
         if self.top and self.crd:
-            open(prefix+'.prmtop','w').write(self.top)
-            open(prefix+'.prmcrd','w').write(self.crd)
-            return osp.exists(prefix+'.prmtop') and osp.exists(prefix+'.prmcrd')
+            open(prefix+'.parm7','w').write(self.top)
+            open(prefix+'.rst7','w').write(self.crd)
+            return osp.exists(prefix+'.parm7') and osp.exists(prefix+'.rst7')
         return False
 
     def savePDB(self, fname):
@@ -394,7 +394,7 @@ class SolvatedSystem(System):
         """
         Return a :class:`~PDB.SolvatedPDB` object from the PDB file generated from TOP and CRD
         """
-        from PDB import SolvatedPDB
+        from .PDB import SolvatedPDB
         pdb = self.getTmpPdbFile()
         o = SolvatedPDB(pdb, self.extraResList)
         self.cleanTmp()
@@ -404,11 +404,11 @@ class SolvatedSystem(System):
         """
         Save Top and Crd as temporary files
 
-        :return: tuple (prmtop tempfile path, prmcrd tempfile path)
+        :return: tuple (parm7 tempfile path, rst7 tempfile path)
         """
         tmp = T.tempfile.mktemp()
-        self.tmp_top = tmp+'.prmtop'
-        self.tmp_crd = tmp+'.prmcrd'
+        self.tmp_top = tmp+'.parm7'
+        self.tmp_crd = tmp+'.rst7'
         if self.saveTopCrd(tmp):
             return self.tmp_top, self.tmp_crd
 
@@ -434,7 +434,7 @@ class SolvatedSystem(System):
     def setPDBfromTOPCRD(self):
         "Save a PDB file from the TOP and CRD files in attributes."
         import time
-        from Amber import AmberCreateSystem
+        from .Amber import AmberCreateSystem
 
         self.getTmpTopCrdFiles()
         self.tmp_pdb = tmp = T.tempfile.mktemp()+'.pdb'
@@ -453,7 +453,7 @@ class SolvatedSystem(System):
 def loadSystem(systemfile=None):
     """
     Load existing system. 
-    If *systemfile* path is not given, will try to load any ``\*.mrepl`` file present in current folder.
+    If *systemfile* path is not given, will try to load any ``\\*.mrepl`` file present in current folder.
 
     :returns: :class:`~Systems.System` object
     """
@@ -461,9 +461,9 @@ def loadSystem(systemfile=None):
         import glob
         files = glob.glob('*.msys')
         if len(files) > 1:
-            raise SystemError,"More than one system file in current folder. Please give as argument the file to load."
+            raise SystemError("More than one system file in current folder. Please give as argument the file to load.")
         elif not files:
-            raise SystemError,"No file found with extension *.msys in current folder and no path was given."
+            raise SystemError("No file found with extension *.msys in current folder and no path was given.")
         systemfile = files[0]
     return System(fromfile=systemfile)
 
@@ -472,13 +472,13 @@ def parseSystemConfigFile(projectConfigFile):
     """
     Auxiliary function to build a System from a System configuration file (SCF)
     """
-    from Parsers import SystemConfigFileParser
-    if not osp.exists(projectConfigFile): raise BadFile, "File %s not found."%projectConfigFile
+    from .Parsers import SystemConfigFileParser
+    if not osp.exists(projectConfigFile): raise BadFile("File %s not found."%projectConfigFile)
     sys = SystemConfigFileParser().parse(projectConfigFile)
     return sys
 
 
-import Biskit.test as BT
+import biskit.test as BT
 
 class Test(BT.BiskitTest):
     """Test"""
@@ -501,8 +501,8 @@ class Test(BT.BiskitTest):
         solvatedsys = self.r1.solvate('WAT', tmp=self.f_out)
         
     def test_SolvatedSystem(self):
-        top = T.testRoot('pep','pep.prmtop')
-        crd = T.testRoot('pep','pep.prmcrd')
+        top = T.testRoot('pep','pep.parm7')
+        crd = T.testRoot('pep','pep.rst7')
         self.f_out =  T.tempDir()+os.sep+'SolvatedSystem'
         if not os.path.exists(self.f_out): os.mkdir(self.f_out)
         T.BROWSER.chdir(self.f_out)

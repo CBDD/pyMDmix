@@ -91,8 +91,8 @@ class Residence_Worker(multiprocessing.Process):
 
             if npy.any(ids):
                 # Save unique IDs for tracked residues
-                resids = npy.unique(map(self.mapIndexToResID.get, ids))
-                resnames = map(self.mapResIDToResName.get, resids)
+                resids = npy.unique(list(map(self.mapIndexToResID.get, ids)))
+                resnames = list(map(self.mapResIDToResName.get, resids))
                 if self.trackResNames:
                     m = npy.array([r in self.trackResNames for r in resnames])
                     if npy.any(m):
@@ -141,7 +141,7 @@ class Residence(object):
             Read calcResults() documentation for returning dict format.
         """
         self.log = logging.getLogger("Residence")
-        if not isinstance(replica, pyMDMix.Replica): raise DensityError, "replica argument of wrong type."
+        if not isinstance(replica, pyMDMix.Replica): raise DensityError("replica argument of wrong type.")
         self.replica= replica
         self.pdb = replica.getPDB()
         self.parallel = parallel
@@ -150,14 +150,14 @@ class Residence(object):
         self.tolerance = tolerance
         self.trackResNames = trackResNames
         self.outfilename = outfilename
-	self.hotspot_coords = []
+        self.hotspot_coords = []
         self.workerList = []
         self.results = {}
         self.mapIndexToResID = {}
 
         # Algned trajetory is needed
         if not replica.isAligned(stepselection):
-            raise ResidenceError, "Cannot calculate residence plots over non-aligned trajectory"
+            raise ResidenceError("Cannot calculate residence plots over non-aligned trajectory")
 
         self.setup()
 
@@ -175,9 +175,9 @@ class Residence(object):
                 self.hotspot_coords = self.hotspot.coordList
                 self.log.info("Residence: Tracking occupancy of hotspot %s"%self.hotspot)
             else:
-                raise ResidenceError, "Wrong 'hotspot' argument type"
+                raise ResidenceError("Wrong 'hotspot' argument type")
         else:
-            raise ResidenceError, "Hotspot+tolerance or Spherecenter+tolerance must be given."
+            raise ResidenceError("Hotspot+tolerance or Spherecenter+tolerance must be given.")
 
         # Print info
         self.log.info("Residence: Resnames to track: %s"%self.trackResNames)
@@ -208,8 +208,8 @@ class Residence(object):
 
         if npy.any(ids):
             # Save unique IDs for tracked residues
-            resids = map(self.mapIndexToResID.get, ids)
-            resnames = map(self.mapResIDToResName.get, resids)
+            resids = list(map(self.mapIndexToResID.get, ids))
+            resnames = list(map(self.mapResIDToResName.get, resids))
             if self.trackResNames:
                 m = [r in self.trackResNames for r in resnames]
                 if npy.any(m):
@@ -241,12 +241,12 @@ class Residence(object):
         # First lines for ID - Residue Name identification
         # Build a map: {RESNAME:[ID,ID,ID], ...}
         allids = set()
-        [[allids.add(i) for i in framids] for framids in self.results.values()]
-        resnames = map(self.mapResIDToResName.get, allids)
+        [[allids.add(i) for i in framids] for framids in list(self.results.values())]
+        resnames = list(map(self.mapResIDToResName.get, allids))
         finalmap = {}
         for i,idx in enumerate(allids):
             name = resnames[i]
-            if not finalmap.has_key(name): finalmap[name] = []
+            if name not in finalmap: finalmap[name] = []
             finalmap[name].append(idx)
         
         # Write map to first lines in file preceded with a #
@@ -254,7 +254,7 @@ class Residence(object):
         if self.trackResNames: out.write(". Tracked residues: %s\n"%self.trackResNames)
         else: out.write('\n')
         out.write("# RESNAME-RESID MAP\n")
-        for k, v in finalmap.iteritems(): out.write("# %s = %s\n"%(k, ','.join(map(str,v))))
+        for k, v in finalmap.items(): out.write("# %s = %s\n"%(k, ','.join(map(str,v))))
         out.write("# DATA\n")
         
         # Finally write frames and ids
